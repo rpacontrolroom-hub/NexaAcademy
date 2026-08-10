@@ -852,9 +852,9 @@ export default function NexaAcademy() {
   }
 
   // --- Perfil do usuário ---
-  const [perfilNome, setPerfilNome] = useState("Alani Rigotti de Oliveira");
-  const perfilEmail = "alani.rigotti@gmail.com";
-  const primeiroNome = academyController.getFirstName(perfilNome);
+  const [perfilNome, setPerfilNome] = useState("Key user");
+  const perfilEmail = "key.user@gmail.com";
+  const primeiroNome = perfilNome;
   const [perfilCargo, setPerfilCargo] = useState("Analista RPA");
   const [perfilSalvo, setPerfilSalvo] = useState(false);
 
