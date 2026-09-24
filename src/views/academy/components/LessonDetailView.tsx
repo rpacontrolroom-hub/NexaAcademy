@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   BarChart3,
   BookOpen,
@@ -8,21 +10,24 @@ import {
   ChevronRight,
   Clock3,
   Download,
+  ExternalLink,
   FileText,
   Gauge,
   ListChecks,
   Play,
-  RotateCcw,
-  Settings,
   Target,
-  Volume2,
 } from "lucide-react";
 
 import { courseController } from "@/controllers/course-controller";
-import { onboardingCourse } from "@/mocks/course-detail";
-import { lessonDetails } from "@/mocks/lesson-detail";
+import { keys, useAula, useComentarios, useCursoDetalhe } from "@/hooks/use-academy";
+import * as repo from "@/data/academy-repository";
+import { formatBytes, timeAgo, youtubeId } from "@/lib/format";
+import type { LessonDetail } from "@/models/lesson-detail";
 
 interface LessonDetailViewProps {
+  userId?: string;
+  course?: repo.Treinamento;
+  matricula?: repo.Matricula;
   lessonId: string;
   onBack: () => void;
   onNavigate: (lessonId: string) => void;
@@ -98,28 +103,112 @@ const lessonDetailCss = `
   }
 `;
 
-export default function LessonDetailView({ lessonId, onBack, onNavigate }: LessonDetailViewProps) {
+const extraLessonCss = `
+  .lesson-player { position:relative; margin:16px; aspect-ratio:16/9; overflow:hidden; background:#000; border-radius:9px; }
+  .lesson-player iframe { position:absolute; inset:0; width:100%; height:100%; border:0; }
+  .lesson-text { margin:16px; padding:18px; white-space:pre-wrap; color:#333; background:#fafafa; border:1px solid #e4e4e4; border-radius:9px; font-size:12.5px; line-height:1.7; }
+  .lesson-open-link { display:inline-flex; align-items:center; gap:7px; margin-top:14px; padding:9px 14px; color:#fff; background:#111; border-radius:7px; font-size:11.5px; font-weight:600; text-decoration:none; }
+  .lesson-comment { padding:12px 0; border-bottom:1px solid #eee; }
+  .lesson-comment:last-child { border-bottom:0; }
+  .lesson-comment-meta { color:#888; font-size:10.5px; margin-bottom:4px; }
+  .lesson-comment-form { display:flex; flex-direction:column; gap:8px; margin-top:16px; }
+  .lesson-comment-form textarea { min-height:70px; padding:10px 12px; border:1px solid #ddd; border-radius:8px; font:inherit; font-size:12px; resize:vertical; }
+  .lesson-material-row a { color:inherit; }
+`;
+
+export default function LessonDetailView({ userId, course: treinamento, matricula, lessonId, onBack, onNavigate }: LessonDetailViewProps) {
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<"overview" | "transcript" | "materials" | "discussion">("overview");
-  const [completed, setCompleted] = useState(false);
-  const context = courseController.getLessonContext(onboardingCourse, lessonId, lessonDetails);
+  const [comentario, setComentario] = useState("");
+  const [salvando, setSalvando] = useState(false);
+  const { course, isLoading } = useCursoDetalhe(userId, treinamento, matricula?.progresso ?? 0);
+  const { data: aula } = useAula(lessonId);
+  const { data: comentarios = [] } = useComentarios(activeTab === "discussion" ? lessonId : null);
+
+  function invalidarProgresso() {
+    for (const queryKey of [["concluidas"], ["matriculas"], ["meu-resumo"], ["meus-certificados"], keys.adminResumo]) {
+      queryClient.invalidateQueries({ queryKey });
+    }
+  }
+
+  // Abrir a aula registra a matrícula no treinamento (na primeira vez).
+  useEffect(() => {
+    if (!userId || !lessonId) return;
+    repo.registrarAulaAberta(userId, lessonId).then(() => {
+      if (!matricula) invalidarProgresso();
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, lessonId]);
+
+  if (!course) {
+    return (
+      <section className="lesson-detail">
+        <p style={{ color: "#777", fontSize: 13 }}>{isLoading ? "Carregando aula..." : "A aula selecionada não está disponível."}</p>
+        {!isLoading && <button className="lesson-nav-button" onClick={onBack}>Voltar ao curso</button>}
+      </section>
+    );
+  }
+
+  const details: Record<string, LessonDetail> = aula
+    ? {
+        [lessonId]: {
+          lessonId,
+          title: aula.titulo,
+          description: aula.descricao ?? "",
+          summary: aula.resumo ?? "",
+          objectives: aula.objetivos ?? [],
+          learnings: aula.aprendizados ?? [],
+          materials: (aula.materiais ?? []).map((m) => ({ id: m.id, title: m.titulo, size: formatBytes(m.tamanho_bytes) })),
+        },
+      }
+    : {};
+  const context = courseController.getLessonContext(course, lessonId, details);
 
   if (!context) {
     return (
       <section className="lesson-detail">
-        <p>A aula selecionada não está disponível.</p>
+        <p>A aula selecionada não está disponível. Conclua os módulos anteriores para liberá-la.</p>
         <button className="lesson-nav-button" onClick={onBack}>Voltar ao curso</button>
       </section>
     );
   }
 
   const { lesson, module, previousLesson, nextLesson, detail } = context;
+  const completed = lesson.completed;
+  const videoId = youtubeId(aula?.url);
+
+  async function alternarConcluida() {
+    if (!userId || salvando) return;
+    setSalvando(true);
+    try {
+      await repo.definirAulaConcluida(userId, lessonId, !completed);
+      invalidarProgresso();
+      if (!completed && nextLesson) toast.success("Aula concluída! Siga para a próxima.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : String(err));
+    } finally {
+      setSalvando(false);
+    }
+  }
+
+  async function enviarComentario() {
+    if (!comentario.trim()) return;
+    try {
+      await repo.adicionarComentario(lessonId, comentario);
+      setComentario("");
+      queryClient.invalidateQueries({ queryKey: keys.comentarios(lessonId) });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : String(err));
+    }
+  }
 
   return (
     <section className="lesson-detail">
       <style>{lessonDetailCss}</style>
+      <style>{extraLessonCss}</style>
       <div className="lesson-detail-breadcrumb">
         <button onClick={onBack}>Treinamentos</button><ChevronRight size={12} />
-        <button onClick={onBack}>{onboardingCourse.title}</button><ChevronRight size={12} />
+        <button onClick={onBack}>{course.title}</button><ChevronRight size={12} />
         <span>{module.order}. {module.title}</span>
       </div>
 
@@ -128,16 +217,16 @@ export default function LessonDetailView({ lessonId, onBack, onNavigate }: Lesso
           <h1 className="lesson-detail-title">{module.order}. {detail.title}</h1>
           <p className="lesson-detail-description">{detail.description}</p>
         </div>
-        <button className={`lesson-detail-complete ${completed ? "done" : ""}`} onClick={() => setCompleted((value) => !value)}>
+        <button className={`lesson-detail-complete ${completed ? "done" : ""}`} onClick={alternarConcluida} disabled={salvando}>
           <CheckCircle2 size={15} /> {completed ? "Concluída" : "Marcar como concluída"}
         </button>
       </header>
 
       <div className="lesson-detail-chips">
         <span className="lesson-detail-chip"><Clock3 size={13} />{lesson.duration}</span>
-        <span className="lesson-detail-chip"><BookOpen size={13} />Módulo {module.order} de {onboardingCourse.modules.length}</span>
-        <span className="lesson-detail-chip"><BarChart3 size={13} />{onboardingCourse.progress}% concluído</span>
-        <span className="lesson-detail-chip"><Gauge size={13} />Avançado</span>
+        <span className="lesson-detail-chip"><BookOpen size={13} />Módulo {module.order} de {course.modules.length}</span>
+        <span className="lesson-detail-chip"><BarChart3 size={13} />{course.progress}% concluído</span>
+        <span className="lesson-detail-chip"><Gauge size={13} />{course.level}</span>
       </div>
 
       <div className="lesson-detail-grid">
@@ -154,15 +243,20 @@ export default function LessonDetailView({ lessonId, onBack, onNavigate }: Lesso
 
             {activeTab === "overview" && (
               <>
-                <div className="lesson-video">
-                  <div className="lesson-video-brand">blueprism<sup>®</sup></div>
-                  <button className="lesson-video-play" aria-label="Reproduzir aula"><Play size={25} fill="#fff" /></button>
-                  <div className="lesson-video-controls">
-                    <div className="lesson-video-progress"><span /></div>
-                    <Play size={14} fill="#fff" /><RotateCcw size={14} /><span>00:00 / {lesson.duration}</span>
-                    <span className="lesson-video-spacer" /><Volume2 size={14} /><Settings size={14} />
+                {videoId ? (
+                  <div className="lesson-player">
+                    <iframe src={`https://www.youtube-nocookie.com/embed/${videoId}`} title={detail.title} allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
                   </div>
-                </div>
+                ) : aula?.tipo === "texto" && aula.conteudo ? (
+                  <div className="lesson-text">{aula.conteudo}</div>
+                ) : (
+                  <div className="lesson-video">
+                    <div className="lesson-video-brand" style={{ fontSize: 18, top: 60 }}>{aula?.url ? "Conteúdo externo" : "Conteúdo em preparação"}</div>
+                    {aula?.url
+                      ? <a className="lesson-video-play" href={aula.url} target="_blank" rel="noreferrer" aria-label="Abrir conteúdo"><ExternalLink size={24} /></a>
+                      : <span className="lesson-video-play" style={{ opacity: .35, cursor: "default" }}><Play size={25} fill="#fff" /></span>}
+                  </div>
+                )}
                 <div className="lesson-overview">
                   <div className="lesson-overview-top">
                     <section className="lesson-overview-section">
@@ -184,9 +278,29 @@ export default function LessonDetailView({ lessonId, onBack, onNavigate }: Lesso
               </>
             )}
 
-            {activeTab === "transcript" && <div className="lesson-tab-content"><h3>Transcrição</h3><p>A transcrição acompanha o conteúdo apresentado no vídeo e ficará disponível durante a reprodução da aula.</p></div>}
+            {activeTab === "transcript" && (
+              <div className="lesson-tab-content">
+                <h3>Transcrição</h3>
+                <p style={{ whiteSpace: "pre-wrap" }}>{aula?.transcricao || "A transcrição desta aula ainda não foi cadastrada."}</p>
+              </div>
+            )}
             {activeTab === "materials" && <div className="lesson-tab-content"><h3>Materiais</h3><p>Consulte os arquivos disponíveis no painel lateral para complementar seus estudos.</p></div>}
-            {activeTab === "discussion" && <div className="lesson-tab-content"><h3>Discussão</h3><p>Espaço demonstrativo para dúvidas e comentários relacionados à aula.</p></div>}
+            {activeTab === "discussion" && (
+              <div className="lesson-tab-content">
+                <h3>Discussão</h3>
+                {comentarios.length === 0 && <p>Nenhum comentário ainda. Tire sua dúvida ou compartilhe algo sobre a aula.</p>}
+                {comentarios.map((c) => (
+                  <div className="lesson-comment" key={c.id}>
+                    <div className="lesson-comment-meta"><strong style={{ color: "#333" }}>{c.autor}</strong> · {timeAgo(c.created_at)}</div>
+                    <div style={{ whiteSpace: "pre-wrap" }}>{c.conteudo}</div>
+                  </div>
+                ))}
+                <div className="lesson-comment-form">
+                  <textarea value={comentario} onChange={(e) => setComentario(e.target.value)} placeholder="Escreva um comentário..." />
+                  <div><button className="lesson-nav-button next" onClick={enviarComentario} disabled={!comentario.trim()}>Comentar</button></div>
+                </div>
+              </div>
+            )}
           </article>
 
           <div className="lesson-detail-navigation">
@@ -210,11 +324,14 @@ export default function LessonDetailView({ lessonId, onBack, onNavigate }: Lesso
 
           <section className="lesson-detail-side-card">
             <h2 className="lesson-detail-side-title">Materiais da aula <Download size={15} /></h2>
-            {detail.materials.length ? (
+            {aula?.materiais?.length ? (
               <div className="lesson-material-list">
-                {detail.materials.map((material) => (
+                {aula.materiais.map((material) => (
                   <div className="lesson-material-row" key={material.id}>
-                    <FileText size={14} /><span>{material.title}</span><span className="lesson-material-size">{material.size}</span><Download size={13} />
+                    <FileText size={14} />
+                    {material.arquivo_url ? <a href={material.arquivo_url} target="_blank" rel="noreferrer">{material.titulo}</a> : <span>{material.titulo}</span>}
+                    <span className="lesson-material-size">{formatBytes(material.tamanho_bytes)}</span>
+                    {material.arquivo_url ? <a href={material.arquivo_url} download aria-label={`Baixar ${material.titulo}`}><Download size={13} /></a> : <Download size={13} style={{ opacity: .3 }} />}
                   </div>
                 ))}
               </div>

@@ -1,6 +1,9 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Eye, EyeOff, Lock, Mail } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail, User } from "lucide-react";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/hooks/use-auth";
+import { CORPORATE_EMAIL_DOMAIN, isValidCorporateEmail } from "@/services/user-service";
 
 const css = `
   html, body { min-height: 100%; margin: 0; background: #f5f5f4; }
@@ -100,20 +103,131 @@ const css = `
   }
 `;
 
+
+const extraCss = `
+  .login-links { display:flex; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-top:18px; font-size:14px; }
+  .login-link { padding:0; border:0; background:none; color:#333; text-decoration:underline; cursor:pointer; font:inherit; }
+  .login-link:hover { color:#000; }
+  .login-msg { margin:-18px 0 24px; padding:12px 14px; border-radius:8px; font-size:14px; line-height:1.45; }
+  .login-msg.error { color:#9b1c2c; background:#fdecee; border:1px solid #f5c2c9; }
+  .login-msg.ok { color:#1f5b35; background:#e9f6ee; border:1px solid #bfe3cc; }
+  .login-submit:disabled { opacity:.6; cursor:wait; }
+`;
+
+type Modo = "login" | "cadastro" | "esqueci" | "definir-senha";
+
+const TITULOS: Record<Modo, [string, string]> = {
+  login: ["Entrar na sua conta", "Use suas credenciais para acessar a plataforma"],
+  cadastro: ["Criar conta", `Primeiro acesso? Cadastre-se com seu e-mail ${CORPORATE_EMAIL_DOMAIN}`],
+  esqueci: ["Recuperar senha", "Enviaremos um link para você definir uma nova senha"],
+  "definir-senha": ["Definir senha", "Escolha a senha que você vai usar para entrar na plataforma"],
+};
+
+const TEXTO_BOTAO: Record<Modo, string> = {
+  login: "Entrar",
+  cadastro: "Criar conta",
+  esqueci: "Enviar link",
+  "definir-senha": "Salvar senha",
+};
+
+function traduzirErro(message: string): string {
+  if (/invalid login credentials/i.test(message)) return "E-mail ou senha incorretos.";
+  if (/email not confirmed/i.test(message)) return "Confirme seu e-mail pelo link que enviamos antes de entrar.";
+  if (/already registered|already been registered/i.test(message)) return "Este e-mail já está cadastrado. Use \"Esqueci minha senha\" se não lembrar a senha.";
+  if (/database error saving new user|somente e-mails/i.test(message)) return `Somente e-mails ${CORPORATE_EMAIL_DOMAIN} podem ser cadastrados.`;
+  if (/rate limit|too many/i.test(message)) return "Muitas tentativas em pouco tempo. Aguarde alguns minutos e tente novamente.";
+  if (/password should be at least/i.test(message)) return "A senha precisa ter no mínimo 8 caracteres.";
+  return message;
+}
+
 export default function Login() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("admin");
-  const [password, setPassword] = useState("123");
+  const { session, event, loading } = useAuth();
+  const [modo, setModo] = useState<Modo>("login");
+  const [nome, setNome] = useState("");
+  // Login fixo de desenvolvimento: só em `bun run dev` e só se definido no .env (fora do Git).
+  const devEmail = import.meta.env.DEV ? (import.meta.env.VITE_DEV_LOGIN_EMAIL ?? "") : "";
+  const devPassword = import.meta.env.DEV ? (import.meta.env.VITE_DEV_LOGIN_PASSWORD ?? "") : "";
+  const [email, setEmail] = useState(devEmail);
+  const [password, setPassword] = useState(devPassword);
+  const [confirmacao, setConfirmacao] = useState("");
   const [showPw, setShowPw] = useState(false);
+  const [enviando, setEnviando] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+  const [aviso, setAviso] = useState<string | null>(null);
 
-  function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    navigate({ to: "/academy" });
+  // Links de convite/recuperação voltam para "/?definir-senha=1" já com a sessão.
+  useEffect(() => {
+    if (loading) return;
+    const querDefinirSenha = new URLSearchParams(window.location.search).has("definir-senha");
+    if (event === "PASSWORD_RECOVERY" || (querDefinirSenha && session)) {
+      setModo("definir-senha");
+      return;
+    }
+    if (session && modo !== "definir-senha") navigate({ to: "/academy" });
+  }, [loading, session, event, modo, navigate]);
+
+  function trocarModo(novo: Modo) {
+    setModo(novo);
+    setErro(null);
+    setAviso(null);
+    setPassword(novo === "login" ? devPassword : "");
+    setConfirmacao("");
   }
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    setErro(null);
+    setAviso(null);
+
+    const defineSenha = modo === "cadastro" || modo === "definir-senha";
+    if (defineSenha && password.length < 8) return setErro("A senha precisa ter no mínimo 8 caracteres.");
+    if (defineSenha && password !== confirmacao) return setErro("As senhas não coincidem.");
+    if (modo === "cadastro" && nome.trim().length < 2) return setErro("Informe seu nome completo.");
+    if (modo === "cadastro" && !isValidCorporateEmail(email)) return setErro(`Use seu e-mail corporativo ${CORPORATE_EMAIL_DOMAIN}.`);
+
+    setEnviando(true);
+    try {
+      const emailNormalizado = email.trim().toLowerCase();
+      if (modo === "login") {
+        const { error } = await supabase.auth.signInWithPassword({ email: emailNormalizado, password });
+        if (error) throw error;
+        navigate({ to: "/academy" });
+      } else if (modo === "cadastro") {
+        const { data, error } = await supabase.auth.signUp({
+          email: emailNormalizado,
+          password,
+          options: { data: { nome: nome.trim() }, emailRedirectTo: window.location.origin },
+        });
+        if (error) throw error;
+        if (data.session) navigate({ to: "/academy" });
+        else {
+          trocarModo("login");
+          setAviso("Conta criada! Enviamos um link de confirmação para o seu e-mail. Confirme e depois entre com sua senha.");
+        }
+      } else if (modo === "esqueci") {
+        const { error } = await supabase.auth.resetPasswordForEmail(emailNormalizado, { redirectTo: `${window.location.origin}/?definir-senha=1` });
+        if (error) throw error;
+        setAviso("Se o e-mail estiver cadastrado, você receberá um link para definir uma nova senha.");
+      } else {
+        const { error } = await supabase.auth.updateUser({ password });
+        if (error) throw error;
+        window.history.replaceState(null, "", "/");
+        navigate({ to: "/academy" });
+      }
+    } catch (err) {
+      setErro(traduzirErro(err instanceof Error ? err.message : String(err)));
+    } finally {
+      setEnviando(false);
+    }
+  }
+
+  const [titulo, subtitulo] = TITULOS[modo];
 
   return (
     <>
       <style>{css}</style>
+      <style>{extraCss}</style>
       <div className="login-root">
         <div className="login-shell">
           <aside className="login-left">
@@ -133,28 +247,64 @@ export default function Login() {
 
           <main className="login-right">
             <div className="login-card">
-              <h2>Entrar na sua conta</h2>
-              <p className="login-sub">Use suas credenciais para acessar a plataforma</p>
+              <h2>{titulo}</h2>
+              <p className="login-sub">{subtitulo}</p>
+              {erro && <div className="login-msg error" role="alert">{erro}</div>}
+              {aviso && <div className="login-msg ok" role="status">{aviso}</div>}
               <form onSubmit={handleSubmit}>
-                <div className="login-field">
-                  <label className="login-label" htmlFor="email">E-mail</label>
-                  <div className="login-input-wrap">
-                    <Mail size={22} className="leading" />
-                    <input id="email" className="login-input" required value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="username" />
+                {modo === "cadastro" && (
+                  <div className="login-field">
+                    <label className="login-label" htmlFor="nome">Nome completo</label>
+                    <div className="login-input-wrap">
+                      <User size={22} className="leading" />
+                      <input id="nome" className="login-input" required value={nome} onChange={(e) => setNome(e.target.value)} autoComplete="name" />
+                    </div>
                   </div>
-                </div>
-                <div className="login-field">
-                  <label className="login-label" htmlFor="password">Senha</label>
-                  <div className="login-input-wrap">
-                    <Lock size={22} className="leading" />
-                    <input id="password" className="login-input" type={showPw ? "text" : "password"} required value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" />
-                    <button type="button" className="login-eye" onClick={() => setShowPw((value) => !value)} aria-label={showPw ? "Ocultar senha" : "Mostrar senha"}>
-                      {showPw ? <EyeOff size={22} /> : <Eye size={22} />}
-                    </button>
+                )}
+                {modo !== "definir-senha" && (
+                  <div className="login-field">
+                    <label className="login-label" htmlFor="email">E-mail</label>
+                    <div className="login-input-wrap">
+                      <Mail size={22} className="leading" />
+                      <input id="email" type="email" className="login-input" required value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="username" placeholder={`nome${CORPORATE_EMAIL_DOMAIN}`} />
+                    </div>
                   </div>
-                </div>
-                <button type="submit" className="login-submit">Entrar</button>
+                )}
+                {modo !== "esqueci" && (
+                  <div className="login-field">
+                    <label className="login-label" htmlFor="password">{modo === "login" ? "Senha" : "Nova senha"}</label>
+                    <div className="login-input-wrap">
+                      <Lock size={22} className="leading" />
+                      <input id="password" className="login-input" type={showPw ? "text" : "password"} required value={password} onChange={(e) => setPassword(e.target.value)} autoComplete={modo === "login" ? "current-password" : "new-password"} />
+                      <button type="button" className="login-eye" onClick={() => setShowPw((value) => !value)} aria-label={showPw ? "Ocultar senha" : "Mostrar senha"}>
+                        {showPw ? <EyeOff size={22} /> : <Eye size={22} />}
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {(modo === "cadastro" || modo === "definir-senha") && (
+                  <div className="login-field">
+                    <label className="login-label" htmlFor="confirmacao">Confirmar senha</label>
+                    <div className="login-input-wrap">
+                      <Lock size={22} className="leading" />
+                      <input id="confirmacao" className="login-input" type={showPw ? "text" : "password"} required value={confirmacao} onChange={(e) => setConfirmacao(e.target.value)} autoComplete="new-password" />
+                    </div>
+                  </div>
+                )}
+                <button type="submit" className="login-submit" disabled={enviando}>{enviando ? "Aguarde..." : TEXTO_BOTAO[modo]}</button>
               </form>
+              {modo !== "definir-senha" && (
+                <div className="login-links">
+                  {modo === "login" ? (
+                    <>
+                      <button type="button" className="login-link" onClick={() => trocarModo("cadastro")}>Primeiro acesso? Criar conta</button>
+                      <button type="button" className="login-link" onClick={() => trocarModo("esqueci")}>Esqueci minha senha</button>
+                    </>
+                  ) : (
+                    <button type="button" className="login-link" onClick={() => trocarModo("login")}>Voltar para o login</button>
+                  )}
+                </div>
+              )}
             </div>
             <p className="login-support">Precisa de ajuda? Fale com seu líder técnico</p>
           </main>

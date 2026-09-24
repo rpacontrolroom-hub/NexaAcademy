@@ -7,7 +7,7 @@ import { Award, Download, Eye, FileUp, PlusCircle, Power, Trash2, X } from "luci
 interface AdminCertificatesViewProps {
   courseTitles: string[];
   templates: CertificateTemplate[];
-  onCreate: (draft: CertificateTemplateDraft) => boolean;
+  onCreate: (draft: CertificateTemplateDraft, file: File | null) => boolean | Promise<boolean>;
   onPreview: (template: CertificateTemplate) => void;
   onRemove: (templateId: string) => void;
   onToggleStatus: (templateId: string) => void;
@@ -39,6 +39,8 @@ export default function AdminCertificatesView({
 }: AdminCertificatesViewProps) {
   const [showModal, setShowModal] = useState(false);
   const [attempted, setAttempted] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [saving, setSaving] = useState(false);
   const firstCourse = courseTitles[0] ?? "";
   const [draft, setDraft] = useState<CertificateTemplateDraft>(() => initialDraft(firstCourse));
   const validation = academyController.validateCertificateTemplateDraft(draft);
@@ -47,6 +49,7 @@ export default function AdminCertificatesView({
 
   function openModal() {
     setDraft(initialDraft(firstCourse));
+    setFile(null);
     setAttempted(false);
     setShowModal(true);
   }
@@ -56,10 +59,13 @@ export default function AdminCertificatesView({
     setAttempted(false);
   }
 
-  function submit() {
+  async function submit() {
     setAttempted(true);
-    if (!validation.valid) return;
-    if (onCreate(draft)) closeModal();
+    if (!validation.valid || saving) return;
+    setSaving(true);
+    const ok = await onCreate(draft, file);
+    setSaving(false);
+    if (ok) closeModal();
   }
 
   return (
@@ -133,12 +139,12 @@ export default function AdminCertificatesView({
               <label><span className="nexa-label">Status inicial</span><select className="nexa-input" value={draft.status} onChange={(event) => setDraft({ ...draft, status: event.target.value as CertificateTemplateDraft["status"] })}><option value="active">Ativo</option><option value="draft">Rascunho</option></select></label>
               <label style={{ gridColumn: "1 / -1" }}><span className="nexa-label">Cargo do responsável</span><input className="nexa-input" value={draft.signerRole} onChange={(event) => setDraft({ ...draft, signerRole: event.target.value })} />{attempted && validation.errors.signerRole && <small style={{ color: "#c2414f" }}>{validation.errors.signerRole}</small>}</label>
               <label style={{ gridColumn: "1 / -1" }}><span className="nexa-label">Conteúdo programático — um item por linha</span><textarea className="nexa-input" style={{ minHeight: 100, resize: "vertical" }} value={draft.programContent.join("\n")} onChange={(event) => setDraft({ ...draft, programContent: event.target.value.split("\n") })} />{attempted && validation.errors.programContent && <small style={{ color: "#c2414f" }}>{validation.errors.programContent}</small>}</label>
-              <label style={{ gridColumn: "1 / -1" }}><span className="nexa-label">Arquivo do modelo</span><div style={{ border: "1px dashed #cfcfcf", borderRadius: 9, padding: 16, background: "#fafafa" }}><input id="certificate-template-file" type="file" accept=".ppt,.pptx,.pdf,.png,.jpg,.jpeg" style={{ display: "none" }} onChange={(event) => { const file = event.target.files?.[0]; if (file) setDraft({ ...draft, sourceFileName: file.name, sourceFileUrl: URL.createObjectURL(file) }); }} /><label htmlFor="certificate-template-file" style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}><FileUp size={20} /><span><strong style={{ display: "block", fontSize: 12.5 }}>Selecionar PPTX, PDF ou imagem</strong><small style={{ color: palette.textFaint }}>{draft.sourceFileName}</small></span></label></div></label>
+              <label style={{ gridColumn: "1 / -1" }}><span className="nexa-label">Arquivo do modelo</span><div style={{ border: "1px dashed #cfcfcf", borderRadius: 9, padding: 16, background: "#fafafa" }}><input id="certificate-template-file" type="file" accept=".ppt,.pptx,.pdf,.png,.jpg,.jpeg" style={{ display: "none" }} onChange={(event) => { const selected = event.target.files?.[0]; if (selected) { setFile(selected); setDraft({ ...draft, sourceFileName: selected.name, sourceFileUrl: undefined }); } }} /><label htmlFor="certificate-template-file" style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}><FileUp size={20} /><span><strong style={{ display: "block", fontSize: 12.5 }}>Selecionar PPTX, PDF ou imagem</strong><small style={{ color: palette.textFaint }}>{draft.sourceFileName}</small></span></label></div></label>
             </div>
 
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 9, marginTop: 20 }}>
               <button className="nexa-btn-ghost" type="button" onClick={closeModal}>Cancelar</button>
-              <button className="nexa-btn-primary" type="button" onClick={submit}><FileUp size={14} /> Adicionar certificado</button>
+              <button className="nexa-btn-primary" type="button" onClick={submit} disabled={saving}><FileUp size={14} /> {saving ? "Salvando..." : "Adicionar certificado"}</button>
             </div>
           </div>
         </div>

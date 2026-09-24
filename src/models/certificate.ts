@@ -1,4 +1,5 @@
 export interface CertificateTraining {
+  treinamentoId?: string;
   titulo: string;
   categoria: string;
   cargaHoraria: string;
@@ -14,6 +15,7 @@ export type CertificateTemplateStatus = "active" | "draft";
 
 export interface CertificateTemplate {
   id: string;
+  treinamentoId?: string;
   name: string;
   courseTitle: string;
   typeLabel: string;
@@ -28,7 +30,7 @@ export interface CertificateTemplate {
   createdAt: string;
 }
 
-export type CertificateTemplateDraft = Omit<CertificateTemplate, "id" | "createdAt">;
+export type CertificateTemplateDraft = Omit<CertificateTemplate, "id" | "createdAt" | "treinamentoId">;
 
 export interface CertificateTemplateValidation {
   valid: boolean;

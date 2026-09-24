@@ -2,6 +2,7 @@ export type TrainingLevel = "Básico" | "Intermediário" | "Avançado";
 export type ContentType = "video" | "texto" | "doc" | "quiz" | "aula";
 
 export interface TrainingContent {
+  id?: string;
   tipo: ContentType;
   titulo: string;
   url: string;
@@ -9,6 +10,7 @@ export interface TrainingContent {
 }
 
 export interface TrainingModule {
+  id?: string;
   titulo: string;
   imagem: string;
   itens: TrainingContent[];

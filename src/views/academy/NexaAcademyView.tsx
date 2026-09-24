@@ -1,7 +1,18 @@
 // Legacy JSX markup is intentionally retained verbatim while domain rules are typed in MVC services.
 // @ts-nocheck
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { Toaster, toast } from "sonner";
+import { supabase } from "@/lib/supabase";
+import { timeAgo, initials } from "@/lib/format";
+import { useAuth } from "@/hooks/use-auth";
+import {
+  keys, usePerfil, useCategorias, useTreinamentos, useMatriculas, useFavoritos, useTrilhas,
+  useMeuResumo, useMeusCertificados, useModelosCertificado, useUsuarios, useAdminResumo,
+  useHorasMensais, useTopTreinamentos, useLogs, useMensagens,
+} from "@/hooks/use-academy";
+import * as repo from "@/data/academy-repository";
 import { academyController } from "@/controllers/academy-controller";
 import { CORPORATE_EMAIL_DOMAIN } from "@/services/user-service";
 import { MINIMUM_CERTIFICATE_SCORE } from "@/services/certificate-service";
@@ -11,14 +22,13 @@ import LessonDetailView from "@/views/academy/components/LessonDetailView";
 import AdminCertificatesView from "@/views/academy/components/AdminCertificatesView";
 import AdminVideosView from "@/views/academy/components/AdminVideosView";
 import CertificatePreviewModal from "@/views/academy/components/CertificatePreviewModal";
-import { defaultCertificateTemplates } from "@/mocks/certificate-templates";
 import {
   LayoutDashboard, GraduationCap, Map, FileText, Award, Sparkles,
   User, Settings, Search, Bell, ChevronRight, Play, Clock, Flame,
   CheckCircle2, Lock, Star, X, Send, BookOpen, Code2, Workflow,
   Database, Network, Cpu, ShieldCheck, Users, Layers, Video,
   HelpCircle, ScrollText, Shield, ArrowLeft, TrendingUp, Minus,
-  PlusCircle, Folder, ListChecks, MessageCircle, LogOut, ArrowUp
+  PlusCircle, Folder, ListChecks, MessageCircle, LogOut, ArrowUp, MoreHorizontal
 } from "lucide-react";
 
 const css = `
@@ -475,96 +485,8 @@ const adminNavItems = [
   { key: "admin-config", label: "Configurações", icon: Settings },
 ];
 
-/* ---------------- Mock data ---------------- */
-const courses = [
-  { title: "Blue Prism Avançado", cat: "Blue Prism", level: "Avançado", dur: "3h20", progress: 64, icon: Workflow, grad: ["#3D6BFF", "#2DD4E8"], cover: "/course-blue-prism-advanced.png" },
-  { title: "Work Queues na prática", cat: "Blue Prism", level: "Intermediário", dur: "1h45", progress: 20, icon: Database, grad: ["#9B6BFF", "#3D6BFF"], cover: "/course-work-queues.png" },
-  { title: "Python para Automação", cat: "Python", level: "Intermediário", dur: "4h10", progress: 0, icon: Code2, grad: ["#2DD4E8", "#6E3FD9"], cover: "/course-python-automation.png" },
-  { title: "APIs REST com FastAPI", cat: "APIs", level: "Avançado", dur: "2h50", progress: 0, icon: Network, grad: ["#3D6BFF", "#9B6BFF"], cover: "/course-api-cover.png" },
-  { title: "Fundamentos de Power Automate", cat: "Power Automate", level: "Básico", dur: "2h05", progress: 100, icon: Cpu, grad: ["#2DD4E8", "#3D6BFF"], cover: "/course-power-automate.png" },
-  { title: "Boas Práticas de Governança", cat: "Boas Práticas", level: "Básico", dur: "1h10", progress: 0, icon: ShieldCheck, grad: ["#9B6BFF", "#2DD4E8"], cover: "/course-governance.png" },
-];
-
-const categories = ["Todos", "Blue Prism", "Power Automate", "Python", "Integrações", "SQL", "APIs", "SAP", "IA"];
-
-const trilhas = [
-  {
-    title: "Onboarding RPA",
-    desc: "Trilha de integração para novos colaboradores do time de RPA, dos fundamentos ao projeto final.",
-    color: palette.cyan,
-    modulos: 7,
-    progress: 43,
-    steps: [
-      { label: "Introdução ao Time", status: "done" },
-      { label: "Blue Prism Básico", status: "done" },
-      { label: "Blue Prism Avançado", status: "current" },
-      { label: "Control Room", status: "locked" },
-      { label: "Work Queues", status: "locked" },
-      { label: "Exceptions", status: "locked" },
-      { label: "Power Automate", status: "locked" },
-      { label: "Python", status: "locked" },
-      { label: "Integrações", status: "locked" },
-      { label: "Projeto Final", status: "locked" },
-    ],
-  },
-  {
-    title: "Especialista Power Automate",
-    desc: "Do básico à automação avançada de processos com Power Automate e conectores corporativos.",
-    color: palette.purple,
-    modulos: 5,
-    progress: 100,
-    steps: [
-      { label: "Fundamentos", status: "done" },
-      { label: "Flows na prática", status: "done" },
-      { label: "Conectores", status: "done" },
-      { label: "Aprovações", status: "done" },
-      { label: "Projeto Final", status: "done" },
-    ],
-  },
-  {
-    title: "Python para RPA",
-    desc: "Scripts, automações, APIs e integrações usando Python aplicadas ao dia a dia do time.",
-    color: palette.blue,
-    modulos: 6,
-    progress: 0,
-    steps: [
-      { label: "Sintaxe e Lógica", status: "current" },
-      { label: "Bibliotecas RPA", status: "locked" },
-      { label: "Manipulação de Dados", status: "locked" },
-      { label: "APIs com FastAPI", status: "locked" },
-      { label: "Integrações", status: "locked" },
-      { label: "Projeto Final", status: "locked" },
-    ],
-  },
-];
-
-const adminUsers = [
-  { name: "Alani Rigotti de Oliveira", email: "alani.rigotti@gmail.com", perfil: "Administrador", status: "ativo", acesso: "há 12 min" },
-  { name: "Carlos Andrade", email: "carlos.andrade@hering.com.br", perfil: "Administrador", status: "ativo", acesso: "há 40 min" },
-  { name: "Júlia Pires", email: "julia.pires@hering.com.br", perfil: "Usuário", status: "ativo", acesso: "há 1h" },
-  { name: "Rafael Lima", email: "rafael.lima@hering.com.br", perfil: "Usuário", status: "inativo", acesso: "há 3 dias" },
-  { name: "Bianca Costa", email: "bianca.costa@hering.com.br", perfil: "Usuário", status: "ativo", acesso: "há 2h" },
-];
-
-const adminLogs = [
-  { acao: "Certificado emitido", usuario: "Alani Rigotti de Oliveira", quando: "há 12 min" },
-  { acao: "Novo treinamento criado", usuario: "Carlos Andrade", quando: "há 35 min" },
-  { acao: "Usuário cadastrado", usuario: "Carlos Andrade", quando: "há 1h" },
-  { acao: "Quiz reprovado — 2ª tentativa", usuario: "Rafael Lima", quando: "há 2h" },
-  { acao: "Vídeo enviado: Control Room Avançado", usuario: "Carlos Andrade", quando: "há 4h" },
-];
-
-const topCourses = [
-  { name: "Blue Prism Avançado", acessos: 312 },
-  { name: "Power Automate Básico", acessos: 268 },
-  { name: "Python para Automação", acessos: 201 },
-  { name: "Work Queues na prática", acessos: 175 },
-];
-
-const monthlyHours = [
-  { mes: "Jan", v: 40 }, { mes: "Fev", v: 55 }, { mes: "Mar", v: 48 },
-  { mes: "Abr", v: 70 }, { mes: "Mai", v: 62 }, { mes: "Jun", v: 85 },
-];
+/* ---------------- Ícones dos treinamentos (coluna treinamentos.icone) ---------------- */
+const iconMap = { Workflow, Database, Code2, Network, Cpu, ShieldCheck, BookOpen };
 
 /* ---------------- Reusable components ---------------- */
 function StatCard({ icon: Icon, label, value, color }) {
@@ -674,11 +596,19 @@ function EmptyCoursesState({ onShowAll, showAllAction }) {
 /* ---------------- App ---------------- */
 export default function NexaAcademy() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { user, loading: authLoading } = useAuth();
+  const userId = user?.id;
+  const { data: perfil, isLoading: perfilLoading } = usePerfil(userId);
+  const isAdmin = perfil?.perfil === "administrador" && perfil?.status === "ativo";
+
   const [mode, setMode] = useState("app"); // 'app' | 'admin'
   const [active, setActive] = useState("dashboard");
+  const [selectedCourseId, setSelectedCourseId] = useState(null);
   const [selectedLessonId, setSelectedLessonId] = useState(null);
   const [adminActive, setAdminActive] = useState("admin-dashboard");
   const [chatOpen, setChatOpen] = useState(false);
+  const [chatTexto, setChatTexto] = useState("");
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [catFilter, setCatFilter] = useState("Todos");
   const [selectedTrilha, setSelectedTrilha] = useState(0);
@@ -686,7 +616,103 @@ export default function NexaAcademy() {
   const [novoNome, setNovoNome] = useState("");
   const [novoEmail, setNovoEmail] = useState("");
   const [tentouEnviar, setTentouEnviar] = useState(false);
+  const [enviandoCadastro, setEnviandoCadastro] = useState(false);
+  const [menuUsuarioId, setMenuUsuarioId] = useState(null);
 
+  // --- Sessão: sem login volta para a tela inicial; usuário inativo é desconectado ---
+  useEffect(() => {
+    if (!authLoading && !user) navigate({ to: "/" });
+  }, [authLoading, user, navigate]);
+
+  useEffect(() => {
+    if (perfil?.status === "inativo") {
+      toast.error("Seu acesso está inativo. Fale com o administrador da plataforma.");
+      supabase.auth.signOut();
+    }
+  }, [perfil?.status]);
+
+  useEffect(() => {
+    if (userId) repo.registrarAcesso(userId);
+  }, [userId]);
+
+  useEffect(() => {
+    if (!isAdmin && mode === "admin") setMode("app");
+  }, [isAdmin, mode]);
+
+  // --- Dados ---
+  const inAdmin = isAdmin && mode === "admin";
+  const { data: categoriasDb = [] } = useCategorias(!!userId);
+  const { data: treinamentosDb = [] } = useTreinamentos(!!userId);
+  const { data: matriculas = [] } = useMatriculas(userId);
+  const { data: favoritosIds = [] } = useFavoritos(userId);
+  const { data: trilhasDb = [] } = useTrilhas(!!userId);
+  const { data: meuResumo } = useMeuResumo(userId);
+  const { data: meusTreinamentos = [] } = useMeusCertificados(userId);
+  const { data: certificateTemplates = [] } = useModelosCertificado(!!userId);
+  const { data: usuariosDb = [] } = useUsuarios(inAdmin);
+  const { data: adminResumo } = useAdminResumo(inAdmin);
+  const { data: horasMensais = [] } = useHorasMensais(inAdmin);
+  const { data: topCourses = [] } = useTopTreinamentos(inAdmin);
+  const { data: logsDb = [] } = useLogs(inAdmin);
+  const { data: mensagens = [] } = useMensagens(userId, chatOpen);
+
+  const progressoPorTreinamento = useMemo(() => new globalThis.Map(matriculas.map((m) => [m.treinamento_id, m])), [matriculas]);
+  const adminTrainings = useMemo(
+    () => treinamentosDb.map((t) => ({ ...t, icon: iconMap[t.icone] ?? BookOpen, progress: Math.round(progressoPorTreinamento.get(t.id)?.progresso ?? 0) })),
+    [treinamentosDb, progressoPorTreinamento],
+  );
+  const courses = useMemo(() => adminTrainings.filter((t) => t.status === "ativo"), [adminTrainings]);
+  const categories = useMemo(() => ["Todos", ...categoriasDb.map((c) => c.nome)], [categoriasDb]);
+  const trilhas = useMemo(() => repo.montarTrilhas(trilhasDb, matriculas, (cor) => palette[cor] ?? cor ?? palette.cyan), [trilhasDb, matriculas]);
+  const trilhaAtual = trilhas[Math.min(selectedTrilha, trilhas.length - 1)];
+  const favoritos = useMemo(() => favoritosIds.map((id) => courses.find((c) => c.id === id)).filter(Boolean), [favoritosIds, courses]);
+  const adminUsers = usuariosDb.map((u) => ({
+    id: u.id,
+    name: u.nome,
+    email: u.email,
+    perfil: u.perfil === "administrador" ? "Administrador" : "Usuário",
+    perfilDb: u.perfil,
+    status: u.status,
+    acesso: timeAgo(u.ultimo_acesso),
+  }));
+  const adminLogs = logsDb.map((l) => ({ ...l, quando: timeAgo(l.quando) }));
+  const maxHoras = Math.max(1, ...horasMensais.map((m) => m.horas));
+  const monthlyHours = horasMensais.map((m) => ({ mes: m.mes, v: (m.horas / maxHoras) * 100, horas: m.horas }));
+  const variacaoMensal = (() => {
+    const [anterior, atual] = horasMensais.slice(-2).map((m) => m.horas);
+    if (!anterior) return null;
+    return Math.round(((atual - anterior) / anterior) * 100);
+  })();
+  const maxAcessos = Math.max(1, ...topCourses.map((c) => c.acessos));
+
+  // Dashboard do usuário: treinamento em andamento mais recente e sugestão
+  const emAndamento = matriculas
+    .filter((m) => m.progresso < 100)
+    .map((m) => ({ matricula: m, curso: courses.find((c) => c.id === m.treinamento_id) }))
+    .filter((x) => x.curso);
+  const continuar = emAndamento[0] ?? null;
+  const sugestao = courses.find((c) => !progressoPorTreinamento.has(c.id)) ?? null;
+  const ultimosTreinamentos = (matriculas.length
+    ? matriculas.map((m) => courses.find((c) => c.id === m.treinamento_id)).filter(Boolean)
+    : courses
+  ).slice(0, 3);
+
+  function invalidar(...chaves) {
+    chaves.forEach((queryKey) => queryClient.invalidateQueries({ queryKey }));
+  }
+
+  async function executar(acao, mensagemSucesso) {
+    try {
+      await acao();
+      if (mensagemSucesso) toast.success(mensagemSucesso);
+      return true;
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : String(err));
+      return false;
+    }
+  }
+
+  // --- Admin: cadastro de usuário (convite por e-mail) ---
   const DOMINIO_PERMITIDO = CORPORATE_EMAIL_DOMAIN;
   const { validEmail: emailValido, canSubmit: podeEnviar } = academyController.validateUserRegistration(novoNome, novoEmail);
 
@@ -697,20 +723,37 @@ export default function NexaAcademy() {
     setShowCadastroModal(false);
   }
 
+  async function cadastrarUsuario() {
+    setTentouEnviar(true);
+    if (!podeEnviar || enviandoCadastro) return;
+    setEnviandoCadastro(true);
+    const ok = await executar(() => repo.convidarUsuario(novoNome, novoEmail), `Convite enviado para ${novoEmail.trim()}`);
+    setEnviandoCadastro(false);
+    if (ok) {
+      resetCadastro();
+      invalidar(keys.usuarios, keys.adminResumo, keys.logs);
+    }
+  }
+
+  async function alterarUsuario(u, patch) {
+    setMenuUsuarioId(null);
+    if (u.id === userId) return toast.error("Você não pode alterar o seu próprio perfil ou status.");
+    const ok = await executar(() => repo.atualizarUsuario(u.id, patch), "Usuário atualizado");
+    if (ok) invalidar(keys.usuarios, keys.adminResumo);
+  }
+
   // --- Admin: Treinamentos ---
   const gradPresets = [
     ["#3D6BFF", "#2DD4E8"], ["#9B6BFF", "#3D6BFF"], ["#2DD4E8", "#6E3FD9"],
     ["#3D6BFF", "#9B6BFF"], ["#2DD4E8", "#3D6BFF"], ["#9B6BFF", "#2DD4E8"],
   ];
-  const [adminTrainings, setAdminTrainings] = useState(
-    courses.map((c, i) => ({ ...c, status: "ativo", alunos: [42, 28, 15, 9, 61, 12][i] ?? 0 }))
-  );
   const [showTreinamentoModal, setShowTreinamentoModal] = useState(false);
   const [editandoTreinoIdx, setEditandoTreinoIdx] = useState(null);
   const [menuTreinoIdx, setMenuTreinoIdx] = useState(null);
+  const [salvandoTreino, setSalvandoTreino] = useState(false);
   const novoItem = () => ({ tipo: "video", titulo: "", url: "", texto: "" });
   const treinoInicial = {
-    title: "", cat: "Blue Prism", level: "Básico", dur: "", desc: "",
+    title: "", cat: categoriasDb[0]?.nome ?? "", level: "Básico", dur: "", desc: "",
     modulos: [{ titulo: "Módulo 1", imagem: "", itens: [novoItem()] }],
   };
   const [novoTreino, setNovoTreino] = useState(treinoInicial);
@@ -784,79 +827,67 @@ export default function NexaAcademy() {
     setShowTreinamentoModal(true);
   }
 
-  function editarTreinamento(idx) {
+  async function editarTreinamento(idx) {
     const t = adminTrainings[idx];
-    setNovoTreino({
-      title: t.title || "",
-      cat: t.cat || "Blue Prism",
-      level: t.level || "Básico",
-      dur: t.dur || "",
-      desc: t.desc || "",
-      modulos: (t.modulos && t.modulos.length)
-        ? t.modulos.map((m) => ({
-            titulo: m.titulo || "",
-            imagem: m.imagem || "",
-            itens: (m.itens && m.itens.length) ? m.itens.map((it) => ({
-              tipo: it.tipo || "video",
-              titulo: it.titulo || "",
-              url: it.url || "",
-              texto: it.texto || "",
-            })) : [novoItem()],
-          }))
-        : [{ titulo: "Módulo 1", imagem: "", itens: [novoItem()] }],
-    });
-    setEditandoTreinoIdx(idx);
-    setTentouSalvarTreino(false);
     setMenuTreinoIdx(null);
-    setShowTreinamentoModal(true);
-  }
-
-  function excluirTreinamento(idx) {
-    setAdminTrainings((prev) => prev.filter((_, i) => i !== idx));
-    setMenuTreinoIdx(null);
-  }
-
-  function salvarTreinamento() {
-    setTentouSalvarTreino(true);
-    if (!podeSalvarTreino) return;
-    const modulosSanitizados = academyController.sanitizeModules(novoTreino.modulos);
-    if (editandoTreinoIdx !== null) {
-      setAdminTrainings((prev) => prev.map((t, i) => i === editandoTreinoIdx ? {
-        ...t,
-        title: novoTreino.title.trim(),
-        cat: novoTreino.cat,
-        level: novoTreino.level,
-        dur: novoTreino.dur.trim(),
-        desc: novoTreino.desc.trim(),
-        modulos: modulosSanitizados,
-      } : t));
-    } else {
-      setAdminTrainings((prev) => [
-        {
-          title: novoTreino.title.trim(),
-          cat: novoTreino.cat,
-          level: novoTreino.level,
-          dur: novoTreino.dur.trim(),
-          desc: novoTreino.desc.trim(),
-          modulos: modulosSanitizados,
-          progress: 0,
-          icon: BookOpen,
-          grad: gradPresets[prev.length % gradPresets.length],
-          status: "ativo",
-          alunos: 0,
-        },
-        ...prev,
-      ]);
+    try {
+      const modulos = await repo.fetchTreinamentoParaEdicao(t.id);
+      setNovoTreino({
+        title: t.title || "",
+        cat: t.cat || categoriasDb[0]?.nome || "",
+        level: t.level || "Básico",
+        dur: t.dur || "",
+        desc: t.desc || "",
+        modulos: modulos.length
+          ? modulos.map((m) => ({ ...m, itens: m.itens.length ? m.itens : [novoItem()] }))
+          : [{ titulo: "Módulo 1", imagem: "", itens: [novoItem()] }],
+      });
+      setEditandoTreinoIdx(idx);
+      setTentouSalvarTreino(false);
+      setShowTreinamentoModal(true);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : String(err));
     }
-    resetTreinoModal();
+  }
+
+  async function excluirTreinamento(idx) {
+    const t = adminTrainings[idx];
+    setMenuTreinoIdx(null);
+    if (!window.confirm(`Excluir o treinamento "${t.title}"? Módulos, aulas, progresso dos alunos e certificados vinculados também serão removidos.`)) return;
+    const ok = await executar(() => repo.excluirTreinamento(t.id, t.title), "Treinamento excluído");
+    if (ok) invalidar(keys.treinamentos, keys.modelos, keys.adminResumo, keys.logs, ["matriculas"]);
+  }
+
+  async function salvarTreinamento() {
+    setTentouSalvarTreino(true);
+    if (!podeSalvarTreino || salvandoTreino) return;
+    const categoriaId = categoriasDb.find((c) => c.nome === novoTreino.cat)?.id ?? null;
+    const existente = editandoTreinoIdx !== null ? adminTrainings[editandoTreinoIdx] : null;
+    const draft = { ...novoTreino, modulos: academyController.sanitizeModules(novoTreino.modulos) };
+    setSalvandoTreino(true);
+    const ok = await executar(
+      () => repo.salvarTreinamento(draft, categoriaId, existente?.id),
+      existente ? "Treinamento atualizado" : "Treinamento cadastrado",
+    );
+    setSalvandoTreino(false);
+    if (ok) {
+      invalidar(keys.treinamentos, keys.adminResumo, keys.logs, ["conteudo"]);
+      resetTreinoModal();
+    }
   }
 
   // --- Perfil do usuário ---
-  const [perfilNome, setPerfilNome] = useState("Key user");
-  const perfilEmail = "key.user@gmail.com";
-  const primeiroNome = perfilNome;
-  const [perfilCargo, setPerfilCargo] = useState("Analista RPA");
+  const [perfilNome, setPerfilNome] = useState("");
+  const perfilEmail = perfil?.email ?? user?.email ?? "";
+  const primeiroNome = academyController.getFirstName(perfil?.nome ?? "");
+  const [perfilCargo, setPerfilCargo] = useState("");
   const [perfilSalvo, setPerfilSalvo] = useState(false);
+
+  useEffect(() => {
+    if (!perfil) return;
+    setPerfilNome(perfil.nome ?? "");
+    setPerfilCargo(perfil.cargo ?? "");
+  }, [perfil?.id, perfil?.nome, perfil?.cargo]);
 
   const [senhaAtual, setSenhaAtual] = useState("");
   const [novaSenha, setNovaSenha] = useState("");
@@ -866,9 +897,20 @@ export default function NexaAcademy() {
 
   const { isStrongEnough: novaSenhaValida, passwordsMatch: senhasConferem, canSave: podeSalvarSenha } = academyController.validatePasswordChange(senhaAtual, novaSenha, confirmarSenha);
 
-  function salvarSenha() {
+  async function salvarPerfil() {
+    if (perfilNome.trim().length < 2) return toast.error("Informe seu nome completo.");
+    const ok = await executar(() => repo.atualizarMeuPerfil(userId, { nome: perfilNome, cargo: perfilCargo }));
+    if (ok) {
+      setPerfilSalvo(true);
+      invalidar(keys.perfil(userId), keys.usuarios);
+    }
+  }
+
+  async function salvarSenha() {
     setTentouSalvarSenha(true);
-    if (podeSalvarSenha) {
+    if (!podeSalvarSenha) return;
+    const ok = await executar(() => repo.alterarSenha(perfilEmail, senhaAtual, novaSenha));
+    if (ok) {
       setSenhaSalva(true);
       setSenhaAtual("");
       setNovaSenha("");
@@ -878,66 +920,88 @@ export default function NexaAcademy() {
     }
   }
 
-  const favoritos = [courses[0], courses[1], courses[4]];
-
-  // --- Certificados: regra de emissão (treinamento concluído + aproveitamento >= 90%) ---
+  // --- Certificados: regra de emissão (treinamento concluído + aproveitamento >= nota mínima) ---
   const APROVEITAMENTO_MINIMO = MINIMUM_CERTIFICATE_SCORE;
-  const [meusTreinamentos, setMeusTreinamentos] = useState([
-    { titulo: "Power Automate Básico", categoria: "Power Automate", cargaHoraria: "2h05", progresso: 100, aproveitamento: 96, emitido: true, codigo: "NXA-2026-04821", dataEmissao: "18/06/2026", templateId: "cert-power-automate-basico" },
-    { titulo: "Introdução ao Time RPA", categoria: "Onboarding RPA", cargaHoraria: "1h00", progresso: 100, aproveitamento: 100, emitido: false, codigo: null, dataEmissao: null },
-    { titulo: "Blue Prism Básico", categoria: "Blue Prism", cargaHoraria: "2h40", progresso: 100, aproveitamento: 88, emitido: false, codigo: null, dataEmissao: null },
-    { titulo: "Control Room", categoria: "Blue Prism", cargaHoraria: "1h30", progresso: 55, aproveitamento: null, emitido: false, codigo: null, dataEmissao: null },
-  ]);
-  const [certificateTemplates, setCertificateTemplates] = useState(defaultCertificateTemplates);
   const [certificadoPreview, setCertificadoPreview] = useState(null);
   const certificadoTemplatePreview = certificadoPreview
     ? academyController.resolveCertificateTemplate(certificadoPreview, certificateTemplates)
     : null;
 
-  function emitirCertificado(idx) {
-    setMeusTreinamentos((prev) => {
-      const copia = [...prev];
-      const item = copia[idx];
-      const template = academyController.resolveCertificateTemplate(item, certificateTemplates);
-      if (!template) return prev;
-      const atualizado = academyController.issueCertificate(item, template);
-      if (atualizado === item) return prev;
-      copia[idx] = atualizado;
-      setCertificadoPreview(atualizado);
-      return copia;
-    });
+  async function emitirCertificado(idx) {
+    const item = meusTreinamentos[idx];
+    const ok = await executar(() => repo.emitirCertificado(item.treinamentoId), "Certificado emitido!");
+    if (!ok) return;
+    invalidar(keys.meusCertificados(userId), keys.meuResumo(userId));
+    const atualizados = await queryClient.fetchQuery({ queryKey: keys.meusCertificados(userId), queryFn: () => repo.fetchMeusCertificados(userId) });
+    setCertificadoPreview(atualizados.find((t) => t.treinamentoId === item.treinamentoId) ?? null);
   }
 
-  function adicionarModeloCertificado(draft) {
-    const template = academyController.createCertificateTemplate(draft);
-    if (!template) return false;
-    setCertificateTemplates((prev) => academyController.registerCertificateTemplate(prev, template));
-    return true;
+  async function adicionarModeloCertificado(draft, arquivo) {
+    const treinamento = adminTrainings.find((t) => t.title === draft.courseTitle);
+    if (!treinamento) {
+      toast.error("Selecione um treinamento cadastrado.");
+      return false;
+    }
+    const ok = await executar(() => repo.criarModeloCertificado(draft, treinamento.id, arquivo), "Modelo de certificado criado");
+    if (ok) invalidar(keys.modelos, keys.logs);
+    return ok;
   }
 
-  function alternarStatusModeloCertificado(templateId) {
-    setCertificateTemplates((prev) => academyController.toggleCertificateTemplateStatus(prev, templateId));
+  async function alternarStatusModeloCertificado(templateId) {
+    const template = certificateTemplates.find((t) => t.id === templateId);
+    if (!template) return;
+    const ok = await executar(() => repo.definirStatusModelo(templateId, template.status === "active" ? "draft" : "active"));
+    if (ok) invalidar(keys.modelos);
   }
 
-  function removerModeloCertificado(templateId) {
-    setCertificateTemplates((prev) => prev.filter((item) => item.id !== templateId));
-    if (certificadoPreview?.templateId === templateId) setCertificadoPreview(null);
+  async function removerModeloCertificado(templateId) {
+    if (!window.confirm("Excluir este modelo de certificado?")) return;
+    const ok = await executar(() => repo.excluirModeloCertificado(templateId), "Modelo excluído");
+    if (ok) {
+      invalidar(keys.modelos);
+      if (certificadoPreview?.templateId === templateId) setCertificadoPreview(null);
+    }
   }
 
   function visualizarModeloCertificado(template) {
     setCertificadoPreview(academyController.createCertificatePreviewTraining(template));
   }
 
+  // --- Favoritos ---
+  async function alternarFavorito(treinamentoId) {
+    const favorito = !favoritosIds.includes(treinamentoId);
+    const ok = await executar(() => repo.definirFavorito(userId, treinamentoId, favorito));
+    if (ok) invalidar(keys.favoritos(userId), keys.meuResumo(userId));
+  }
+
+  // --- Chat Nexa (feedbacks) ---
+  async function enviarFeedback() {
+    const texto = chatTexto.trim();
+    if (!texto) return;
+    const ok = await executar(() => repo.enviarMensagem(userId, texto));
+    if (ok) {
+      setChatTexto("");
+      invalidar(keys.mensagens(userId));
+    }
+  }
+
   const filtered = catFilter === "Todos" ? courses : courses.filter((c) => c.cat === catFilter);
   const navItems = mode === "admin" ? adminNavItems : userNavItems;
-  const certificateCourseTitles = Array.from(new Set([
-    ...adminTrainings.map((training) => training.title),
-    ...certificateTemplates.map((template) => template.courseTitle),
-  ])).sort((a, b) => a.localeCompare(b, "pt-BR"));
+  const certificateCourseTitles = adminTrainings.map((training) => training.title).sort((a, b) => a.localeCompare(b, "pt-BR"));
 
-  function abrirCurso() {
-    setSelectedLessonId(null);
+  function abrirCurso(courseId, lessonId = null) {
+    const id = courseId ?? continuar?.curso?.id ?? courses[0]?.id;
+    if (!id) return;
+    setSelectedCourseId(id);
+    setSelectedLessonId(lessonId);
+    setMode("app");
     setActive("curso");
+  }
+
+  function abrirTrilha(trilha) {
+    const etapa = trilha?.etapas?.find((e, i) => trilha.steps[i]?.status === "current" && e.treinamento_id) ?? trilha?.etapas?.find((e) => e.treinamento_id);
+    if (etapa) abrirCurso(etapa.treinamento_id);
+    else toast.info("Esta trilha ainda não tem treinamentos vinculados.");
   }
 
   function abrirPerfil() {
@@ -947,14 +1011,26 @@ export default function NexaAcademy() {
     setActive("perfil");
   }
 
-  function sair() {
+  async function sair() {
     setProfileMenuOpen(false);
+    queryClient.clear();
+    await supabase.auth.signOut();
     navigate({ to: "/" });
+  }
+
+  if (authLoading || !user || (perfilLoading && !perfil)) {
+    return (
+      <div className="nexa-root" style={{ alignItems: "center", justifyContent: "center" }}>
+        <style>{css}</style>
+        <span style={{ color: palette.textMuted, fontSize: 13 }}>Carregando...</span>
+      </div>
+    );
   }
 
   return (
     <div className="nexa-root">
       <style>{css}</style>
+      <Toaster position="top-right" richColors closeButton />
 
       {/* Sidebar */}
       <aside className="nexa-sidebar">
@@ -998,7 +1074,7 @@ export default function NexaAcademy() {
         </div>
 
         <div className="nexa-sidebar-footer">
-          <div
+          {isAdmin && <div
             className="nexa-mode-switch"
             style={
               mode === "app"
@@ -1009,7 +1085,7 @@ export default function NexaAcademy() {
           >
             {mode === "app" ? <Shield size={14} /> : <ArrowLeft size={14} />}
             {mode === "app" ? "Painel Administrativo" : "Voltar ao App"}
-          </div>
+          </div>}
         </div>
       </aside>
 
@@ -1032,7 +1108,7 @@ export default function NexaAcademy() {
                 aria-expanded={profileMenuOpen}
                 aria-label="Abrir menu do usuário"
               >
-                {perfilNome.split(" ").map((name) => name[0]).slice(0, 2).join("")}
+                {initials(perfil?.nome || perfilEmail)}
               </button>
               {profileMenuOpen && (
                 <>
@@ -1051,12 +1127,20 @@ export default function NexaAcademy() {
           {/* ---------- USER: DETALHE DO CURSO ---------- */}
           {mode === "app" && active === "curso" && !selectedLessonId && (
             <CourseDetailView
+              userId={userId}
+              course={adminTrainings.find((c) => c.id === selectedCourseId)}
+              matricula={progressoPorTreinamento.get(selectedCourseId)}
+              isFavorite={favoritosIds.includes(selectedCourseId)}
+              onToggleFavorite={() => alternarFavorito(selectedCourseId)}
               onBack={() => setActive("treinamentos")}
               onOpenLesson={(lessonId) => setSelectedLessonId(lessonId)}
             />
           )}
           {mode === "app" && active === "curso" && selectedLessonId && (
             <LessonDetailView
+              userId={userId}
+              course={adminTrainings.find((c) => c.id === selectedCourseId)}
+              matricula={progressoPorTreinamento.get(selectedCourseId)}
               lessonId={selectedLessonId}
               onBack={() => setSelectedLessonId(null)}
               onNavigate={(lessonId) => setSelectedLessonId(lessonId)}
@@ -1069,23 +1153,31 @@ export default function NexaAcademy() {
               <div style={{ marginBottom: 22 }}>
                 <h1 className="nexa-heading" style={{ fontSize: 30, fontWeight: 700, margin: 0 }}>Olá, {primeiroNome} 👋</h1>
                 <p style={{ color: palette.textMuted, fontSize: 13, marginTop: 4 }}>
-                  Você está a 3 aulas de concluir <strong style={{ color: "#111" }}>Blue Prism Avançado</strong>. Continue de onde parou.
+                  {continuar
+                    ? <>Você já concluiu {Math.round(continuar.matricula.progresso)}% de <strong style={{ color: "#111" }}>{continuar.curso.title}</strong>. Continue de onde parou.</>
+                    : "Escolha um treinamento para começar a sua jornada."}
                 </p>
               </div>
 
               <div className="nexa-grid-2col" style={{ marginBottom: 22 }}>
                 <div className="nexa-hero">
                   <div style={{ position: "relative", zIndex: 2 }}>
-                    <span className="nexa-badge" style={{ background: "rgba(45,212,232,0.15)", color: palette.cyan }}>Continuar estudando</span>
-                    <h2 className="nexa-heading" style={{ fontSize: 24, margin: "24px 0 8px" }}>Work Queues — Tratamento de Exceções</h2>
+                    <span className="nexa-badge" style={{ background: "rgba(45,212,232,0.15)", color: palette.cyan }}>{continuar ? "Continuar estudando" : "Comece agora"}</span>
+                    <h2 className="nexa-heading" style={{ fontSize: 24, margin: "24px 0 8px" }}>{continuar?.curso.title ?? sugestao?.title ?? "Nenhum treinamento disponível"}</h2>
                     <p style={{ fontSize: 12.5, color: palette.textMuted, marginBottom: 16, maxWidth: 420 }}>
-                      Módulo 4 de 6 · Blue Prism Avançado · Trilha Onboarding RPA
+                      {(continuar?.curso ?? sugestao) ? `${(continuar?.curso ?? sugestao).cat} · ${(continuar?.curso ?? sugestao).level} · ${(continuar?.curso ?? sugestao).dur}` : "Fale com seu líder técnico para liberar treinamentos."}
                     </p>
-                    <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
-                      <div className="nexa-progress-track" style={{ flex: 1 }}><div className="nexa-progress-fill" style={{ width: "64%" }} /></div>
-                      <span style={{ fontSize: 12, color: palette.textMuted, flexShrink: 0 }}>64%</span>
-                    </div>
-                    <button className="nexa-btn-primary" onClick={() => { abrirCurso(); setSelectedLessonId("3.4"); }}><Play size={14} fill="#fff" /> Continuar aula</button>
+                    {continuar && (
+                      <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
+                        <div className="nexa-progress-track" style={{ flex: 1 }}><div className="nexa-progress-fill" style={{ width: `${continuar.matricula.progresso}%` }} /></div>
+                        <span style={{ fontSize: 12, color: palette.textMuted, flexShrink: 0 }}>{Math.round(continuar.matricula.progresso)}%</span>
+                      </div>
+                    )}
+                    {(continuar || sugestao) && (
+                      <button className="nexa-btn-primary" onClick={() => continuar ? abrirCurso(continuar.curso.id, continuar.matricula.ultima_aula_id) : abrirCurso(sugestao.id)}>
+                        <Play size={14} fill="#fff" /> {continuar ? "Continuar aula" : "Começar treinamento"}
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -1093,8 +1185,8 @@ export default function NexaAcademy() {
                   <div className="nexa-card" style={{ padding: 16, display: "flex", alignItems: "center", gap: 12 }}>
                     <div className="nexa-stat-icon" style={{ background: "#f5f5f5", color: "#111" }}><Clock size={20} /></div>
                     <div>
-                      <div style={{ fontSize: 18, fontWeight: 700, fontFamily: "'Space Grotesk',sans-serif" }}>47h estudadas</div>
-                      <div style={{ fontSize: 11.5, color: palette.textMuted }}>+12h essa semana</div>
+                      <div style={{ fontSize: 18, fontWeight: 700, fontFamily: "'Space Grotesk',sans-serif" }}>{String(meuResumo?.horas_estudadas ?? 0).replace(".", ",")}h estudadas</div>
+                      <div style={{ fontSize: 11.5, color: palette.textMuted }}>Soma das aulas concluídas</div>
                     </div>
                   </div>
                   <div className="nexa-card" style={{ padding: 14 }}>
@@ -1103,39 +1195,41 @@ export default function NexaAcademy() {
                       <span style={{ fontSize: 12.5, fontWeight: 600 }}>Sugestão da Nexa</span>
                     </div>
                     <p style={{ fontSize: 12, color: palette.textMuted, lineHeight: 1.5, marginBottom: 10 }}>
-                      Você concluiu Power Automate Básico — que tal seguir para “Integrações com Blue Prism”?
+                      {sugestao ? <>Que tal começar “{sugestao.title}”?</> : "Você já iniciou todos os treinamentos disponíveis. Continue avançando!"}
                     </p>
-                    <span style={{ fontSize: 12, color: palette.cyan, display: "flex", alignItems: "center", gap: 3, cursor: "pointer" }}>Ver treinamento <ChevronRight size={13} /></span>
+                    {sugestao && <span style={{ fontSize: 12, color: palette.cyan, display: "flex", alignItems: "center", gap: 3, cursor: "pointer" }} onClick={() => abrirCurso(sugestao.id)}>Ver treinamento <ChevronRight size={13} /></span>}
                   </div>
                 </div>
               </div>
 
               <div className="nexa-grid-4 nexa-dashboard-stats" style={{ marginBottom: 22 }}>
-                <StatCard icon={GraduationCap} label="Em andamento" value="3" color={palette.cyan} />
-                <StatCard icon={CheckCircle2} label="Concluídos" value="12" color={palette.blue} />
-                <StatCard icon={Award} label="Certificados" value="8" color={palette.purple} />
-                <StatCard icon={Star} label="Favoritos" value="6" color={palette.amber} />
+                <StatCard icon={GraduationCap} label="Em andamento" value={meuResumo?.em_andamento ?? 0} color={palette.cyan} />
+                <StatCard icon={CheckCircle2} label="Concluídos" value={meuResumo?.concluidos ?? 0} color={palette.blue} />
+                <StatCard icon={Award} label="Certificados" value={meuResumo?.certificados ?? 0} color={palette.purple} />
+                <StatCard icon={Star} label="Favoritos" value={meuResumo?.favoritos ?? 0} color={palette.amber} />
               </div>
 
-              <div style={{ marginBottom: 26 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-                  <span className="nexa-section-title">Sua trilha — Onboarding RPA</span>
-                  <span className="nexa-see-all" onClick={() => setActive("trilhas")}>Ver trilha completa <ChevronRight size={13} /></span>
+              {trilhas[0] && (
+                <div style={{ marginBottom: 26 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+                    <span className="nexa-section-title">Sua trilha — {trilhas[0].title}</span>
+                    <span className="nexa-see-all" onClick={() => setActive("trilhas")}>Ver trilha completa <ChevronRight size={13} /></span>
+                  </div>
+                  <div className="nexa-card" style={{ padding: "18px 20px" }}>
+                    <TrilhaTimeline steps={trilhas[0].steps} />
+                  </div>
                 </div>
-                <div className="nexa-card" style={{ padding: "18px 20px" }}>
-                  <TrilhaTimeline steps={trilhas[0].steps} />
-                </div>
-              </div>
+              )}
 
               <div>
                 <div>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-                    <span className="nexa-section-title">Últimos treinamentos</span>
+                    <span className="nexa-section-title">{matriculas.length ? "Últimos treinamentos" : "Treinamentos disponíveis"}</span>
                     <span className="nexa-see-all" onClick={() => setActive("treinamentos")}>Ver todos <ChevronRight size={13} /></span>
                   </div>
                   <div className="nexa-dashboard-course-grid">
-                    {courses.slice(0, 3).map((c, i) => (
-                      <div className="nexa-card nexa-dashboard-course" key={i} onClick={abrirCurso} style={{ cursor: "pointer" }}>
+                    {ultimosTreinamentos.map((c) => (
+                      <div className="nexa-card nexa-dashboard-course" key={c.id} onClick={() => abrirCurso(c.id)} style={{ cursor: "pointer" }}>
                         <div className="nexa-dashboard-course-top">
                           <span className="nexa-badge">{c.level}</span>
                           <c.icon size={24} strokeWidth={1.5} />
@@ -1143,7 +1237,7 @@ export default function NexaAcademy() {
                         <div>
                           <div style={{ fontSize: 16, fontWeight: 650, marginBottom: 4 }}>{c.title.replace(" na prática", "")}</div>
                           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", color: palette.textMuted, fontSize: 12 }}>
-                            <span>Módulo {i === 0 ? "4" : i === 1 ? "3" : "1"} de 6</span>
+                            <span>{c.progress > 0 ? `${c.progress}% concluído` : c.dur}</span>
                             <span className="nexa-dashboard-course-link"><ChevronRight size={15} color="#111" /></span>
                           </div>
                         </div>
@@ -1168,7 +1262,7 @@ export default function NexaAcademy() {
                 ))}
               </div>
               {filtered.length > 0
-                ? <div className="nexa-grid-3">{filtered.map((c, i) => <CourseCard key={i} c={c} onOpen={abrirCurso} />)}</div>
+                ? <div className="nexa-grid-3">{filtered.map((c) => <CourseCard key={c.id} c={c} onOpen={() => abrirCurso(c.id)} />)}</div>
                 : <EmptyCoursesState onShowAll={() => setCatFilter("Todos")} showAllAction={catFilter !== "Todos"} />}
             </>
           )}
@@ -1205,18 +1299,22 @@ export default function NexaAcademy() {
                 ))}
               </div>
 
-              <div className="nexa-card" style={{ padding: "22px 24px" }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-                  <div>
-                    <div className="nexa-section-title">{trilhas[selectedTrilha].title}</div>
-                    <p style={{ fontSize: 12, color: palette.textMuted, marginTop: 4, maxWidth: 520 }}>{trilhas[selectedTrilha].desc}</p>
+              {trilhaAtual ? (
+                <div className="nexa-card" style={{ padding: "22px 24px" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+                    <div>
+                      <div className="nexa-section-title">{trilhaAtual.title}</div>
+                      <p style={{ fontSize: 12, color: palette.textMuted, marginTop: 4, maxWidth: 520 }}>{trilhaAtual.desc}</p>
+                    </div>
+                    <button className="nexa-btn-primary" onClick={() => abrirTrilha(trilhaAtual)}><Play size={14} fill="#fff" /> Continuar trilha</button>
                   </div>
-                  <button className="nexa-btn-primary" onClick={abrirCurso}><Play size={14} fill="#fff" /> Continuar trilha</button>
+                  <div style={{ marginTop: 14 }}>
+                    <TrilhaTimeline steps={trilhaAtual.steps} />
+                  </div>
                 </div>
-                <div style={{ marginTop: 14 }}>
-                  <TrilhaTimeline steps={trilhas[selectedTrilha].steps} />
-                </div>
-              </div>
+              ) : (
+                <div className="nexa-card" style={{ padding: 24, color: palette.textMuted, fontSize: 13 }}>Nenhuma trilha cadastrada ainda.</div>
+              )}
             </>
           )}
 
@@ -1236,10 +1334,15 @@ export default function NexaAcademy() {
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                {meusTreinamentos.length === 0 && (
+                  <div className="nexa-card" style={{ padding: 24, color: palette.textMuted, fontSize: 13 }}>
+                    Você ainda não iniciou nenhum treinamento. Os certificados aparecem aqui conforme você avança.
+                  </div>
+                )}
                 {meusTreinamentos.map((t, i) => {
-                  const concluido = t.progresso === 100;
+                  const concluido = t.progresso >= 100;
                   const template = academyController.resolveCertificateTemplate(t, certificateTemplates);
-                  const elegivel = concluido && t.aproveitamento >= APROVEITAMENTO_MINIMO && Boolean(template);
+                  const elegivel = concluido && t.aproveitamento !== null && t.aproveitamento >= (template?.minimumScore ?? APROVEITAMENTO_MINIMO) && Boolean(template);
 
                   return (
                     <div key={i} className="nexa-card" style={{ padding: 18, display: "flex", alignItems: "center", gap: 16 }}>
@@ -1280,11 +1383,11 @@ export default function NexaAcademy() {
                         )}
                         {!t.emitido && concluido && !elegivel && (
                           <span style={{ fontSize: 11.5, color: palette.amber, display: "flex", alignItems: "center", gap: 4, justifyContent: "flex-end" }}>
-                            {template ? "Aproveitamento insuficiente" : "Modelo não configurado"}
+                            {!template ? "Modelo não configurado" : t.aproveitamento === null ? "Aguardando nota do quiz" : "Aproveitamento insuficiente"}
                           </span>
                         )}
                         {!concluido && (
-                          <span style={{ fontSize: 11.5, color: palette.textFaint }}>{t.progresso}% concluído</span>
+                          <span style={{ fontSize: 11.5, color: palette.textFaint }}>{Math.round(t.progresso)}% concluído</span>
                         )}
                       </div>
                     </div>
@@ -1320,13 +1423,12 @@ export default function NexaAcademy() {
                   <div className="nexa-card" style={{ padding: 22 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20 }}>
                       <div className="nexa-avatar" style={{ width: 56, height: 56, fontSize: 18 }}>
-                        {perfilNome.split(" ").map((n) => n[0]).slice(0, 2).join("")}
+                        {initials(perfil?.nome || perfilEmail)}
                       </div>
                       <div>
-                        <div style={{ fontSize: 15, fontWeight: 600, fontFamily: "'Space Grotesk',sans-serif" }}>{perfilNome}</div>
+                        <div style={{ fontSize: 15, fontWeight: 600, fontFamily: "'Space Grotesk',sans-serif" }}>{perfil?.nome}</div>
                         <div style={{ fontSize: 12, color: palette.textFaint }}>{perfilEmail}</div>
                       </div>
-                      <button className="nexa-btn-ghost" style={{ marginLeft: "auto", fontSize: 11.5, padding: "7px 12px" }}>Alterar foto</button>
                     </div>
 
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
@@ -1359,7 +1461,7 @@ export default function NexaAcademy() {
 
                     <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 12 }}>
                       {perfilSalvo && <span style={{ fontSize: 11.5, color: palette.green, display: "flex", alignItems: "center", gap: 4 }}><CheckCircle2 size={13} /> Alterações salvas</span>}
-                      <button className="nexa-btn-primary" onClick={() => setPerfilSalvo(true)}>Salvar alterações</button>
+                      <button className="nexa-btn-primary" onClick={salvarPerfil}>Salvar alterações</button>
                     </div>
                   </div>
 
@@ -1415,8 +1517,8 @@ export default function NexaAcademy() {
                 {/* Coluna direita: resumo + favoritos */}
                 <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                   <div className="nexa-grid-4" style={{ gridTemplateColumns: "1fr 1fr" }}>
-                    <StatCard icon={GraduationCap} label="Em andamento" value="3" color={palette.cyan} />
-                    <StatCard icon={Award} label="Certificados" value="8" color={palette.purple} />
+                    <StatCard icon={GraduationCap} label="Em andamento" value={meuResumo?.em_andamento ?? 0} color={palette.cyan} />
+                    <StatCard icon={Award} label="Certificados" value={meuResumo?.certificados ?? 0} color={palette.purple} />
                   </div>
 
                   <div className="nexa-card" style={{ padding: 18 }}>
@@ -1425,10 +1527,13 @@ export default function NexaAcademy() {
                       <span className="nexa-section-title">Treinamentos favoritos</span>
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                      {favoritos.map((c, i) => {
+                      {favoritos.length === 0 && (
+                        <div style={{ fontSize: 12, color: palette.textMuted }}>Marque treinamentos com a estrela na página do curso para vê-los aqui.</div>
+                      )}
+                      {favoritos.map((c) => {
                         const Icon = c.icon;
                         return (
-                          <div key={i} className="nexa-side-item">
+                          <div key={c.id} className="nexa-side-item" style={{ cursor: "pointer" }} onClick={() => abrirCurso(c.id)}>
                             <div className="nexa-favorite-cover" style={{ background: `linear-gradient(135deg, ${c.grad[0]}, ${c.grad[1]})` }}>
                               {c.cover
                                 ? <img src={c.cover} alt={`Capa do curso ${c.title}`} />
@@ -1471,21 +1576,25 @@ export default function NexaAcademy() {
               </div>
 
               <div className="nexa-grid-4" style={{ marginBottom: 18 }}>
-                <StatCard icon={Users} label="Usuários" value="84" color={palette.cyan} />
-                <StatCard icon={GraduationCap} label="Treinamentos ativos" value="32" color={palette.blue} />
-                <StatCard icon={CheckCircle2} label="Concluídos" value="248" color={palette.green} />
-                <StatCard icon={Award} label="Certificados emitidos" value="156" color={palette.purple} />
+                <StatCard icon={Users} label="Usuários" value={adminResumo?.usuarios ?? 0} color={palette.cyan} />
+                <StatCard icon={GraduationCap} label="Treinamentos ativos" value={adminResumo?.treinamentos_ativos ?? 0} color={palette.blue} />
+                <StatCard icon={CheckCircle2} label="Concluídos" value={adminResumo?.concluidos ?? 0} color={palette.green} />
+                <StatCard icon={Award} label="Certificados emitidos" value={adminResumo?.certificados ?? 0} color={palette.purple} />
               </div>
 
               <div className="nexa-grid-2col" style={{ marginBottom: 22 }}>
                 <div className="nexa-card" style={{ padding: 20 }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
                     <span className="nexa-section-title">Horas de treinamento por mês</span>
-                    <span style={{ fontSize: 11.5, color: palette.green, display: "flex", alignItems: "center", gap: 4 }}><TrendingUp size={13} /> +21% vs. mês anterior</span>
+                    {variacaoMensal !== null && (
+                      <span style={{ fontSize: 11.5, color: variacaoMensal >= 0 ? palette.green : "#F2596B", display: "flex", alignItems: "center", gap: 4 }}>
+                        <TrendingUp size={13} /> {variacaoMensal >= 0 ? "+" : ""}{variacaoMensal}% vs. mês anterior
+                      </span>
+                    )}
                   </div>
                   <div className="nexa-bar-wrap">
                     {monthlyHours.map((m, i) => (
-                      <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center" }}>
+                      <div key={i} title={`${m.horas}h`} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center" }}>
                         <div style={{ width: "100%", display: "flex", alignItems: "flex-end", height: 90 }}>
                           <div className="nexa-bar" style={{ height: `${m.v}%`, opacity: i === monthlyHours.length - 1 ? 1 : 0.65 }} />
                         </div>
@@ -1498,13 +1607,14 @@ export default function NexaAcademy() {
                 <div className="nexa-card" style={{ padding: 20 }}>
                   <div className="nexa-section-title" style={{ marginBottom: 14 }}>Cursos mais acessados</div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                    {topCourses.length === 0 && <div style={{ fontSize: 12, color: palette.textMuted }}>Nenhum acesso registrado ainda.</div>}
                     {topCourses.map((c, i) => (
                       <div key={i}>
                         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 5 }}>
                           <span>{c.name}</span>
                           <span style={{ color: palette.textFaint }}>{c.acessos}</span>
                         </div>
-                        <div className="nexa-progress-track"><div className="nexa-progress-fill" style={{ width: `${(c.acessos / 312) * 100}%` }} /></div>
+                        <div className="nexa-progress-track"><div className="nexa-progress-fill" style={{ width: `${(c.acessos / maxAcessos) * 100}%` }} /></div>
                       </div>
                     ))}
                   </div>
@@ -1520,11 +1630,11 @@ export default function NexaAcademy() {
                   <table className="nexa-table">
                     <thead><tr><th>Nome</th><th>Perfil</th><th>Status</th></tr></thead>
                     <tbody>
-                      {adminUsers.slice(0, 4).map((u, i) => (
-                        <tr key={i}>
+                      {adminUsers.slice(0, 4).map((u) => (
+                        <tr key={u.id}>
                           <td>
                             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                              <div className="nexa-avatar" style={{ width: 24, height: 24, fontSize: 10 }}>{u.name.split(" ").map((n) => n[0]).slice(0, 2).join("")}</div>
+                              <div className="nexa-avatar" style={{ width: 24, height: 24, fontSize: 10 }}>{initials(u.name)}</div>
                               <div>
                                 <div style={{ fontWeight: 500 }}>{u.name}</div>
                                 <div style={{ fontSize: 10.5, color: palette.textFaint }}>{u.acesso}</div>
@@ -1547,6 +1657,7 @@ export default function NexaAcademy() {
                     <span className="nexa-section-title">Logs recentes</span>
                   </div>
                   <div style={{ display: "flex", flexDirection: "column" }}>
+                    {adminLogs.length === 0 && <div style={{ fontSize: 12, color: palette.textMuted }}>Nenhuma atividade registrada ainda.</div>}
                     {adminLogs.map((l, i) => (
                       <div key={i} className="nexa-side-item">
                         <ListChecks size={14} color={palette.cyan} style={{ marginTop: 2, flexShrink: 0 }} />
@@ -1568,7 +1679,7 @@ export default function NexaAcademy() {
               <div style={{ marginBottom: 18, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
                   <h1 className="nexa-heading" style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>Usuários</h1>
-                  <p style={{ color: palette.textMuted, fontSize: 13, marginTop: 4 }}>84 colaboradores cadastrados na plataforma</p>
+                  <p style={{ color: palette.textMuted, fontSize: 13, marginTop: 4 }}>{adminUsers.length} colaboradores cadastrados na plataforma</p>
                 </div>
                 <button className="nexa-btn-primary" onClick={() => setShowCadastroModal(true)}><PlusCircle size={15} /> Cadastrar usuário</button>
               </div>
@@ -1576,11 +1687,11 @@ export default function NexaAcademy() {
                 <table className="nexa-table">
                   <thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Status</th><th>Último acesso</th><th></th></tr></thead>
                   <tbody>
-                    {adminUsers.map((u, i) => (
-                      <tr key={i}>
+                    {adminUsers.map((u) => (
+                      <tr key={u.id}>
                         <td>
                           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                            <div className="nexa-avatar" style={{ width: 26, height: 26, fontSize: 10 }}>{u.name.split(" ").map((n) => n[0]).slice(0, 2).join("")}</div>
+                            <div className="nexa-avatar" style={{ width: 26, height: 26, fontSize: 10 }}>{initials(u.name)}</div>
                             {u.name}
                           </div>
                         </td>
@@ -1588,7 +1699,39 @@ export default function NexaAcademy() {
                         <td>{u.perfil}</td>
                         <td><span className="nexa-status-dot" style={{ background: u.status === "ativo" ? palette.green : palette.textFaint }} />{u.status === "ativo" ? "Ativo" : "Inativo"}</td>
                         <td style={{ color: palette.textFaint }}>{u.acesso}</td>
-                        <td><MoreHorizontal size={15} color={palette.textFaint} style={{ cursor: "pointer" }} /></td>
+                        <td style={{ position: "relative", textAlign: "right" }}>
+                          {u.id !== userId && (
+                            <button
+                              type="button"
+                              onClick={() => setMenuUsuarioId(menuUsuarioId === u.id ? null : u.id)}
+                              style={{ background: "transparent", border: "none", padding: 4, cursor: "pointer", borderRadius: 6 }}
+                              aria-label="Ações do usuário"
+                            >
+                              <MoreHorizontal size={15} color={palette.textFaint} />
+                            </button>
+                          )}
+                          {menuUsuarioId === u.id && (
+                            <>
+                              <div onClick={() => setMenuUsuarioId(null)} style={{ position: "fixed", inset: 0, zIndex: 40 }} />
+                              <div style={{ position: "absolute", top: "100%", right: 8, marginTop: 4, background: palette.bgPanel, border: `1px solid ${palette.borderStrong}`, borderRadius: 10, boxShadow: "0 10px 30px rgba(0,0,0,0.15)", minWidth: 190, zIndex: 41, overflow: "hidden" }}>
+                                <button
+                                  type="button"
+                                  onClick={() => alterarUsuario(u, { perfil: u.perfilDb === "administrador" ? "usuario" : "administrador" })}
+                                  style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", background: "transparent", border: "none", color: palette.textPrimary, padding: "9px 12px", fontSize: 12.5, cursor: "pointer", textAlign: "left" }}
+                                >
+                                  <Shield size={13} color={palette.cyan} /> {u.perfilDb === "administrador" ? "Tornar usuário" : "Tornar administrador"}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => alterarUsuario(u, { status: u.status === "ativo" ? "inativo" : "ativo" })}
+                                  style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", background: "transparent", border: "none", color: u.status === "ativo" ? "#F2596B" : palette.textPrimary, padding: "9px 12px", fontSize: 12.5, cursor: "pointer", textAlign: "left", borderTop: `1px solid ${palette.border}` }}
+                                >
+                                  {u.status === "ativo" ? <><X size={13} /> Desativar acesso</> : <><CheckCircle2 size={13} /> Reativar acesso</>}
+                                </button>
+                              </div>
+                            </>
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -1700,7 +1843,7 @@ export default function NexaAcademy() {
           )}
 
           {/* ---------- ADMIN: VÍDEOS ---------- */}
-          {mode === "admin" && adminActive === "admin-videos" && <AdminVideosView />}
+          {mode === "admin" && adminActive === "admin-videos" && <AdminVideosView trainings={adminTrainings} />}
 
           {/* ---------- ADMIN: outras seções (placeholder) ---------- */}
           {mode === "admin" && !["admin-dashboard", "admin-usuarios", "admin-treinamentos", "admin-certificados", "admin-videos"].includes(adminActive) && (
@@ -1715,7 +1858,7 @@ export default function NexaAcademy() {
       {/* Modal: Certificado emitido */}
       {certificadoPreview && certificadoTemplatePreview && (
         <CertificatePreviewModal
-          recipientName={perfilNome}
+          recipientName={perfil?.nome ?? ""}
           template={certificadoTemplatePreview}
           training={certificadoPreview}
           onClose={() => setCertificadoPreview(null)}
@@ -1742,7 +1885,7 @@ export default function NexaAcademy() {
               <X size={16} style={{ cursor: "pointer", color: palette.textMuted }} onClick={resetCadastro} />
             </div>
             <p style={{ fontSize: 12, color: palette.textMuted, marginBottom: 18 }}>
-              Apenas e-mails corporativos <strong style={{ color: palette.textPrimary }}>@ciahering.com.br</strong> podem ser cadastrados na plataforma.
+              Apenas e-mails corporativos <strong style={{ color: palette.textPrimary }}>{DOMINIO_PERMITIDO}</strong> podem ser cadastrados. O colaborador receberá um link por e-mail para acessar e definir a senha.
             </p>
 
             <label style={{ fontSize: 11.5, color: palette.textMuted, display: "block", marginBottom: 6 }}>Nome completo</label>
@@ -1787,12 +1930,10 @@ export default function NexaAcademy() {
               <button
                 className="nexa-btn-primary"
                 style={{ flex: 1, justifyContent: "center", opacity: podeEnviar ? 1 : 0.5, cursor: podeEnviar ? "pointer" : "not-allowed" }}
-                onClick={() => {
-                  setTentouEnviar(true);
-                  if (podeEnviar) resetCadastro();
-                }}
+                onClick={cadastrarUsuario}
+                disabled={enviandoCadastro}
               >
-                Cadastrar
+                {enviandoCadastro ? "Enviando..." : "Enviar convite"}
               </button>
             </div>
           </div>
@@ -2111,8 +2252,9 @@ export default function NexaAcademy() {
                 className="nexa-btn-primary"
                 style={{ flex: 1, justifyContent: "center", opacity: podeSalvarTreino ? 1 : 0.5, cursor: podeSalvarTreino ? "pointer" : "not-allowed" }}
                 onClick={salvarTreinamento}
+                disabled={salvandoTreino}
               >
-                {editandoTreinoIdx !== null ? "Salvar alterações" : "Cadastrar treinamento"}
+                {salvandoTreino ? "Salvando..." : editandoTreinoIdx !== null ? "Salvar alterações" : "Cadastrar treinamento"}
               </button>
             </div>
           </div>
@@ -2147,14 +2289,30 @@ export default function NexaAcademy() {
               <span className="nexa-chat-message-avatar"><img src="/favicon.ico" alt="Nexa" /></span>
               <div>
                 <div className="nexa-bubble-ai">Digite aqui seu FeedBack</div>
-                <div className="nexa-chat-meta">Assistente de IA · agora mesmo</div>
+                <div className="nexa-chat-meta">Assistente de IA</div>
               </div>
             </div>
+            {mensagens.map((m) => (
+              m.papel === "usuario" ? (
+                <div key={m.id} style={{ alignSelf: "flex-end", maxWidth: "85%" }}>
+                  <div className="nexa-bubble-user">{m.conteudo}</div>
+                  <div className="nexa-chat-meta" style={{ textAlign: "right" }}>Você · {timeAgo(m.created_at)}</div>
+                </div>
+              ) : (
+                <div key={m.id} className="nexa-chat-message">
+                  <span className="nexa-chat-message-avatar"><img src="/favicon.ico" alt="Nexa" /></span>
+                  <div>
+                    <div className="nexa-bubble-ai">{m.conteudo}</div>
+                    <div className="nexa-chat-meta">Assistente de IA · {timeAgo(m.created_at)}</div>
+                  </div>
+                </div>
+              )
+            ))}
           </div>
-          <div className="nexa-chat-input">
-            <input placeholder="Digite aqui..." aria-label="Digite seu feedback" />
-            <button className="nexa-chat-send" type="button" aria-label="Enviar feedback"><ArrowUp size={22} /></button>
-          </div>
+          <form className="nexa-chat-input" onSubmit={(e) => { e.preventDefault(); enviarFeedback(); }}>
+            <input placeholder="Digite aqui..." aria-label="Digite seu feedback" value={chatTexto} onChange={(e) => setChatTexto(e.target.value)} />
+            <button className="nexa-chat-send" type="submit" aria-label="Enviar feedback" disabled={!chatTexto.trim()}><ArrowUp size={22} /></button>
+          </form>
         </div>
       )}
     </div>

@@ -33,3 +33,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# Claude Code (configuracoes locais)
+.claude/settings.local.json

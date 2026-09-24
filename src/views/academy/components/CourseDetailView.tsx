@@ -9,13 +9,20 @@ import {
   Layers3,
   Lock,
   Play,
+  Star,
   Video,
 } from "lucide-react";
 
-import { onboardingCourse } from "@/mocks/course-detail";
 import { courseController } from "@/controllers/course-controller";
+import { useCursoDetalhe } from "@/hooks/use-academy";
+import type { Matricula, Treinamento } from "@/data/academy-repository";
 
 interface CourseDetailViewProps {
+  userId?: string;
+  course?: Treinamento;
+  matricula?: Matricula;
+  isFavorite: boolean;
+  onToggleFavorite: () => void;
   onBack: () => void;
   onOpenLesson: (lessonId: string) => void;
 }
@@ -85,15 +92,41 @@ const courseDetailCss = `
   }
 `;
 
-export default function CourseDetailView({ onBack, onOpenLesson }: CourseDetailViewProps) {
+export default function CourseDetailView({ userId, course: treinamento, matricula, isFavorite, onToggleFavorite, onBack, onOpenLesson }: CourseDetailViewProps) {
   const [activeTab, setActiveTab] = useState<"content" | "about" | "materials">("content");
-  const [selectedModuleIndex, setSelectedModuleIndex] = useState(0);
-  const [markedComplete, setMarkedComplete] = useState(false);
-  const selectedModule = onboardingCourse.modules[selectedModuleIndex];
-  const completedModules = courseController.getCompletedModuleCount(onboardingCourse);
+  const [selectedModuleIndex, setSelectedModuleIndex] = useState<number | null>(null);
+  const { course, isLoading } = useCursoDetalhe(userId, treinamento, matricula?.progresso ?? 0);
+
+  if (!treinamento) {
+    return (
+      <section className="course-detail">
+        <p>Treinamento não encontrado.</p>
+        <button className="course-detail-secondary" onClick={onBack}>Voltar</button>
+      </section>
+    );
+  }
+
+  if (!course) {
+    return (
+      <section className="course-detail">
+        <style>{courseDetailCss}</style>
+        <p style={{ color: "#777", fontSize: 13 }}>{isLoading ? "Carregando conteúdo..." : "Não foi possível carregar o conteúdo."}</p>
+      </section>
+    );
+  }
+
+  // Abre no módulo atual (primeiro não concluído) até o usuário escolher outro.
+  const currentIndex = Math.max(0, course.modules.findIndex((m) => m.status === "current"));
+  const moduleIndex = selectedModuleIndex ?? currentIndex;
+  const selectedModule = course.modules[moduleIndex];
+  const completedModules = courseController.getCompletedModuleCount(course);
+  const allLessons = course.modules.filter((m) => m.status !== "locked").flatMap((m) => m.lessons);
+  const nextLessonId = (matricula?.ultima_aula_id && allLessons.some((l) => l.id === matricula.ultima_aula_id && !l.completed)
+    ? matricula.ultima_aula_id
+    : allLessons.find((l) => !l.completed)?.id) ?? allLessons[0]?.id;
 
   const selectModule = (index: number) => {
-    const module = onboardingCourse.modules[index];
+    const module = course.modules[index];
     if (module && courseController.canSelectModule(module)) setSelectedModuleIndex(index);
   };
 
@@ -103,29 +136,27 @@ export default function CourseDetailView({ onBack, onOpenLesson }: CourseDetailV
       <div className="course-detail-breadcrumb">
         <button onClick={onBack}>Treinamentos</button>
         <ChevronRight size={13} />
-        <span>{onboardingCourse.title}</span>
+        <span>{course.title}</span>
       </div>
 
       <header className="course-detail-summary">
         <div>
-          <h1 className="course-detail-title">{onboardingCourse.title}</h1>
-          <p className="course-detail-description">{onboardingCourse.description}</p>
+          <h1 className="course-detail-title">{course.title}</h1>
+          <p className="course-detail-description">{course.description}</p>
           <div className="course-detail-chips">
-            <span className="course-detail-chip"><Layers3 size={13} />{onboardingCourse.modules.length} módulos</span>
-            <span className="course-detail-chip"><CheckCircle2 size={13} />{onboardingCourse.level}</span>
-            <span className="course-detail-chip"><CheckCircle2 size={13} />{onboardingCourse.progress}% concluído</span>
-            <span className="course-detail-chip"><Clock3 size={13} />{onboardingCourse.totalDuration}</span>
+            <span className="course-detail-chip"><Layers3 size={13} />{course.modules.length} módulos</span>
+            <span className="course-detail-chip"><CheckCircle2 size={13} />{course.level}</span>
+            <span className="course-detail-chip"><CheckCircle2 size={13} />{course.progress}% concluído</span>
+            <span className="course-detail-chip"><Clock3 size={13} />{course.totalDuration}</span>
           </div>
         </div>
         <div className="course-detail-actions">
-          <button className="course-detail-primary" onClick={() => onOpenLesson("3.4")}>
-            <Play size={14} /> Continuar
+          <button className="course-detail-primary" disabled={!nextLessonId} onClick={() => nextLessonId && onOpenLesson(nextLessonId)}>
+            <Play size={14} /> {course.progress > 0 ? "Continuar" : "Começar"}
           </button>
-          <button
-            className={`course-detail-secondary ${markedComplete ? "is-complete" : ""}`}
-            onClick={() => setMarkedComplete((value) => !value)}
-          >
-            {markedComplete ? "Concluído" : "Marcar como concluído"}
+          <button className={`course-detail-secondary ${isFavorite ? "is-complete" : ""}`} onClick={onToggleFavorite}>
+            <Star size={13} fill={isFavorite ? "#fff" : "none"} style={{ verticalAlign: "-2px", marginRight: 6 }} />
+            {isFavorite ? "Favorito" : "Favoritar"}
           </button>
         </div>
       </header>
@@ -143,13 +174,20 @@ export default function CourseDetailView({ onBack, onOpenLesson }: CourseDetailV
           ))}
         </nav>
 
-        {activeTab === "content" && (
+        {activeTab === "content" && course.modules.length === 0 && (
+          <div className="course-detail-about">
+            <h3>Conteúdo em preparação</h3>
+            <p>Este treinamento ainda não tem módulos cadastrados. Volte em breve.</p>
+          </div>
+        )}
+
+        {activeTab === "content" && selectedModule && (
           <div className="course-detail-layout">
             <aside className="course-detail-modules" aria-label="Módulos do curso">
-              {onboardingCourse.modules.map((module, index) => (
+              {course.modules.map((module, index) => (
                 <button
                   key={module.id}
-                  className={`course-detail-module ${selectedModuleIndex === index ? "active" : ""}`}
+                  className={`course-detail-module ${moduleIndex === index ? "active" : ""}`}
                   disabled={module.status === "locked"}
                   onClick={() => selectModule(index)}
                 >
@@ -177,10 +215,10 @@ export default function CourseDetailView({ onBack, onOpenLesson }: CourseDetailV
 
               {selectedModule.lessons.length > 0 ? (
                 <div className="course-detail-lessons">
-                  {selectedModule.lessons.map((item) => (
+                  {selectedModule.lessons.map((item, index) => (
                     <div className="course-detail-lesson" key={item.id} onClick={() => onOpenLesson(item.id)}>
                       {item.type === "video" ? <Video size={15} /> : <FileText size={15} />}
-                      <span>{item.id} {item.title}</span>
+                      <span>{item.code ?? `${selectedModule.order}.${index + 1}`} {item.title}</span>
                       <span className="course-detail-lesson-duration">{item.duration}</span>
                       {item.completed ? <CheckCircle2 size={16} color="#111" /> : <Play size={15} />}
                     </div>
@@ -188,18 +226,18 @@ export default function CourseDetailView({ onBack, onOpenLesson }: CourseDetailV
                 </div>
               ) : (
                 <div className="course-detail-empty">
-                  <div><Lock size={24} /><p>Conclua os módulos anteriores para liberar este conteúdo.</p></div>
+                  <div><Lock size={24} /><p>Nenhuma aula publicada neste módulo ainda.</p></div>
                 </div>
               )}
 
               <div className="course-detail-navigation">
-                <button className="course-detail-nav-button" disabled={selectedModuleIndex === 0} onClick={() => selectModule(selectedModuleIndex - 1)}>
+                <button className="course-detail-nav-button" disabled={moduleIndex === 0} onClick={() => selectModule(moduleIndex - 1)}>
                   <ChevronLeft size={15} /> Anterior
                 </button>
                 <button
                   className="course-detail-nav-button next"
-                  disabled={selectedModuleIndex >= completedModules}
-                  onClick={() => selectModule(selectedModuleIndex + 1)}
+                  disabled={moduleIndex >= completedModules || moduleIndex >= course.modules.length - 1}
+                  onClick={() => selectModule(moduleIndex + 1)}
                 >
                   Próximo <ChevronRight size={15} />
                 </button>
@@ -211,15 +249,15 @@ export default function CourseDetailView({ onBack, onOpenLesson }: CourseDetailV
         {activeTab === "about" && (
           <div className="course-detail-about">
             <h3>Sobre o curso</h3>
-            <p>{onboardingCourse.description}</p>
-            <p>Ao final desta trilha, você conhecerá as ferramentas, os processos e as práticas essenciais utilizadas pelo time de automação.</p>
+            <p>{course.description || "Descrição não informada."}</p>
+            <p>{treinamento.cat} · {course.level} · {treinamento.dur} de carga horária.</p>
           </div>
         )}
 
         {activeTab === "materials" && (
           <div className="course-detail-about">
             <h3>Materiais de apoio</h3>
-            <p>Os documentos e materiais complementares serão disponibilizados conforme o avanço nos módulos.</p>
+            <p>Os materiais de cada aula ficam disponíveis no painel lateral ao abrir a aula.</p>
           </div>
         )}
       </div>

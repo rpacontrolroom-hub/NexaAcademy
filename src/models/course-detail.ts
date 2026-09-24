@@ -3,6 +3,7 @@ export type CourseLessonType = "video" | "document";
 
 export interface CourseLesson {
   id: string;
+  code?: string;
   title: string;
   duration: string;
   type: CourseLessonType;
