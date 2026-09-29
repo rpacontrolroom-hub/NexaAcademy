@@ -8,6 +8,7 @@ import {
   Download,
   ExternalLink,
   FileText,
+  AlertTriangle,
   Maximize2,
   Play,
 } from "lucide-react";
@@ -87,6 +88,8 @@ const extraLessonCss = `
   .lesson-watch { display:flex; flex-direction:column; gap:6px; min-width:220px; flex:1; max-width:420px; }
   .lesson-watch-track { height:4px; overflow:hidden; border-radius:999px; background:#e3e3e3; }
   .lesson-watch-track span { display:block; height:100%; background:#2d7147; transition:width .3s ease; }
+  .lesson-skip-warning { display:flex; align-items:flex-start; gap:9px; margin:0 16px 16px; padding:11px 14px; border:1px solid #f1d9a6; border-radius:9px; background:#fff8e8; color:#7a5412; font-size:12.5px; line-height:1.45; }
+  .lesson-skip-warning svg { flex:0 0 auto; margin-top:1px; }
   .lesson-nav-right { display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
   .lesson-complete-button { display:flex; align-items:center; gap:8px; min-height:40px; padding:0 16px; color:#8a8a8a; background:#ececec; border:1px solid #e0e0e0; border-radius:7px; font-size:11px; font-weight:700; cursor:not-allowed; transition:background .2s ease, color .2s ease, border-color .2s ease; }
   .lesson-complete-button.ready { color:#fff; background:#2d7147; border-color:#2d7147; cursor:pointer; }
@@ -131,7 +134,7 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
 
   // Aula de vídeo: só conclui depois de assistir o mínimo exigido (pular não conta).
   const videoIdAula = youtubeId(aula?.url);
-  const { percentual: percentualAssistido, escutarPlayer } = useProgressoVideo(
+  const { percentual: percentualAssistido, chegouAoFim, escutarPlayer } = useProgressoVideo(
     iframeRef,
     userId && videoIdAula ? `nexa:video:${userId}:${lessonId}:${videoIdAula}` : null,
     () => aoAssistirMinimoRef.current(),
@@ -245,6 +248,12 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
                     )}
                   <button className="lesson-nav-button" onClick={maximizarVideo}><Maximize2 size={14} />Maximizar vídeo</button>
                 </div>
+                {chegouAoFim && !videoLiberado && (
+                  <div className="lesson-skip-warning" role="alert">
+                    <AlertTriangle size={16} />
+                    <span>Você assistiu só <strong>{percentualAssistido}%</strong> da aula. É importante ver tudo para completar essa aula.</span>
+                  </div>
+                )}
               </>
             ) : aula?.tipo === "texto" && aula.conteudo ? (
               <div className="lesson-text">{aula.conteudo}</div>

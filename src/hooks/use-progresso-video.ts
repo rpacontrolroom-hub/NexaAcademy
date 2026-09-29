@@ -19,6 +19,7 @@ interface ProgressoSalvo {
  */
 export function useProgressoVideo(iframeRef: RefObject<HTMLIFrameElement | null>, chave: string | null, aoAtingirMinimo: () => void) {
   const [percentual, setPercentual] = useState(0);
+  const [chegouAoFim, setChegouAoFim] = useState(false);
   const assistidos = useRef<Set<number>>(new Set());
   const duracao = useRef(0);
   const ultimoTempo = useRef<number | null>(null);
@@ -40,6 +41,7 @@ export function useProgressoVideo(iframeRef: RefObject<HTMLIFrameElement | null>
     jaAvisou.current = false;
     ultimoPercentual.current = 0;
     setPercentual(0);
+    setChegouAoFim(false);
     if (!chave) return;
     try {
       const salvo = JSON.parse(localStorage.getItem(chave) ?? "null") as ProgressoSalvo | null;
@@ -58,13 +60,20 @@ export function useProgressoVideo(iframeRef: RefObject<HTMLIFrameElement | null>
     function aoReceberMensagem(event: MessageEvent) {
       if (!/^https:\/\/www\.youtube(-nocookie)?\.com$/.test(event.origin)) return;
       if (event.source !== iframeRef.current?.contentWindow) return;
-      let dados: { event?: string; info?: { currentTime?: number; duration?: number } } | null;
+      let dados: { event?: string; info?: number | { currentTime?: number; duration?: number; playerState?: number } } | null;
       try { dados = typeof event.data === "string" ? JSON.parse(event.data) : event.data; } catch { return; }
+      // Estado 0 do player = vídeo terminou.
+      if (dados?.event === "onStateChange") {
+        if (dados.info === 0) setChegouAoFim(true);
+        return;
+      }
       if (dados?.event !== "infoDelivery" || !dados.info || typeof dados.info !== "object") return;
 
-      const { currentTime, duration } = dados.info;
+      const { currentTime, duration, playerState } = dados.info;
+      if (playerState === 0) setChegouAoFim(true);
       if (typeof duration === "number" && duration > 0) duracao.current = duration;
       if (typeof currentTime !== "number") return;
+      if (duracao.current > 0 && currentTime >= duracao.current - 1) setChegouAoFim(true);
 
       const anterior = ultimoTempo.current;
       ultimoTempo.current = currentTime;
@@ -99,5 +108,5 @@ export function useProgressoVideo(iframeRef: RefObject<HTMLIFrameElement | null>
     player.postMessage(JSON.stringify({ event: "command", func: "addEventListener", args: ["onStateChange"], channel: "widget" }), "*");
   }
 
-  return { percentual, escutarPlayer };
+  return { percentual, chegouAoFim, escutarPlayer };
 }
