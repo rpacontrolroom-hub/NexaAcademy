@@ -109,10 +109,6 @@ export function useTopTreinamentos(enabled: boolean) {
   return useQuery({ queryKey: keys.topTreinamentos, queryFn: () => repo.fetchTopTreinamentos(), enabled });
 }
 
-export function useLogs(enabled: boolean) {
-  return useQuery({ queryKey: keys.logs, queryFn: () => repo.fetchLogs(), enabled });
-}
-
 export function useVideos(enabled = true) {
   return useQuery({ queryKey: keys.videos, queryFn: repo.fetchVideos, enabled });
 }

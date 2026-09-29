@@ -597,11 +597,6 @@ export async function fetchTopTreinamentos(limite = 4): Promise<{ name: string; 
   return check(await supabase.from("vw_treinamentos_mais_acessados").select("name, acessos").limit(limite));
 }
 
-export async function fetchLogs(limite = 5): Promise<{ acao: string; usuario: string; quando: string }[]> {
-  const rows = check(await supabase.from("logs_atividade").select("acao, created_at, profiles(nome)").order("created_at", { ascending: false }).limit(limite));
-  return rows.map((l: any) => ({ acao: l.acao, usuario: l.profiles?.nome ?? "Sistema", quando: l.created_at }));
-}
-
 /* ---------------- Admin: vídeos ---------------- */
 export interface VideoAdmin {
   id: string;

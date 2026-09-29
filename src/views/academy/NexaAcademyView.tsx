@@ -1,6 +1,6 @@
 // Legacy JSX markup is intentionally retained verbatim while domain rules are typed in MVC services.
 // @ts-nocheck
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { Toaster, toast } from "sonner";
@@ -10,7 +10,7 @@ import { useAuth } from "@/hooks/use-auth";
 import {
   keys, usePerfil, useCategorias, useTreinamentos, useMatriculas, useFavoritos, useTrilhas,
   useMeuResumo, useMeusCertificados, useModelosCertificado, useUsuarios, useAdminResumo,
-  useHorasMensais, useTopTreinamentos, useLogs,
+  useHorasMensais, useTopTreinamentos,
 } from "@/hooks/use-academy";
 import * as repo from "@/data/academy-repository";
 import { academyController } from "@/controllers/academy-controller";
@@ -24,11 +24,11 @@ import AdminVideosView from "@/views/academy/components/AdminVideosView";
 import CertificatePreviewModal from "@/views/academy/components/CertificatePreviewModal";
 import {
   LayoutDashboard, GraduationCap, Map, FileText, Award, Sparkles,
-  User, Settings, Search, Bell, ChevronRight, Play, Clock, Flame,
+  User, Settings, Search, Bell, ChevronDown, ChevronRight, Play, Clock, Flame,
   CheckCircle2, Lock, Star, X, Send, BookOpen, Code2, Workflow,
   Database, Network, Cpu, ShieldCheck, Users, Layers, Video,
   HelpCircle, ScrollText, Shield, ArrowLeft, TrendingUp,
-  PlusCircle, Folder, ListChecks, LogOut, MoreHorizontal
+  PlusCircle, Folder, LogOut, MoreHorizontal
 } from "lucide-react";
 
 const css = `
@@ -318,6 +318,8 @@ const css = `
     color: #111; background: #f1f1f1; border-color: transparent; font-weight: 600;
   }
   .nexa-navitem.active svg, .nexa-navitem.adminactive svg { color: #111; }
+  .nexa-navchevron { margin-left: auto; transition: transform .15s ease; }
+  .nexa-navsubitem { min-height: 38px; padding: 8px 16px 8px 44px; font-size: 13px; }
   .nexa-sidebar-footer { border: 0; gap: 18px; }
   .nexa-mode-switch { color: #111 !important; background: #fff !important; border-color: #ddd !important; min-height: 48px; }
   .nexa-avatar { color: #111; background: #f7f7f7; border: 1px solid #d7d7d7; }
@@ -370,6 +372,7 @@ const css = `
     .nexa-logo { padding: 0 4px 20px; }
     .nexa-logo > div:last-child, .nexa-navlabel, .nexa-navitem:not(.active) span { display: none; }
     .nexa-navitem { justify-content: center; padding: 12px; gap: 0; }
+    .nexa-navchevron { display: none; }
     .nexa-mode-switch { font-size: 0; }
     .nexa-main { min-width: 0; }
     .nexa-topbar { padding: 14px 18px; min-height: 76px; }
@@ -409,16 +412,20 @@ const userNavItems = [
 const adminNavItems = [
   { key: "admin-dashboard", label: "Dashboard", icon: LayoutDashboard },
   { key: "admin-usuarios", label: "Usuários", icon: Users },
-  { key: "admin-treinamentos", label: "Treinamentos", icon: GraduationCap },
-  { key: "admin-categorias", label: "Categorias", icon: Folder },
-  { key: "admin-trilhas", label: "Trilhas", icon: Map },
-  { key: "admin-aulas", label: "Aulas", icon: BookOpen },
-  { key: "admin-videos", label: "Vídeos", icon: Video },
-  { key: "admin-quizzes", label: "Quizzes", icon: HelpCircle },
+  {
+    key: "admin-treinamentos", label: "Treinamentos", icon: GraduationCap,
+    children: [
+      { key: "admin-categorias", label: "Categorias", icon: Folder },
+      { key: "admin-trilhas", label: "Trilhas", icon: Map },
+      { key: "admin-aulas", label: "Aulas", icon: BookOpen },
+      { key: "admin-videos", label: "Vídeos", icon: Video },
+      { key: "admin-quizzes", label: "Quizzes", icon: HelpCircle },
+    ],
+  },
   { key: "admin-certificados", label: "Certificados", icon: Award },
-  { key: "admin-notificacoes", label: "Notificações", icon: Bell },
   { key: "admin-config", label: "Configurações", icon: Settings },
 ];
+const adminNavFlat = adminNavItems.flatMap((item) => [item, ...(item.children ?? [])]);
 
 /* ---------------- Ícones dos treinamentos (coluna treinamentos.icone) ---------------- */
 const iconMap = { Workflow, Database, Code2, Network, Cpu, ShieldCheck, BookOpen };
@@ -542,6 +549,7 @@ export default function NexaAcademy() {
   const [selectedCourseId, setSelectedCourseId] = useState(null);
   const [selectedLessonId, setSelectedLessonId] = useState(null);
   const [adminActive, setAdminActive] = useState("admin-dashboard");
+  const [submenuAberto, setSubmenuAberto] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [catFilter, setCatFilter] = useState("Todos");
   const [selectedTrilha, setSelectedTrilha] = useState(0);
@@ -586,7 +594,6 @@ export default function NexaAcademy() {
   const { data: adminResumo } = useAdminResumo(inAdmin);
   const { data: horasMensais = [] } = useHorasMensais(inAdmin);
   const { data: topCourses = [] } = useTopTreinamentos(inAdmin);
-  const { data: logsDb = [] } = useLogs(inAdmin);
 
   const progressoPorTreinamento = useMemo(() => new globalThis.Map(matriculas.map((m) => [m.treinamento_id, m])), [matriculas]);
   const adminTrainings = useMemo(
@@ -607,7 +614,6 @@ export default function NexaAcademy() {
     status: u.status,
     acesso: timeAgo(u.ultimo_acesso),
   }));
-  const adminLogs = logsDb.map((l) => ({ ...l, quando: timeAgo(l.quando) }));
   const maxHoras = Math.max(1, ...horasMensais.map((m) => m.horas));
   const monthlyHours = horasMensais.map((m) => ({ mes: m.mes, v: (m.horas / maxHoras) * 100, horas: m.horas }));
   const variacaoMensal = (() => {
@@ -972,21 +978,40 @@ export default function NexaAcademy() {
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = mode === "admin" ? adminActive === item.key : active === item.key || (active === "curso" && item.key === "treinamentos");
+              const children = mode === "admin" && "children" in item ? item.children : undefined;
+              const expandido = !!children && (submenuAberto || children.some((c) => c.key === adminActive));
               return (
-                <div
-                  key={item.key}
-                  className={`nexa-navitem ${isActive ? (mode === "admin" ? "adminactive" : "active") : ""}`}
-                  onClick={() => {
-                    if (mode === "admin") setAdminActive(item.key);
-                    else {
-                      setSelectedLessonId(null);
-                      setActive(item.key);
-                    }
-                  }}
-                >
-                  <Icon size={16} />
-                  {item.label}
-                </div>
+                <Fragment key={item.key}>
+                  <div
+                    className={`nexa-navitem ${isActive ? (mode === "admin" ? "adminactive" : "active") : ""}`}
+                    onClick={() => {
+                      if (mode === "admin") {
+                        setAdminActive(item.key);
+                        if (children) setSubmenuAberto(!expandido || !isActive);
+                      } else {
+                        setSelectedLessonId(null);
+                        setActive(item.key);
+                      }
+                    }}
+                  >
+                    <Icon size={16} />
+                    {item.label}
+                    {children && <ChevronDown size={14} className="nexa-navchevron" style={{ transform: expandido ? "rotate(180deg)" : undefined }} />}
+                  </div>
+                  {expandido && children.map((sub) => {
+                    const SubIcon = sub.icon;
+                    return (
+                      <div
+                        key={sub.key}
+                        className={`nexa-navitem nexa-navsubitem ${adminActive === sub.key ? "adminactive" : ""}`}
+                        onClick={() => setAdminActive(sub.key)}
+                      >
+                        <SubIcon size={15} />
+                        {sub.label}
+                      </div>
+                    );
+                  })}
+                </Fragment>
               );
             })}
           </div>
@@ -1487,7 +1512,7 @@ export default function NexaAcademy() {
                 <StatCard icon={Award} label="Certificados emitidos" value={adminResumo?.certificados ?? 0} color={palette.purple} />
               </div>
 
-              <div className="nexa-grid-2col" style={{ marginBottom: 22 }}>
+              <div className="nexa-grid-2col">
                 <div className="nexa-card" style={{ padding: 20 }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
                     <span className="nexa-section-title">Horas de treinamento por mês</span>
@@ -1526,55 +1551,6 @@ export default function NexaAcademy() {
                 </div>
               </div>
 
-              <div className="nexa-grid-2col">
-                <div className="nexa-card" style={{ padding: 18 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                    <span className="nexa-section-title">Últimos usuários</span>
-                    <span className="nexa-see-all" onClick={() => setAdminActive("admin-usuarios")}>Ver todos <ChevronRight size={13} /></span>
-                  </div>
-                  <table className="nexa-table">
-                    <thead><tr><th>Nome</th><th>Perfil</th><th>Status</th></tr></thead>
-                    <tbody>
-                      {adminUsers.slice(0, 4).map((u) => (
-                        <tr key={u.id}>
-                          <td>
-                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                              <div className="nexa-avatar" style={{ width: 24, height: 24, fontSize: 10 }}>{initials(u.name)}</div>
-                              <div>
-                                <div style={{ fontWeight: 500 }}>{u.name}</div>
-                                <div style={{ fontSize: 10.5, color: palette.textFaint }}>{u.acesso}</div>
-                              </div>
-                            </div>
-                          </td>
-                          <td>{u.perfil}</td>
-                          <td>
-                            <span className="nexa-status-dot" style={{ background: u.status === "ativo" ? palette.green : palette.textFaint }} />
-                            {u.status === "ativo" ? "Ativo" : "Inativo"}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                <div className="nexa-card" style={{ padding: 18 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                    <span className="nexa-section-title">Logs recentes</span>
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column" }}>
-                    {adminLogs.length === 0 && <div style={{ fontSize: 12, color: palette.textMuted }}>Nenhuma atividade registrada ainda.</div>}
-                    {adminLogs.map((l, i) => (
-                      <div key={i} className="nexa-side-item">
-                        <ListChecks size={14} color={palette.cyan} style={{ marginTop: 2, flexShrink: 0 }} />
-                        <div>
-                          <div style={{ fontSize: 12.5 }}>{l.acao}</div>
-                          <div style={{ fontSize: 11, color: palette.textFaint }}>{l.usuario} · {l.quando}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
             </>
           )}
 
@@ -1753,8 +1729,8 @@ export default function NexaAcademy() {
           {/* ---------- ADMIN: outras seções (placeholder) ---------- */}
           {mode === "admin" && !["admin-dashboard", "admin-usuarios", "admin-treinamentos", "admin-certificados", "admin-videos"].includes(adminActive) && (
             <AdminPlaceholder
-              title={adminNavItems.find((n) => n.key === adminActive)?.label || ""}
-              icon={adminNavItems.find((n) => n.key === adminActive)?.icon || Folder}
+              title={adminNavFlat.find((n) => n.key === adminActive)?.label || ""}
+              icon={adminNavFlat.find((n) => n.key === adminActive)?.icon || Folder}
             />
           )}
         </div>
