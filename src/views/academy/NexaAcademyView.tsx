@@ -253,6 +253,8 @@ const css = `
   .nexa-trilha-overview-card {
     padding: 18px; cursor:pointer; position:relative; overflow:hidden;
   }
+  .nexa-trilha-done-badge { display:inline-flex; align-items:center; gap:5px; padding:3px 9px; border-radius:999px; background:#e7f4ec; color:#2d7147; font-size:11px; font-weight:700; letter-spacing:0; text-transform:none; }
+  .nexa-trilha-done-button { display:inline-flex; align-items:center; gap:7px; flex-shrink:0; padding:11px 20px; border-radius:6px; background:#2d7147; color:#fff; font-size:13px; font-weight:600; }
   .nexa-trilha-cover { display:block; width:calc(100% + 36px); aspect-ratio:16/9; margin:-18px -18px 14px; object-fit:cover; background:#f1f1f1; }
 
   /* Right column items */
@@ -1199,7 +1201,10 @@ export default function NexaAcademy() {
               {trilhas[0] && (
                 <div style={{ marginBottom: 26 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-                    <span className="nexa-section-title">Sua trilha — {trilhas[0].title}</span>
+                    <span className="nexa-section-title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      Sua trilha — {trilhas[0].title}
+                      {trilhas[0].progress === 100 && <span className="nexa-trilha-done-badge"><CheckCircle2 size={12} /> Concluída</span>}
+                    </span>
                     <span className="nexa-see-all" onClick={() => setActive("trilhas")}>Ver trilha completa <ChevronRight size={13} /></span>
                   </div>
                   <div className="nexa-card" style={{ padding: "18px 20px" }}>
@@ -1290,15 +1295,15 @@ export default function NexaAcademy() {
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
                       <Map size={18} color={t.color} />
                       {t.progress === 100 ? (
-                        <span className="nexa-badge" style={{ background: `${palette.green}22`, color: palette.green }}>Concluída</span>
+                        <span className="nexa-trilha-done-badge"><CheckCircle2 size={12} /> Concluída</span>
                       ) : (
                         <span className="nexa-badge" style={{ background: `${t.color}1A`, color: t.color }}>{t.modulos} módulos</span>
                       )}
                     </div>
                     <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 600, fontSize: 14.5, marginBottom: 6 }}>{t.title}</div>
                     <p style={{ fontSize: 12, color: palette.textMuted, lineHeight: 1.5, marginBottom: 14, minHeight: 36 }}>{t.desc}</p>
-                    <div className="nexa-progress-track"><div className="nexa-progress-fill" style={{ width: `${t.progress}%`, background: "#111" }} /></div>
-                    <div style={{ fontSize: 11, color: palette.textFaint, marginTop: 6 }}>{t.progress}% concluído</div>
+                    <div className="nexa-progress-track"><div className="nexa-progress-fill" style={{ width: `${t.progress}%`, background: t.progress === 100 ? "#2d7147" : "#111" }} /></div>
+                    <div style={{ fontSize: 11, color: t.progress === 100 ? "#2d7147" : palette.textFaint, marginTop: 6, fontWeight: t.progress === 100 ? 600 : 400 }}>{t.progress === 100 ? "Trilha concluída" : `${t.progress}% concluído`}</div>
                   </div>
                 ))}
               </div>
@@ -1310,7 +1315,9 @@ export default function NexaAcademy() {
                       <div className="nexa-section-title">{trilhaAtual.title}</div>
                       <p style={{ fontSize: 12, color: palette.textMuted, marginTop: 4, maxWidth: 520 }}>{trilhaAtual.desc}</p>
                     </div>
-                    <button className="nexa-btn-primary" onClick={() => abrirTrilha(trilhaAtual)}><Play size={14} fill="#fff" /> Continuar trilha</button>
+                    {trilhaAtual.progress === 100
+                      ? <span className="nexa-trilha-done-button"><CheckCircle2 size={15} /> Trilha concluída</span>
+                      : <button className="nexa-btn-primary" onClick={() => abrirTrilha(trilhaAtual)}><Play size={14} fill="#fff" /> Continuar trilha</button>}
                   </div>
                   <div style={{ marginTop: 14 }}>
                     <TrilhaTimeline steps={trilhaAtual.steps} />
