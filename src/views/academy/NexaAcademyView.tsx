@@ -253,6 +253,8 @@ const css = `
   .nexa-trilha-overview-card {
     padding: 18px; cursor:pointer; position:relative; overflow:hidden;
   }
+  .nexa-trilha-empty { display:flex; align-items:center; gap:16px; flex-wrap:wrap; padding:20px 22px; }
+  .nexa-trilha-empty > svg { flex-shrink:0; color:#777; }
   .nexa-trilha-done-badge { display:inline-flex; align-items:center; gap:5px; padding:3px 9px; border-radius:999px; background:#e7f4ec; color:#2d7147; font-size:11px; font-weight:700; letter-spacing:0; text-transform:none; }
   .nexa-trilha-done-button { display:inline-flex; align-items:center; gap:7px; flex-shrink:0; padding:11px 20px; border-radius:6px; background:#2d7147; color:#fff; font-size:13px; font-weight:600; }
   .nexa-trilha-cover { display:block; width:calc(100% + 36px); aspect-ratio:16/9; margin:-18px -18px 14px; object-fit:cover; background:#f1f1f1; }
@@ -630,6 +632,23 @@ export default function NexaAcademy() {
   const categories = useMemo(() => ["Todos", ...categoriasDb.map((c) => c.nome).filter((nome) => courses.some((t) => t.cat === nome))], [categoriasDb, courses]);
   const trilhas = useMemo(() => repo.montarTrilhas(trilhasDb, matriculas, (cor) => palette[cor] ?? cor ?? palette.cyan), [trilhasDb, matriculas]);
   const trilhaAtual = trilhas[Math.min(selectedTrilha, trilhas.length - 1)];
+  // Dashboard: trilha iniciada (algum treinamento dela com matrícula) e ainda não concluída,
+  // escolhendo a de atividade mais recente.
+  const trilhaEmAndamento = useMemo(() => {
+    const matriculaPorTreino = new globalThis.Map(matriculas.map((m) => [m.treinamento_id, m]));
+    let escolhida = null;
+    let maisRecente = "";
+    trilhas.forEach((trilha, indice) => {
+      if (trilha.progress >= 100) return;
+      const atividades = trilha.etapas.map((e) => matriculaPorTreino.get(e.treinamento_id)?.updated_at).filter(Boolean).sort();
+      const ultima = atividades[atividades.length - 1];
+      if (ultima && ultima > maisRecente) {
+        maisRecente = ultima;
+        escolhida = { trilha, indice };
+      }
+    });
+    return escolhida;
+  }, [trilhas, matriculas]);
   const favoritos = useMemo(() => favoritosIds.map((id) => courses.find((c) => c.id === id)).filter(Boolean), [favoritosIds, courses]);
   const adminUsers = usuariosDb.map((u) => ({
     id: u.id,
@@ -1198,20 +1217,35 @@ export default function NexaAcademy() {
                 <StatCard icon={Star} label="Favoritos" value={meuResumo?.favoritos ?? 0} color={palette.amber} />
               </div>
 
-              {trilhas[0] && (
-                <div style={{ marginBottom: 26 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-                    <span className="nexa-section-title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      Sua trilha — {trilhas[0].title}
-                      {trilhas[0].progress === 100 && <span className="nexa-trilha-done-badge"><CheckCircle2 size={12} /> Concluída</span>}
-                    </span>
-                    <span className="nexa-see-all" onClick={() => setActive("trilhas")}>Ver trilha completa <ChevronRight size={13} /></span>
-                  </div>
-                  <div className="nexa-card" style={{ padding: "18px 20px" }}>
-                    <TrilhaTimeline steps={trilhas[0].steps} />
-                  </div>
-                </div>
-              )}
+              <div style={{ marginBottom: 26 }}>
+                {trilhaEmAndamento ? (
+                  <>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+                      <span className="nexa-section-title">Sua trilha — {trilhaEmAndamento.trilha.title}</span>
+                      <span className="nexa-see-all" onClick={() => { setSelectedTrilha(trilhaEmAndamento.indice); setActive("trilhas"); }}>Ver trilha completa <ChevronRight size={13} /></span>
+                    </div>
+                    <div className="nexa-card" style={{ padding: "18px 20px" }}>
+                      <TrilhaTimeline steps={trilhaEmAndamento.trilha.steps} />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div style={{ marginBottom: 14 }}><span className="nexa-section-title">Sua trilha</span></div>
+                    <div className="nexa-card nexa-trilha-empty">
+                      <Map size={22} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 14, fontWeight: 600 }}>Nenhuma trilha em andamento</div>
+                        <div style={{ fontSize: 12.5, color: palette.textMuted, marginTop: 3 }}>
+                          {trilhas.length
+                            ? "Escolha uma trilha e siga passo a passo pelos treinamentos pensados para a sua evolução."
+                            : "Assim que novas trilhas forem publicadas, elas aparecem por aqui."}
+                        </div>
+                      </div>
+                      {trilhas.length > 0 && <button className="nexa-btn-primary" type="button" onClick={() => setActive("trilhas")}>Explorar trilhas <ChevronRight size={14} /></button>}
+                    </div>
+                  </>
+                )}
+              </div>
 
               <div>
                 <div>
