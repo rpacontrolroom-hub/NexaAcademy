@@ -19,6 +19,7 @@ import { MINIMUM_CERTIFICATE_SCORE } from "@/services/certificate-service";
 import { theme as palette } from "@/styles/theme";
 import CourseDetailView from "@/views/academy/components/CourseDetailView";
 import LessonDetailView from "@/views/academy/components/LessonDetailView";
+import LessonMaterialsEditor from "@/views/academy/components/LessonMaterialsEditor";
 import AdminCertificatesView from "@/views/academy/components/AdminCertificatesView";
 import AdminTrilhasView from "@/views/academy/components/AdminTrilhasView";
 import CertificatePreviewModal from "@/views/academy/components/CertificatePreviewModal";
@@ -686,7 +687,7 @@ export default function NexaAcademy() {
   const [editandoTreinoIdx, setEditandoTreinoIdx] = useState(null);
   const [menuTreinoIdx, setMenuTreinoIdx] = useState(null);
   const [salvandoTreino, setSalvandoTreino] = useState(false);
-  const novoItem = () => ({ tipo: "video", titulo: "", url: "", texto: "" });
+  const novoItem = () => ({ tipo: "video", titulo: "", url: "", texto: "", materiais: [] });
   const treinoInicial = {
     title: "", cat: "", level: "Básico", dur: "", desc: "",
     modulos: [{ titulo: "Módulo 1", imagem: "", itens: [novoItem()] }],
@@ -817,7 +818,7 @@ export default function NexaAcademy() {
     );
     setSalvandoTreino(false);
     if (ok) {
-      invalidar(keys.treinamentos, keys.categorias, keys.adminResumo, keys.logs, ["conteudo"]);
+      invalidar(keys.treinamentos, keys.categorias, keys.adminResumo, keys.logs, ["conteudo"], ["aula"]);
       resetTreinoModal();
     }
   }
@@ -2120,6 +2121,10 @@ export default function NexaAcademy() {
                                 }}
                               />
                             )}
+                            <LessonMaterialsEditor
+                              materiais={it.materiais ?? []}
+                              onChange={(materiais) => updateItem(mIdx, iIdx, { materiais })}
+                            />
                           </div>
                         );
                       })}

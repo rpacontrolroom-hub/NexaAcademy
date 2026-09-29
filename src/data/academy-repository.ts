@@ -6,7 +6,7 @@ import { formatDate, formatMinutes, formatSeconds, parseDuration, slugify } from
 import type { CertificateTemplate, CertificateTemplateDraft, CertificateTraining } from "@/models/certificate";
 import type { CourseDetail, CourseModule } from "@/models/course-detail";
 import type { LearningPath } from "@/models/learning-path";
-import type { TrainingDraft, TrainingModule } from "@/models/training";
+import type { TrainingDraft, TrainingMaterial, TrainingModule } from "@/models/training";
 
 // Sem erro, o Supabase sempre devolve data (exceto maybeSingle, tratado com `| null` nos retornos).
 function check<T>(result: { data: T; error: { message: string } | null }): NonNullable<T> {
@@ -266,6 +266,7 @@ export async function fetchAulaDetalhe(aulaId: string): Promise<AulaDetalhe | nu
       .from("aulas")
       .select("id, titulo, tipo, url, conteudo, descricao, resumo, objetivos, aprendizados, transcricao, materiais:aula_materiais(id, titulo, arquivo_url, tamanho_bytes)")
       .eq("id", aulaId)
+      .order("ordem", { referencedTable: "aula_materiais" })
       .maybeSingle(),
   ) as AulaDetalhe | null;
 }
@@ -500,7 +501,7 @@ export async function fetchTreinamentoParaEdicao(treinamentoId: string): Promise
   const rows = check(
     await supabase
       .from("modulos")
-      .select("id, ordem, titulo, imagem_url, aulas(id, ordem, titulo, tipo, url, conteudo)")
+      .select("id, ordem, titulo, imagem_url, aulas(id, ordem, titulo, tipo, url, conteudo, aula_materiais(id, titulo, arquivo_url, tamanho_bytes, ordem))")
       .eq("treinamento_id", treinamentoId)
       .order("ordem")
       .order("ordem", { referencedTable: "aulas" }),
@@ -509,7 +510,10 @@ export async function fetchTreinamentoParaEdicao(treinamentoId: string): Promise
     id: m.id,
     titulo: m.titulo,
     imagem: m.imagem_url ?? "",
-    itens: m.aulas.map((a: any) => ({ id: a.id, tipo: a.tipo, titulo: a.titulo, url: a.url ?? "", texto: a.conteudo ?? "" })),
+    itens: m.aulas.map((a: any) => ({
+      id: a.id, tipo: a.tipo, titulo: a.titulo, url: a.url ?? "", texto: a.conteudo ?? "",
+      materiais: [...(a.aula_materiais ?? [])].sort((x: any, y: any) => x.ordem - y.ordem).map((mt: any) => ({ id: mt.id, titulo: mt.titulo, arquivoUrl: mt.arquivo_url, tamanhoBytes: mt.tamanho_bytes })),
+    })),
   }));
 }
 
@@ -517,6 +521,24 @@ const GRADIENTES: [string, string][] = [
   ["#3D6BFF", "#2DD4E8"], ["#9B6BFF", "#3D6BFF"], ["#2DD4E8", "#6E3FD9"],
   ["#3D6BFF", "#9B6BFF"], ["#2DD4E8", "#3D6BFF"], ["#9B6BFF", "#2DD4E8"],
 ];
+
+/** Remove os materiais tirados da aula, envia os arquivos novos e grava nome e ordem. */
+async function sincronizarMateriais(aulaId: string, materiais: TrainingMaterial[]) {
+  const existentes = check(await supabase.from("aula_materiais").select("id").eq("aula_id", aulaId)).map((m: any) => m.id as string);
+  const manter = new Set(materiais.map((m) => m.id).filter(Boolean) as string[]);
+  const remover = existentes.filter((id) => !manter.has(id));
+  if (remover.length) check(await supabase.from("aula_materiais").delete().in("id", remover));
+
+  for (const [ordem, material] of materiais.entries()) {
+    const titulo = material.titulo.trim() || material.arquivo?.name || "Material";
+    if (material.id) {
+      check(await supabase.from("aula_materiais").update({ titulo, ordem }).eq("id", material.id));
+    } else if (material.arquivo) {
+      const arquivoUrl = await uploadArquivo(material.arquivo, "materiais");
+      check(await supabase.from("aula_materiais").insert({ aula_id: aulaId, titulo, arquivo_url: arquivoUrl, tamanho_bytes: material.arquivo.size, ordem }));
+    }
+  }
+}
 
 /** Cria ou atualiza o treinamento e sincroniza módulos/aulas preservando os IDs
  *  existentes (assim o progresso dos alunos não se perde ao editar). */
@@ -582,8 +604,10 @@ export async function salvarTreinamento(draft: TrainingDraft, categoriaId: strin
         url: item.tipo === "texto" ? null : item.url.trim() || null,
         conteudo: item.tipo === "texto" ? item.texto.trim() : null,
       };
-      if (item.id) check(await supabase.from("aulas").update(aula).eq("id", item.id));
-      else check(await supabase.from("aulas").insert(aula));
+      let aulaId = item.id;
+      if (aulaId) check(await supabase.from("aulas").update(aula).eq("id", aulaId));
+      else aulaId = check(await supabase.from("aulas").insert(aula).select("id").single()).id as string;
+      await sincronizarMateriais(aulaId!, item.materiais ?? []);
     }
   }
 

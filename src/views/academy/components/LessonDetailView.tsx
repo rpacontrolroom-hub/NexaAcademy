@@ -86,6 +86,13 @@ const extraLessonCss = `
   .lesson-material-row a { color:inherit; }
 `;
 
+/** O Storage do Supabase força o download com `?download=<nome>`; mantém a extensão original. */
+function linkDownload(url: string, titulo: string) {
+  const extensao = url.split("?")[0].match(/\.[a-z0-9]+$/i)?.[0] ?? "";
+  const nome = titulo.toLowerCase().endsWith(extensao.toLowerCase()) ? titulo : `${titulo}${extensao}`;
+  return `${url}${url.includes("?") ? "&" : "?"}download=${encodeURIComponent(nome)}`;
+}
+
 export default function LessonDetailView({ userId, course: treinamento, matricula, lessonId, onBack, onNavigate }: LessonDetailViewProps) {
   const queryClient = useQueryClient();
   const [salvando, setSalvando] = useState(false);
@@ -238,7 +245,7 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
                     <FileText size={14} />
                     {material.arquivo_url ? <a href={material.arquivo_url} target="_blank" rel="noreferrer">{material.titulo}</a> : <span>{material.titulo}</span>}
                     <span className="lesson-material-size">{formatBytes(material.tamanho_bytes)}</span>
-                    {material.arquivo_url ? <a href={material.arquivo_url} download aria-label={`Baixar ${material.titulo}`}><Download size={13} /></a> : <Download size={13} style={{ opacity: .3 }} />}
+                    {material.arquivo_url ? <a href={linkDownload(material.arquivo_url, material.titulo)} aria-label={`Baixar ${material.titulo}`}><Download size={13} /></a> : <Download size={13} style={{ opacity: .3 }} />}
                   </div>
                 ))}
               </div>
