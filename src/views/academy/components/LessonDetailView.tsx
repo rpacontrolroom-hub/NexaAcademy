@@ -36,8 +36,6 @@ const lessonDetailCss = `
   .lesson-detail-header { display:flex; align-items:flex-start; justify-content:space-between; gap:24px; margin-bottom:20px; }
   .lesson-detail-title { margin:0 0 7px; font-size:25px; font-weight:700; letter-spacing:-.02em; }
   .lesson-detail-description { max-width:850px; margin:0; color:#666; font-size:12.5px; line-height:1.55; }
-  .lesson-detail-complete { display:flex; align-items:center; gap:7px; min-height:38px; padding:0 14px; flex-shrink:0; color:#333; background:#fff; border:1px solid #ddd; border-radius:7px; font-size:11px; font-weight:600; cursor:pointer; }
-  .lesson-detail-complete.done { color:#fff; background:#2d7147; border-color:#2d7147; }
   .lesson-detail-grid { display:grid; grid-template-columns:minmax(0,1fr) 350px; gap:22px; }
   .lesson-detail-main, .lesson-detail-side-card { background:#fff; border:1px solid #dedede; border-radius:13px; box-shadow:0 5px 18px rgba(0,0,0,.025); }
   .lesson-detail-main { overflow:hidden; }
@@ -71,7 +69,9 @@ const lessonDetailCss = `
   @media (max-width:1100px) { .lesson-detail-grid { grid-template-columns:1fr; } .lesson-detail-side { display:grid; grid-template-columns:1fr 1fr; } }
   @media (max-width:700px) {
     .lesson-detail-header { flex-direction:column; }
-    .lesson-detail-complete { width:100%; justify-content:center; }
+    .lesson-detail-navigation { flex-direction:column-reverse; align-items:stretch; gap:10px; }
+    .lesson-nav-right { justify-content:stretch; }
+    .lesson-nav-right > * { flex:1; justify-content:center; }
     .lesson-detail-side { display:flex; }
     .lesson-video { height:230px; }
   }
@@ -87,7 +87,11 @@ const extraLessonCss = `
   .lesson-watch { display:flex; flex-direction:column; gap:6px; min-width:220px; flex:1; max-width:420px; }
   .lesson-watch-track { height:4px; overflow:hidden; border-radius:999px; background:#e3e3e3; }
   .lesson-watch-track span { display:block; height:100%; background:#2d7147; transition:width .3s ease; }
-  .lesson-detail-complete:disabled { opacity:.55; cursor:not-allowed; }
+  .lesson-nav-right { display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
+  .lesson-complete-button { display:flex; align-items:center; gap:8px; min-height:40px; padding:0 16px; color:#8a8a8a; background:#ececec; border:1px solid #e0e0e0; border-radius:7px; font-size:11px; font-weight:700; cursor:not-allowed; transition:background .2s ease, color .2s ease, border-color .2s ease; }
+  .lesson-complete-button.ready { color:#fff; background:#2d7147; border-color:#2d7147; cursor:pointer; }
+  .lesson-complete-button.ready:hover { background:#255d3a; }
+  .lesson-complete-button.done { color:#2d7147; background:#e7f4ec; border-color:#cfe8d8; cursor:default; }
   .lesson-text { margin:16px; padding:18px; white-space:pre-wrap; color:#333; background:#fafafa; border:1px solid #e4e4e4; border-radius:9px; font-size:12.5px; line-height:1.7; }
   .lesson-open-link { display:inline-flex; align-items:center; gap:7px; margin-top:14px; padding:9px 14px; color:#fff; background:#111; border-radius:7px; font-size:11.5px; font-weight:600; text-decoration:none; }
   .lesson-material-row a { color:inherit; }
@@ -171,26 +175,12 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
   const videoId = videoIdAula;
   const videoLiberado = !videoId || completed || percentualAssistido >= PERCENTUAL_MINIMO_VIDEO;
 
-  async function alternarConcluida() {
-    if (!userId || salvando) return;
-    if (!completed && !videoLiberado) {
+  async function concluirAula() {
+    if (!userId || completed || salvando) return;
+    if (!videoLiberado) {
       toast.info(`Assista pelo menos ${PERCENTUAL_MINIMO_VIDEO}% do vídeo para concluir a aula.`);
       return;
     }
-    setSalvando(true);
-    try {
-      await repo.definirAulaConcluida(userId, lessonId, !completed);
-      invalidarProgresso();
-      if (!completed && nextLesson) toast.success("Aula concluída! Siga para a próxima.");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : String(err));
-    } finally {
-      setSalvando(false);
-    }
-  }
-
-  async function concluirAoAssistirVideo() {
-    if (!userId || completed || salvando) return;
     setSalvando(true);
     try {
       await repo.definirAulaConcluida(userId, lessonId, true);
@@ -202,7 +192,9 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
       setSalvando(false);
     }
   }
-  aoAssistirMinimoRef.current = concluirAoAssistirVideo;
+  aoAssistirMinimoRef.current = () => {
+    if (!completed) toast.success("Vídeo assistido! Agora você pode concluir a aula.");
+  };
 
   function maximizarVideo() {
     const el = playerRef.current;
@@ -226,14 +218,6 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
           <h1 className="lesson-detail-title">{module.order}. {detail.title}</h1>
           <p className="lesson-detail-description">{detail.description}</p>
         </div>
-        <button
-          className={`lesson-detail-complete ${completed ? "done" : ""}`}
-          onClick={alternarConcluida}
-          disabled={salvando || !videoLiberado}
-          title={videoLiberado ? undefined : `Assista pelo menos ${PERCENTUAL_MINIMO_VIDEO}% do vídeo para concluir`}
-        >
-          <CheckCircle2 size={15} /> {completed ? "Concluída" : "Marcar como concluída"}
-        </button>
       </header>
 
       <div className="lesson-detail-grid">
@@ -251,8 +235,12 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
                     ? <span className="lesson-done-badge"><CheckCircle2 size={16} /> Aula concluída</span>
                     : (
                       <div className="lesson-watch">
-                        <div className="lesson-watch-track"><span style={{ width: `%` }} /></div>
-                        <span className="lesson-done-hint">Você assistiu {percentualAssistido}% · a aula é concluída ao assistir {PERCENTUAL_MINIMO_VIDEO}%</span>
+                        <div className="lesson-watch-track"><span style={{ width: `${percentualAssistido}%` }} /></div>
+                        <span className="lesson-done-hint">
+                          {videoLiberado
+                            ? "Vídeo assistido. Clique em Concluir aula para seguir."
+                            : `Você assistiu ${percentualAssistido}% · assista ${PERCENTUAL_MINIMO_VIDEO}% para liberar a conclusão`}
+                        </span>
                       </div>
                     )}
                   <button className="lesson-nav-button" onClick={maximizarVideo}><Maximize2 size={14} />Maximizar vídeo</button>
@@ -272,7 +260,23 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
 
           <div className="lesson-detail-navigation">
             <button className="lesson-nav-button" disabled={!previousLesson} onClick={() => previousLesson && onNavigate(previousLesson.id)}><ChevronLeft size={15} />Aula anterior</button>
-            <button className="lesson-nav-button next" disabled={!nextLesson} onClick={() => nextLesson && onNavigate(nextLesson.id)}>Próxima aula<ChevronRight size={15} /></button>
+            <div className="lesson-nav-right">
+              {completed ? (
+                <span className="lesson-complete-button done"><CheckCircle2 size={15} />Aula concluída</span>
+              ) : (
+                <button
+                  className={`lesson-complete-button ${videoLiberado ? "ready" : ""}`}
+                  onClick={concluirAula}
+                  disabled={salvando || !videoLiberado}
+                  title={videoLiberado ? undefined : `Assista pelo menos ${PERCENTUAL_MINIMO_VIDEO}% do vídeo para concluir`}
+                >
+                  <CheckCircle2 size={15} />{salvando ? "Concluindo..." : "Concluir aula"}
+                </button>
+              )}
+              {completed && (nextLesson
+                ? <button className="lesson-nav-button next" onClick={() => onNavigate(nextLesson.id)}>Próxima aula<ChevronRight size={15} /></button>
+                : <button className="lesson-nav-button next" onClick={onBack}>Voltar ao treinamento<ChevronRight size={15} /></button>)}
+            </div>
           </div>
         </div>
 
