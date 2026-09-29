@@ -199,7 +199,8 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
             {videoId ? (
               <>
                 <div className="lesson-player" ref={playerRef}>
-                  <iframe src={`https://www.youtube-nocookie.com/embed/${videoId}`} title={detail.title} allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowFullScreen />
+                  {/* rel=0: sugestões só do mesmo canal; iv_load_policy=3: sem anotações; playsinline: não força tela cheia no celular. */}
+                  <iframe src={`https://www.youtube-nocookie.com/embed/${videoId}?rel=0&iv_load_policy=3&playsinline=1`} title={detail.title} allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowFullScreen />
                 </div>
                 <div className="lesson-player-actions">
                   <button className="lesson-nav-button" onClick={maximizarVideo}><Maximize2 size={14} />Maximizar vídeo</button>
