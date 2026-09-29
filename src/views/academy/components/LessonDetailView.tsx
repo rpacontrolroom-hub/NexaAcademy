@@ -14,6 +14,7 @@ import {
 
 import { courseController } from "@/controllers/course-controller";
 import { keys, useAula, useCursoDetalhe } from "@/hooks/use-academy";
+import { PERCENTUAL_MINIMO_VIDEO, useProgressoVideo } from "@/hooks/use-progresso-video";
 import * as repo from "@/data/academy-repository";
 import { formatBytes, youtubeId } from "@/lib/format";
 import type { LessonDetail } from "@/models/lesson-detail";
@@ -83,6 +84,10 @@ const extraLessonCss = `
   .lesson-player-actions { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin:-4px 16px 16px; }
   .lesson-done-badge { display:inline-flex; align-items:center; gap:7px; padding:7px 12px; border-radius:999px; background:#e7f4ec; color:#2d7147; font-size:12px; font-weight:700; }
   .lesson-done-hint { color:#888; font-size:11.5px; }
+  .lesson-watch { display:flex; flex-direction:column; gap:6px; min-width:220px; flex:1; max-width:420px; }
+  .lesson-watch-track { height:4px; overflow:hidden; border-radius:999px; background:#e3e3e3; }
+  .lesson-watch-track span { display:block; height:100%; background:#2d7147; transition:width .3s ease; }
+  .lesson-detail-complete:disabled { opacity:.55; cursor:not-allowed; }
   .lesson-text { margin:16px; padding:18px; white-space:pre-wrap; color:#333; background:#fafafa; border:1px solid #e4e4e4; border-radius:9px; font-size:12.5px; line-height:1.7; }
   .lesson-open-link { display:inline-flex; align-items:center; gap:7px; margin-top:14px; padding:9px 14px; color:#fff; background:#111; border-radius:7px; font-size:11.5px; font-weight:600; text-decoration:none; }
   .lesson-material-row a { color:inherit; }
@@ -101,7 +106,7 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
   const playerRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   // Atualizado a cada render com a ação atual (depende de "completed" e da aula aberta).
-  const aoTerminarVideoRef = useRef<() => void>(() => {});
+  const aoAssistirMinimoRef = useRef<() => void>(() => {});
   const { course, isLoading } = useCursoDetalhe(userId, treinamento, matricula?.progresso ?? 0);
   const { data: aula } = useAula(lessonId);
 
@@ -120,20 +125,13 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, lessonId]);
 
-  // Eventos do player do YouTube (API oficial via postMessage): estado 0 = vídeo terminou.
-  useEffect(() => {
-    function aoReceberMensagem(event: MessageEvent) {
-      if (!/^https:\/\/www\.youtube(-nocookie)?\.com$/.test(event.origin)) return;
-      if (event.source !== iframeRef.current?.contentWindow) return;
-      let dados: { event?: string; info?: number | { playerState?: number } } | null;
-      try { dados = typeof event.data === "string" ? JSON.parse(event.data) : event.data; } catch { return; }
-      const info = dados?.info;
-      const estado = dados?.event === "onStateChange" ? info : dados?.event === "infoDelivery" && typeof info === "object" ? info?.playerState : undefined;
-      if (estado === 0) aoTerminarVideoRef.current();
-    }
-    window.addEventListener("message", aoReceberMensagem);
-    return () => window.removeEventListener("message", aoReceberMensagem);
-  }, []);
+  // Aula de vídeo: só conclui depois de assistir o mínimo exigido (pular não conta).
+  const videoIdAula = youtubeId(aula?.url);
+  const { percentual: percentualAssistido, escutarPlayer } = useProgressoVideo(
+    iframeRef,
+    userId && videoIdAula ? `nexa:video:${userId}:${lessonId}:${videoIdAula}` : null,
+    () => aoAssistirMinimoRef.current(),
+  );
 
   if (!course) {
     return (
@@ -170,10 +168,15 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
 
   const { lesson, module, previousLesson, nextLesson, detail } = context;
   const completed = lesson.completed;
-  const videoId = youtubeId(aula?.url);
+  const videoId = videoIdAula;
+  const videoLiberado = !videoId || completed || percentualAssistido >= PERCENTUAL_MINIMO_VIDEO;
 
   async function alternarConcluida() {
     if (!userId || salvando) return;
+    if (!completed && !videoLiberado) {
+      toast.info(`Assista pelo menos ${PERCENTUAL_MINIMO_VIDEO}% do vídeo para concluir a aula.`);
+      return;
+    }
     setSalvando(true);
     try {
       await repo.definirAulaConcluida(userId, lessonId, !completed);
@@ -186,7 +189,7 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
     }
   }
 
-  async function concluirAoTerminarVideo() {
+  async function concluirAoAssistirVideo() {
     if (!userId || completed || salvando) return;
     setSalvando(true);
     try {
@@ -199,15 +202,7 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
       setSalvando(false);
     }
   }
-  aoTerminarVideoRef.current = concluirAoTerminarVideo;
-
-  /** Pede ao player para avisar mudanças de estado (play, pausa, fim). */
-  function escutarPlayer() {
-    const player = iframeRef.current?.contentWindow;
-    if (!player) return;
-    player.postMessage(JSON.stringify({ event: "listening", id: videoId, channel: "widget" }), "*");
-    player.postMessage(JSON.stringify({ event: "command", func: "addEventListener", args: ["onStateChange"], id: videoId, channel: "widget" }), "*");
-  }
+  aoAssistirMinimoRef.current = concluirAoAssistirVideo;
 
   function maximizarVideo() {
     const el = playerRef.current;
@@ -231,7 +226,12 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
           <h1 className="lesson-detail-title">{module.order}. {detail.title}</h1>
           <p className="lesson-detail-description">{detail.description}</p>
         </div>
-        <button className={`lesson-detail-complete ${completed ? "done" : ""}`} onClick={alternarConcluida} disabled={salvando}>
+        <button
+          className={`lesson-detail-complete ${completed ? "done" : ""}`}
+          onClick={alternarConcluida}
+          disabled={salvando || !videoLiberado}
+          title={videoLiberado ? undefined : `Assista pelo menos ${PERCENTUAL_MINIMO_VIDEO}% do vídeo para concluir`}
+        >
           <CheckCircle2 size={15} /> {completed ? "Concluída" : "Marcar como concluída"}
         </button>
       </header>
@@ -243,13 +243,18 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
               <>
                 <div className="lesson-player" ref={playerRef}>
                   {/* rel=0: sugestões só do mesmo canal; iv_load_policy=3: sem anotações; playsinline: não força tela cheia no celular;
-                      enablejsapi: permite saber quando o vídeo termina para concluir a aula. */}
+                      enablejsapi: permite medir quanto do vídeo foi assistido para concluir a aula. */}
                   <iframe ref={iframeRef} onLoad={escutarPlayer} src={`https://www.youtube-nocookie.com/embed/${videoId}?rel=0&iv_load_policy=3&playsinline=1&enablejsapi=1&origin=${encodeURIComponent(typeof window === "undefined" ? "" : window.location.origin)}`} title={detail.title} allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowFullScreen />
                 </div>
                 <div className="lesson-player-actions">
                   {completed
                     ? <span className="lesson-done-badge"><CheckCircle2 size={16} /> Aula concluída</span>
-                    : <span className="lesson-done-hint">A aula é concluída automaticamente ao terminar o vídeo.</span>}
+                    : (
+                      <div className="lesson-watch">
+                        <div className="lesson-watch-track"><span style={{ width: `%` }} /></div>
+                        <span className="lesson-done-hint">Você assistiu {percentualAssistido}% · a aula é concluída ao assistir {PERCENTUAL_MINIMO_VIDEO}%</span>
+                      </div>
+                    )}
                   <button className="lesson-nav-button" onClick={maximizarVideo}><Maximize2 size={14} />Maximizar vídeo</button>
                 </div>
               </>
