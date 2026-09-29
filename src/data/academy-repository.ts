@@ -654,19 +654,3 @@ export async function fetchAulasDoTreinamento(treinamentoId: string): Promise<{ 
   const modulos = await fetchConteudoTreinamento(treinamentoId);
   return modulos.flatMap((m) => m.aulas.map((a, i) => ({ id: a.id, label: `Módulo ${m.ordem} · Aula ${i + 1} — ${a.titulo}` })));
 }
-
-/* ---------------- Chat Nexa (feedbacks) ---------------- */
-export interface MensagemNexa {
-  id: string;
-  papel: "usuario" | "assistente";
-  conteudo: string;
-  created_at: string;
-}
-
-export async function fetchMensagens(userId: string): Promise<MensagemNexa[]> {
-  return check(await supabase.from("nexa_mensagens").select("id, papel, conteudo, created_at").eq("user_id", userId).order("created_at")) as MensagemNexa[];
-}
-
-export async function enviarMensagem(userId: string, conteudo: string) {
-  check(await supabase.from("nexa_mensagens").insert({ user_id: userId, papel: "usuario", conteudo: conteudo.trim() }));
-}

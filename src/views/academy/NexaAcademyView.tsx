@@ -10,7 +10,7 @@ import { useAuth } from "@/hooks/use-auth";
 import {
   keys, usePerfil, useCategorias, useTreinamentos, useMatriculas, useFavoritos, useTrilhas,
   useMeuResumo, useMeusCertificados, useModelosCertificado, useUsuarios, useAdminResumo,
-  useHorasMensais, useTopTreinamentos, useLogs, useMensagens,
+  useHorasMensais, useTopTreinamentos, useLogs,
 } from "@/hooks/use-academy";
 import * as repo from "@/data/academy-repository";
 import { academyController } from "@/controllers/academy-controller";
@@ -27,8 +27,8 @@ import {
   User, Settings, Search, Bell, ChevronRight, Play, Clock, Flame,
   CheckCircle2, Lock, Star, X, Send, BookOpen, Code2, Workflow,
   Database, Network, Cpu, ShieldCheck, Users, Layers, Video,
-  HelpCircle, ScrollText, Shield, ArrowLeft, TrendingUp, Minus,
-  PlusCircle, Folder, ListChecks, MessageCircle, LogOut, ArrowUp, MoreHorizontal
+  HelpCircle, ScrollText, Shield, ArrowLeft, TrendingUp,
+  PlusCircle, Folder, ListChecks, LogOut, MoreHorizontal
 } from "lucide-react";
 
 const css = `
@@ -255,68 +255,7 @@ const css = `
   .nexa-side-item { display:flex; gap:10px; padding: 10px; border-radius:10px; align-items:flex-start; }
   .nexa-side-item:hover { background: rgba(148,163,205,0.06); }
 
-  /* Nexa AI floating */
-  .nexa-fab {
-    position:absolute; bottom: 26px; right: 30px;
-    width: 56px; height:56px; border-radius:50%;
-    background: linear-gradient(135deg, ${palette.purple}, ${palette.cyan});
-    display:flex; align-items:center; justify-content:center;
-    cursor:pointer; box-shadow: 0 0 0 0 rgba(155,107,255,0.5), 0 6px 24px rgba(110,63,217,0.45);
-    animation: nexaPulse 2.6s infinite;
-    z-index: 50;
-    border: none;
-  }
-  @keyframes nexaPulse {
-    0% { box-shadow: 0 0 0 0 rgba(155,107,255,0.45), 0 6px 24px rgba(110,63,217,0.4); }
-    70% { box-shadow: 0 0 0 14px rgba(155,107,255,0), 0 6px 24px rgba(110,63,217,0.4); }
-    100% { box-shadow: 0 0 0 0 rgba(155,107,255,0), 0 6px 24px rgba(110,63,217,0.4); }
-  }
 
-  .nexa-chat-panel {
-    position:absolute; bottom: 22px; right: 24px;
-    width: min(520px, calc(100% - 48px)); height: min(460px, calc(100% - 44px));
-    background: #fff; border: 1px solid #e5e5e5; border-radius: 0;
-    box-shadow: 0 18px 55px rgba(0,0,0,.18);
-    z-index: 51;
-    display:flex; flex-direction:column;
-    overflow:hidden;
-  }
-  .nexa-chat-header {
-    display:flex; align-items:center; justify-content:space-between;
-    height: 62px; flex: 0 0 62px; padding: 0 18px 0 14px;
-    background: #050505; color: #fff;
-  }
-  .nexa-chat-brand { display:flex; align-items:center; gap:10px; }
-  .nexa-chat-avatar { width:34px; height:34px; border-radius:50%; background:#fff; overflow:hidden; display:grid; place-items:center; }
-  .nexa-chat-avatar img { width:100%; height:100%; object-fit:cover; }
-  .nexa-chat-title { font-size:17px; font-weight:700; letter-spacing:-.02em; }
-  .nexa-chat-menu { width:34px; height:34px; padding:0; border:0; border-radius:50%; background:transparent; color:#fff; cursor:pointer; display:grid; place-items:center; }
-  .nexa-chat-menu:hover { background: rgba(255,255,255,.12); }
-  .nexa-chat-body { padding: 14px 18px; flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:8px; color:#111; }
-  .nexa-chat-message { display:flex; align-items:flex-start; gap:10px; }
-  .nexa-chat-message-avatar { width:22px; height:22px; flex:0 0 22px; border-radius:50%; overflow:hidden; margin-top:16px; }
-  .nexa-chat-message-avatar img { width:100%; height:100%; object-fit:cover; }
-  .nexa-bubble-ai {
-    background: #f1f4f8; border:0; border-radius: 14px 14px 14px 0;
-    padding: 12px 15px; font-size:15px; color:#0d0d0d; max-width:100%; line-height:1.3;
-  }
-  .nexa-bubble-user {
-    background:#111; border-radius:14px 14px 0 14px; padding:10px 14px;
-    font-size:14px; align-self:flex-end; max-width:80%; color:#fff;
-  }
-  .nexa-chat-meta { margin:6px 0 0 2px; color:#667085; font-size:12px; }
-  .nexa-chat-input { margin: 0 12px 12px; min-height:68px; display:flex; align-items:flex-end; gap:6px; padding: 11px 8px 10px 14px; border:2px solid #111; border-radius:22px; }
-  .nexa-chat-input input {
-    flex:1; align-self:flex-start; background:transparent; border:0; padding:0; color:#111; font-size:15px; outline:none;
-  }
-  .nexa-chat-input input::placeholder { color:#98a2b3; }
-  .nexa-chat-send { width:32px; height:32px; flex:0 0 32px; border:0; border-radius:50%; background:#e8edf3; color:#a4adba; display:grid; place-items:center; cursor:pointer; }
-  @media (max-width: 760px) {
-    .nexa-chat-panel { inset:auto 12px 12px 12px; width:auto; height:min(420px, calc(100% - 24px)); border:1px solid #e5e5e5; }
-    .nexa-chat-header { height:58px; flex-basis:58px; }
-    .nexa-chat-title { font-size:16px; }
-    .nexa-chat-input { min-height:64px; }
-  }
 
   .nexa-pill {
     font-size:12px; padding: 6px 13px; border-radius:999px; cursor:pointer;
@@ -408,7 +347,6 @@ const css = `
   .nexa-notification-row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; }
   .nexa-notification-icon { width: 34px; height: 34px; border-radius: 7px; background: #f5f5f5; display: flex; align-items: center; justify-content: center; }
   .nexa-see-all { color: #111; }
-  .nexa-fab { background: #111; box-shadow: 0 6px 24px rgba(0,0,0,.2); animation: none; }
 
   /* Overlay dos formulários administrativos */
   .nexa-certificate-overlay {
@@ -465,9 +403,7 @@ const userNavItems = [
   { key: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { key: "treinamentos", label: "Treinamentos", icon: GraduationCap },
   { key: "trilhas", label: "Trilhas", icon: Map },
-  { key: "docs", label: "Documentações", icon: FileText },
   { key: "certificados", label: "Certificados", icon: Award },
-  { key: "nexa", label: "Nexa IA", icon: Sparkles },
 ];
 
 const adminNavItems = [
@@ -477,7 +413,6 @@ const adminNavItems = [
   { key: "admin-categorias", label: "Categorias", icon: Folder },
   { key: "admin-trilhas", label: "Trilhas", icon: Map },
   { key: "admin-aulas", label: "Aulas", icon: BookOpen },
-  { key: "admin-docs", label: "Documentações", icon: FileText },
   { key: "admin-videos", label: "Vídeos", icon: Video },
   { key: "admin-quizzes", label: "Quizzes", icon: HelpCircle },
   { key: "admin-certificados", label: "Certificados", icon: Award },
@@ -607,8 +542,6 @@ export default function NexaAcademy() {
   const [selectedCourseId, setSelectedCourseId] = useState(null);
   const [selectedLessonId, setSelectedLessonId] = useState(null);
   const [adminActive, setAdminActive] = useState("admin-dashboard");
-  const [chatOpen, setChatOpen] = useState(false);
-  const [chatTexto, setChatTexto] = useState("");
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [catFilter, setCatFilter] = useState("Todos");
   const [selectedTrilha, setSelectedTrilha] = useState(0);
@@ -654,7 +587,6 @@ export default function NexaAcademy() {
   const { data: horasMensais = [] } = useHorasMensais(inAdmin);
   const { data: topCourses = [] } = useTopTreinamentos(inAdmin);
   const { data: logsDb = [] } = useLogs(inAdmin);
-  const { data: mensagens = [] } = useMensagens(userId, chatOpen);
 
   const progressoPorTreinamento = useMemo(() => new globalThis.Map(matriculas.map((m) => [m.treinamento_id, m])), [matriculas]);
   const adminTrainings = useMemo(
@@ -974,17 +906,6 @@ export default function NexaAcademy() {
     if (ok) invalidar(keys.favoritos(userId), keys.meuResumo(userId));
   }
 
-  // --- Chat Nexa (feedbacks) ---
-  async function enviarFeedback() {
-    const texto = chatTexto.trim();
-    if (!texto) return;
-    const ok = await executar(() => repo.enviarMensagem(userId, texto));
-    if (ok) {
-      setChatTexto("");
-      invalidar(keys.mensagens(userId));
-    }
-  }
-
   const filtered = catFilter === "Todos" ? courses : courses.filter((c) => c.cat === catFilter);
   const navItems = mode === "admin" ? adminNavItems : userNavItems;
   const certificateCourseTitles = adminTrainings.map((training) => training.title).sort((a, b) => a.localeCompare(b, "pt-BR"));
@@ -1047,7 +968,7 @@ export default function NexaAcademy() {
 
         <div className="nexa-navscroll nexa-scroll">
           <div className="nexa-navgroup">
-            <div className="nexa-navlabel">{mode === "admin" ? "Administração" : "Menu"}</div>
+            {mode === "admin" && <div className="nexa-navlabel">Administração</div>}
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = mode === "admin" ? adminActive === item.key : active === item.key || (active === "curso" && item.key === "treinamentos");
@@ -1056,8 +977,7 @@ export default function NexaAcademy() {
                   key={item.key}
                   className={`nexa-navitem ${isActive ? (mode === "admin" ? "adminactive" : "active") : ""}`}
                   onClick={() => {
-                    if (item.key === "nexa") setChatOpen(true);
-                    else if (mode === "admin") setAdminActive(item.key);
+                    if (mode === "admin") setAdminActive(item.key);
                     else {
                       setSelectedLessonId(null);
                       setActive(item.key);
@@ -1189,16 +1109,6 @@ export default function NexaAcademy() {
                       <div style={{ fontSize: 11.5, color: palette.textMuted }}>Soma das aulas concluídas</div>
                     </div>
                   </div>
-                  <div className="nexa-card" style={{ padding: 14 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                      <Sparkles size={16} color="#111" />
-                      <span style={{ fontSize: 12.5, fontWeight: 600 }}>Sugestão da Nexa</span>
-                    </div>
-                    <p style={{ fontSize: 12, color: palette.textMuted, lineHeight: 1.5, marginBottom: 10 }}>
-                      {sugestao ? <>Que tal começar “{sugestao.title}”?</> : "Você já iniciou todos os treinamentos disponíveis. Continue avançando!"}
-                    </p>
-                    {sugestao && <span style={{ fontSize: 12, color: palette.cyan, display: "flex", alignItems: "center", gap: 3, cursor: "pointer" }} onClick={() => abrirCurso(sugestao.id)}>Ver treinamento <ChevronRight size={13} /></span>}
-                  </div>
                 </div>
               </div>
 
@@ -1316,11 +1226,6 @@ export default function NexaAcademy() {
                 <div className="nexa-card" style={{ padding: 24, color: palette.textMuted, fontSize: 13 }}>Nenhuma trilha cadastrada ainda.</div>
               )}
             </>
-          )}
-
-          {/* ---------- USER: simple placeholders ---------- */}
-          {mode === "app" && active === "docs" && (
-            <AdminPlaceholder title="Documentações" icon={FileText} />
           )}
 
           {/* ---------- USER: CERTIFICADOS ---------- */}
@@ -2261,60 +2166,6 @@ export default function NexaAcademy() {
         </div>
       )}
 
-      {/* Nexa AI floating */}
-      {!chatOpen && (
-        <button
-          className="nexa-fab"
-          onClick={() => setChatOpen(true)}
-          aria-label="Abrir chat da Nexa"
-          title="Conversar com a Nexa"
-        >
-          <MessageCircle size={24} color="#fff" strokeWidth={1.9} />
-        </button>
-      )}
-
-      {chatOpen && (
-        <div className="nexa-chat-panel">
-          <div className="nexa-chat-header">
-            <div className="nexa-chat-brand">
-              <span className="nexa-chat-avatar"><img src="/favicon.ico" alt="" /></span>
-              <span className="nexa-chat-title">Nexa Feedbacks</span>
-            </div>
-            <button className="nexa-chat-menu" type="button" onClick={() => setChatOpen(false)} aria-label="Minimizar chat" title="Minimizar chat">
-              <Minus size={20} />
-            </button>
-          </div>
-          <div className="nexa-chat-body nexa-scroll">
-            <div className="nexa-chat-message">
-              <span className="nexa-chat-message-avatar"><img src="/favicon.ico" alt="Nexa" /></span>
-              <div>
-                <div className="nexa-bubble-ai">Digite aqui seu FeedBack</div>
-                <div className="nexa-chat-meta">Assistente de IA</div>
-              </div>
-            </div>
-            {mensagens.map((m) => (
-              m.papel === "usuario" ? (
-                <div key={m.id} style={{ alignSelf: "flex-end", maxWidth: "85%" }}>
-                  <div className="nexa-bubble-user">{m.conteudo}</div>
-                  <div className="nexa-chat-meta" style={{ textAlign: "right" }}>Você · {timeAgo(m.created_at)}</div>
-                </div>
-              ) : (
-                <div key={m.id} className="nexa-chat-message">
-                  <span className="nexa-chat-message-avatar"><img src="/favicon.ico" alt="Nexa" /></span>
-                  <div>
-                    <div className="nexa-bubble-ai">{m.conteudo}</div>
-                    <div className="nexa-chat-meta">Assistente de IA · {timeAgo(m.created_at)}</div>
-                  </div>
-                </div>
-              )
-            ))}
-          </div>
-          <form className="nexa-chat-input" onSubmit={(e) => { e.preventDefault(); enviarFeedback(); }}>
-            <input placeholder="Digite aqui..." aria-label="Digite seu feedback" value={chatTexto} onChange={(e) => setChatTexto(e.target.value)} />
-            <button className="nexa-chat-send" type="submit" aria-label="Enviar feedback" disabled={!chatTexto.trim()}><ArrowUp size={22} /></button>
-          </form>
-        </div>
-      )}
     </div>
   );
 }

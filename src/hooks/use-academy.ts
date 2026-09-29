@@ -24,7 +24,6 @@ export const keys = {
   logs: ["logs"] as const,
   videos: ["videos"] as const,
   aulasDoTreinamento: (treinamentoId?: string | null) => ["aulas-do-treinamento", treinamentoId] as const,
-  mensagens: (userId?: string) => ["mensagens", userId] as const,
 };
 
 export function usePerfil(userId?: string) {
@@ -120,8 +119,4 @@ export function useVideos(enabled = true) {
 
 export function useAulasDoTreinamento(treinamentoId?: string | null) {
   return useQuery({ queryKey: keys.aulasDoTreinamento(treinamentoId), queryFn: () => repo.fetchAulasDoTreinamento(treinamentoId!), enabled: !!treinamentoId });
-}
-
-export function useMensagens(userId: string | undefined, enabled: boolean) {
-  return useQuery({ queryKey: keys.mensagens(userId), queryFn: () => repo.fetchMensagens(userId!), enabled: !!userId && enabled });
 }

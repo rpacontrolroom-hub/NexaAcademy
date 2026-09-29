@@ -1,27 +1,21 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
-  BarChart3,
-  BookOpen,
-  Check,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
-  Clock3,
   Download,
   ExternalLink,
   FileText,
-  Gauge,
-  ListChecks,
+  Maximize2,
   Play,
-  Target,
 } from "lucide-react";
 
 import { courseController } from "@/controllers/course-controller";
-import { keys, useAula, useComentarios, useCursoDetalhe } from "@/hooks/use-academy";
+import { keys, useAula, useCursoDetalhe } from "@/hooks/use-academy";
 import * as repo from "@/data/academy-repository";
-import { formatBytes, timeAgo, youtubeId } from "@/lib/format";
+import { formatBytes, youtubeId } from "@/lib/format";
 import type { LessonDetail } from "@/models/lesson-detail";
 
 interface LessonDetailViewProps {
@@ -43,15 +37,9 @@ const lessonDetailCss = `
   .lesson-detail-description { max-width:850px; margin:0; color:#666; font-size:12.5px; line-height:1.55; }
   .lesson-detail-complete { display:flex; align-items:center; gap:7px; min-height:38px; padding:0 14px; flex-shrink:0; color:#333; background:#fff; border:1px solid #ddd; border-radius:7px; font-size:11px; font-weight:600; cursor:pointer; }
   .lesson-detail-complete.done { color:#fff; background:#2d7147; border-color:#2d7147; }
-  .lesson-detail-chips { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px; }
-  .lesson-detail-chip { display:flex; align-items:center; gap:6px; padding:7px 11px; color:#444; background:#fff; border:1px solid #dedede; border-radius:999px; font-size:10.5px; font-weight:600; }
   .lesson-detail-grid { display:grid; grid-template-columns:minmax(0,1fr) 350px; gap:22px; }
   .lesson-detail-main, .lesson-detail-side-card { background:#fff; border:1px solid #dedede; border-radius:13px; box-shadow:0 5px 18px rgba(0,0,0,.025); }
   .lesson-detail-main { overflow:hidden; }
-  .lesson-detail-tabs { display:flex; gap:28px; padding:0 20px; border-bottom:1px solid #e7e7e7; }
-  .lesson-detail-tab { position:relative; padding:16px 4px 14px; color:#777; background:none; border:0; font-size:11.5px; cursor:pointer; }
-  .lesson-detail-tab.active { color:#111; font-weight:700; }
-  .lesson-detail-tab.active::after { content:""; position:absolute; left:0; right:0; bottom:-1px; height:2px; background:#111; }
   .lesson-video { position:relative; height:310px; margin:16px; overflow:hidden; background:linear-gradient(160deg,#f9f9f9,#ececec); border:1px solid #e2e2e2; border-radius:9px; }
   .lesson-video::before, .lesson-video::after { content:""; position:absolute; left:-8%; right:-8%; height:130px; border-radius:50%; background:rgba(255,255,255,.78); transform:rotate(3deg); }
   .lesson-video::before { bottom:22px; }
@@ -62,19 +50,6 @@ const lessonDetailCss = `
   .lesson-video-progress { position:absolute; left:0; right:0; top:0; height:3px; background:rgba(255,255,255,.35); }
   .lesson-video-progress span { display:block; width:0; height:100%; background:#fff; }
   .lesson-video-spacer { flex:1; }
-  .lesson-overview { padding:4px 16px 0; }
-  .lesson-overview-top { display:grid; grid-template-columns:1fr 1fr; border-top:1px solid #e8e8e8; border-bottom:1px solid #e8e8e8; }
-  .lesson-overview-section { padding:18px 4px 18px; }
-  .lesson-overview-section + .lesson-overview-section { padding-left:22px; border-left:1px solid #e8e8e8; }
-  .lesson-section-title { display:flex; align-items:center; gap:9px; margin:0 0 10px; font-size:13px; font-weight:700; }
-  .lesson-overview-section p { margin:0; color:#555; font-size:11px; line-height:1.65; }
-  .lesson-list { margin:0; padding-left:17px; color:#555; font-size:11px; line-height:1.7; }
-  .lesson-learnings { padding:18px 4px 22px; }
-  .lesson-learning-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px 24px; }
-  .lesson-learning { display:flex; align-items:flex-start; gap:8px; color:#555; font-size:11px; line-height:1.45; }
-  .lesson-learning svg { flex:0 0 auto; margin-top:2px; }
-  .lesson-tab-content { min-height:530px; padding:26px; color:#555; font-size:12px; line-height:1.7; }
-  .lesson-tab-content h3 { margin:0 0 10px; color:#111; font-size:16px; }
   .lesson-detail-side { display:flex; flex-direction:column; gap:16px; }
   .lesson-detail-side-card { padding:16px; }
   .lesson-detail-side-title { display:flex; align-items:center; justify-content:space-between; margin:0 0 13px; font-size:13px; font-weight:700; }
@@ -98,32 +73,25 @@ const lessonDetailCss = `
     .lesson-detail-complete { width:100%; justify-content:center; }
     .lesson-detail-side { display:flex; }
     .lesson-video { height:230px; }
-    .lesson-overview-top, .lesson-learning-grid { grid-template-columns:1fr; }
-    .lesson-overview-section + .lesson-overview-section { padding-left:4px; border-left:0; border-top:1px solid #e8e8e8; }
   }
 `;
 
 const extraLessonCss = `
   .lesson-player { position:relative; margin:16px; aspect-ratio:16/9; overflow:hidden; background:#000; border-radius:9px; }
   .lesson-player iframe { position:absolute; inset:0; width:100%; height:100%; border:0; }
+  .lesson-player:fullscreen { margin:0; border-radius:0; aspect-ratio:auto; }
+  .lesson-player-actions { display:flex; justify-content:flex-end; margin:-4px 16px 16px; }
   .lesson-text { margin:16px; padding:18px; white-space:pre-wrap; color:#333; background:#fafafa; border:1px solid #e4e4e4; border-radius:9px; font-size:12.5px; line-height:1.7; }
   .lesson-open-link { display:inline-flex; align-items:center; gap:7px; margin-top:14px; padding:9px 14px; color:#fff; background:#111; border-radius:7px; font-size:11.5px; font-weight:600; text-decoration:none; }
-  .lesson-comment { padding:12px 0; border-bottom:1px solid #eee; }
-  .lesson-comment:last-child { border-bottom:0; }
-  .lesson-comment-meta { color:#888; font-size:10.5px; margin-bottom:4px; }
-  .lesson-comment-form { display:flex; flex-direction:column; gap:8px; margin-top:16px; }
-  .lesson-comment-form textarea { min-height:70px; padding:10px 12px; border:1px solid #ddd; border-radius:8px; font:inherit; font-size:12px; resize:vertical; }
   .lesson-material-row a { color:inherit; }
 `;
 
 export default function LessonDetailView({ userId, course: treinamento, matricula, lessonId, onBack, onNavigate }: LessonDetailViewProps) {
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<"overview" | "transcript" | "materials" | "discussion">("overview");
-  const [comentario, setComentario] = useState("");
   const [salvando, setSalvando] = useState(false);
+  const playerRef = useRef<HTMLDivElement>(null);
   const { course, isLoading } = useCursoDetalhe(userId, treinamento, matricula?.progresso ?? 0);
   const { data: aula } = useAula(lessonId);
-  const { data: comentarios = [] } = useComentarios(activeTab === "discussion" ? lessonId : null);
 
   function invalidarProgresso() {
     for (const queryKey of [["concluidas"], ["matriculas"], ["meu-resumo"], ["meus-certificados"], keys.adminResumo]) {
@@ -191,15 +159,11 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
     }
   }
 
-  async function enviarComentario() {
-    if (!comentario.trim()) return;
-    try {
-      await repo.adicionarComentario(lessonId, comentario);
-      setComentario("");
-      queryClient.invalidateQueries({ queryKey: keys.comentarios(lessonId) });
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : String(err));
-    }
+  function maximizarVideo() {
+    const el = playerRef.current;
+    if (!el) return;
+    if (document.fullscreenElement) document.exitFullscreen();
+    else el.requestFullscreen?.().catch(() => toast.error("Não foi possível abrir o vídeo em tela cheia."));
   }
 
   return (
@@ -222,83 +186,26 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
         </button>
       </header>
 
-      <div className="lesson-detail-chips">
-        <span className="lesson-detail-chip"><Clock3 size={13} />{lesson.duration}</span>
-        <span className="lesson-detail-chip"><BookOpen size={13} />Módulo {module.order} de {course.modules.length}</span>
-        <span className="lesson-detail-chip"><BarChart3 size={13} />{course.progress}% concluído</span>
-        <span className="lesson-detail-chip"><Gauge size={13} />{course.level}</span>
-      </div>
-
       <div className="lesson-detail-grid">
         <div>
           <article className="lesson-detail-main">
-            <nav className="lesson-detail-tabs" aria-label="Seções da aula">
-              {[
-                ["overview", "Visão geral"], ["transcript", "Transcrição"],
-                ["materials", "Materiais"], ["discussion", "Discussão"],
-              ].map(([key, label]) => (
-                <button key={key} className={`lesson-detail-tab ${activeTab === key ? "active" : ""}`} onClick={() => setActiveTab(key as typeof activeTab)}>{label}</button>
-              ))}
-            </nav>
-
-            {activeTab === "overview" && (
+            {videoId ? (
               <>
-                {videoId ? (
-                  <div className="lesson-player">
-                    <iframe src={`https://www.youtube-nocookie.com/embed/${videoId}`} title={detail.title} allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
-                  </div>
-                ) : aula?.tipo === "texto" && aula.conteudo ? (
-                  <div className="lesson-text">{aula.conteudo}</div>
-                ) : (
-                  <div className="lesson-video">
-                    <div className="lesson-video-brand" style={{ fontSize: 18, top: 60 }}>{aula?.url ? "Conteúdo externo" : "Conteúdo em preparação"}</div>
-                    {aula?.url
-                      ? <a className="lesson-video-play" href={aula.url} target="_blank" rel="noreferrer" aria-label="Abrir conteúdo"><ExternalLink size={24} /></a>
-                      : <span className="lesson-video-play" style={{ opacity: .35, cursor: "default" }}><Play size={25} fill="#fff" /></span>}
-                  </div>
-                )}
-                <div className="lesson-overview">
-                  <div className="lesson-overview-top">
-                    <section className="lesson-overview-section">
-                      <h2 className="lesson-section-title"><ListChecks size={16} />Resumo da aula</h2>
-                      <p>{detail.summary}</p>
-                    </section>
-                    <section className="lesson-overview-section">
-                      <h2 className="lesson-section-title"><Target size={16} />Objetivos</h2>
-                      <ul className="lesson-list">{detail.objectives.map((item) => <li key={item}>{item}</li>)}</ul>
-                    </section>
-                  </div>
-                  <section className="lesson-learnings">
-                    <h2 className="lesson-section-title"><BookOpen size={16} />O que você vai aprender</h2>
-                    <div className="lesson-learning-grid">
-                      {detail.learnings.map((item) => <div className="lesson-learning" key={item}><Check size={13} />{item}</div>)}
-                    </div>
-                  </section>
+                <div className="lesson-player" ref={playerRef}>
+                  <iframe src={`https://www.youtube-nocookie.com/embed/${videoId}`} title={detail.title} allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowFullScreen />
+                </div>
+                <div className="lesson-player-actions">
+                  <button className="lesson-nav-button" onClick={maximizarVideo}><Maximize2 size={14} />Maximizar vídeo</button>
                 </div>
               </>
-            )}
-
-            {activeTab === "transcript" && (
-              <div className="lesson-tab-content">
-                <h3>Transcrição</h3>
-                <p style={{ whiteSpace: "pre-wrap" }}>{aula?.transcricao || "A transcrição desta aula ainda não foi cadastrada."}</p>
-              </div>
-            )}
-            {activeTab === "materials" && <div className="lesson-tab-content"><h3>Materiais</h3><p>Consulte os arquivos disponíveis no painel lateral para complementar seus estudos.</p></div>}
-            {activeTab === "discussion" && (
-              <div className="lesson-tab-content">
-                <h3>Discussão</h3>
-                {comentarios.length === 0 && <p>Nenhum comentário ainda. Tire sua dúvida ou compartilhe algo sobre a aula.</p>}
-                {comentarios.map((c) => (
-                  <div className="lesson-comment" key={c.id}>
-                    <div className="lesson-comment-meta"><strong style={{ color: "#333" }}>{c.autor}</strong> · {timeAgo(c.created_at)}</div>
-                    <div style={{ whiteSpace: "pre-wrap" }}>{c.conteudo}</div>
-                  </div>
-                ))}
-                <div className="lesson-comment-form">
-                  <textarea value={comentario} onChange={(e) => setComentario(e.target.value)} placeholder="Escreva um comentário..." />
-                  <div><button className="lesson-nav-button next" onClick={enviarComentario} disabled={!comentario.trim()}>Comentar</button></div>
-                </div>
+            ) : aula?.tipo === "texto" && aula.conteudo ? (
+              <div className="lesson-text">{aula.conteudo}</div>
+            ) : (
+              <div className="lesson-video">
+                <div className="lesson-video-brand" style={{ fontSize: 18, top: 60 }}>{aula?.url ? "Conteúdo externo" : "Conteúdo em preparação"}</div>
+                {aula?.url
+                  ? <a className="lesson-video-play" href={aula.url} target="_blank" rel="noreferrer" aria-label="Abrir conteúdo"><ExternalLink size={24} /></a>
+                  : <span className="lesson-video-play" style={{ opacity: .35, cursor: "default" }}><Play size={25} fill="#fff" /></span>}
               </div>
             )}
           </article>
