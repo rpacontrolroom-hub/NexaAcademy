@@ -10,6 +10,7 @@ import {
   FileText,
   AlertTriangle,
   Maximize2,
+  Minimize2,
   Play,
 } from "lucide-react";
 
@@ -79,9 +80,15 @@ const lessonDetailCss = `
 `;
 
 const extraLessonCss = `
-  .lesson-player { position:relative; margin:16px; aspect-ratio:16/9; overflow:hidden; background:#000; border-radius:9px; }
+  .lesson-player-shell { display:flex; flex-direction:column; margin:16px; overflow:hidden; background:#000; border-radius:9px; }
+  .lesson-player { position:relative; aspect-ratio:16/9; overflow:hidden; background:#000; }
   .lesson-player iframe { position:absolute; inset:0; width:100%; height:100%; border:0; }
-  .lesson-player:fullscreen { margin:0; border-radius:0; aspect-ratio:auto; }
+  .lesson-player-bar { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:40px; padding:0 8px 0 14px; background:#0f0f0f; border-top:1px solid #222; color:#ddd; }
+  .lesson-player-bar-title { overflow:hidden; font-size:12px; white-space:nowrap; text-overflow:ellipsis; }
+  .lesson-player-bar button { width:34px; height:34px; display:flex; align-items:center; justify-content:center; flex-shrink:0; padding:0; border:0; border-radius:6px; background:transparent; color:#fff; cursor:pointer; }
+  .lesson-player-bar button:hover { background:rgba(255,255,255,.12); }
+  .lesson-player-shell:fullscreen { margin:0; border-radius:0; }
+  .lesson-player-shell:fullscreen .lesson-player { flex:1; aspect-ratio:auto; }
   .lesson-player-actions { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin:-4px 16px 16px; }
   .lesson-done-badge { display:inline-flex; align-items:center; gap:7px; padding:7px 12px; border-radius:999px; background:#e7f4ec; color:#2d7147; font-size:12px; font-weight:700; }
   .lesson-done-hint { color:#888; font-size:11.5px; }
@@ -131,6 +138,14 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, lessonId]);
+
+  // Acompanha a tela cheia (inclusive ao sair com Esc) para trocar o ícone do botão.
+  const [telaCheia, setTelaCheia] = useState(false);
+  useEffect(() => {
+    const atualizar = () => setTelaCheia(!!document.fullscreenElement && document.fullscreenElement === playerRef.current);
+    document.addEventListener("fullscreenchange", atualizar);
+    return () => document.removeEventListener("fullscreenchange", atualizar);
+  }, []);
 
   // Aula de vídeo: só conclui depois de assistir o mínimo exigido (pular não conta).
   const videoIdAula = youtubeId(aula?.url);
@@ -228,10 +243,19 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
           <article className="lesson-detail-main">
             {videoId ? (
               <>
-                <div className="lesson-player" ref={playerRef}>
-                  {/* rel=0: sugestões só do mesmo canal; iv_load_policy=3: sem anotações; playsinline: não força tela cheia no celular;
-                      enablejsapi: permite medir quanto do vídeo foi assistido para concluir a aula. */}
-                  <iframe ref={iframeRef} onLoad={escutarPlayer} src={`https://www.youtube-nocookie.com/embed/${videoId}?rel=0&iv_load_policy=3&playsinline=1&enablejsapi=1&origin=${encodeURIComponent(typeof window === "undefined" ? "" : window.location.origin)}`} title={detail.title} allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowFullScreen />
+                {/* A barra fica colada ao player (fora da área do YouTube, que não pode ser coberta) e vai junto para a tela cheia. */}
+                <div className="lesson-player-shell" ref={playerRef}>
+                  <div className="lesson-player">
+                    {/* rel=0: sugestões só do mesmo canal; iv_load_policy=3: sem anotações; playsinline: não força tela cheia no celular;
+                        enablejsapi: permite medir quanto do vídeo foi assistido para concluir a aula. */}
+                    <iframe ref={iframeRef} onLoad={escutarPlayer} src={`https://www.youtube-nocookie.com/embed/${videoId}?rel=0&iv_load_policy=3&playsinline=1&enablejsapi=1&origin=${encodeURIComponent(typeof window === "undefined" ? "" : window.location.origin)}`} title={detail.title} allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowFullScreen />
+                  </div>
+                  <div className="lesson-player-bar">
+                    <span className="lesson-player-bar-title">{detail.title}</span>
+                    <button type="button" onClick={maximizarVideo} aria-label={telaCheia ? "Sair da tela cheia" : "Maximizar vídeo"} title={telaCheia ? "Sair da tela cheia" : "Maximizar vídeo"}>
+                      {telaCheia ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+                    </button>
+                  </div>
                 </div>
                 <div className="lesson-player-actions">
                   {completed
@@ -246,7 +270,6 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
                         </span>
                       </div>
                     )}
-                  <button className="lesson-nav-button" onClick={maximizarVideo}><Maximize2 size={14} />Maximizar vídeo</button>
                 </div>
                 {chegouAoFim && !videoLiberado && (
                   <div className="lesson-skip-warning" role="alert">

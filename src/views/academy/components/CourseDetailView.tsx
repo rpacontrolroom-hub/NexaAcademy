@@ -54,7 +54,7 @@ const courseDetailCss = `
   .course-detail-module.active { color:#111; background:#ededed; font-weight:700; }
   .course-detail-module:disabled { color:#777; cursor:not-allowed; }
   .course-detail-module-state { width:20px; height:20px; display:flex; align-items:center; justify-content:center; flex:0 0 20px; border:1px solid #999; border-radius:50%; font-size:10px; font-weight:700; }
-  .course-detail-module-state.completed { color:#fff; background:#111; border-color:#111; }
+  .course-detail-module-state.completed { color:#fff; background:#2d7147; border-color:#2d7147; }
   .course-detail-module-state.current { color:#fff; background:#111; border-color:#111; }
   .course-detail-content { min-width:0; padding:4px 0 0; }
   .course-detail-module-header { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; padding:0 6px 18px; }
@@ -203,7 +203,7 @@ export default function CourseDetailView({ userId, course: treinamento, matricul
               <div className="course-detail-module-header">
                 <div>
                   <div className="course-detail-module-title">
-                    {selectedModule.status === "completed" ? <CheckCircle2 size={20} /> : <Play size={20} />}
+                    {selectedModule.status === "completed" ? <CheckCircle2 size={20} color="#2d7147" /> : <Play size={20} />}
                     {selectedModule.order}. {selectedModule.title}
                   </div>
                   <p className="course-detail-module-description">{selectedModule.description}</p>

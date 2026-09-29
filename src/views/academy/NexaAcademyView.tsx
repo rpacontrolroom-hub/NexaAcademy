@@ -499,14 +499,14 @@ function TrilhaTimeline({ steps }) {
         return (
           <div key={i} className="nexa-trilha-node">
             {i < steps.length - 1 && (
-              <div className="nexa-trilha-line" style={{ background: isDone ? "#111" : "#dedede" }} />
+              <div className="nexa-trilha-line" style={{ background: isDone ? "#2d7147" : "#dedede" }} />
             )}
             <div
               className="nexa-trilha-circle"
               style={{
-                borderColor: isDone || isCurrent ? "#111" : "#999",
+                borderColor: isDone ? "#2d7147" : isCurrent ? "#111" : "#999",
                 color: isDone ? "#fff" : isCurrent ? "#fff" : "#777",
-                background: isDone || isCurrent ? "#111" : "#fff",
+                background: isDone ? "#2d7147" : isCurrent ? "#111" : "#fff",
                 boxShadow: "none",
               }}
             >
