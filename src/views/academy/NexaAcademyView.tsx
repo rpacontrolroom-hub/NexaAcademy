@@ -597,7 +597,8 @@ export default function NexaAcademy() {
     [treinamentosDb, progressoPorTreinamento],
   );
   const courses = useMemo(() => adminTrainings.filter((t) => t.status === "ativo"), [adminTrainings]);
-  const categories = useMemo(() => ["Todos", ...categoriasDb.map((c) => c.nome)], [categoriasDb]);
+  // Só aparecem no filtro as categorias que têm algum treinamento ativo.
+  const categories = useMemo(() => ["Todos", ...categoriasDb.map((c) => c.nome).filter((nome) => courses.some((t) => t.cat === nome))], [categoriasDb, courses]);
   const trilhas = useMemo(() => repo.montarTrilhas(trilhasDb, matriculas, (cor) => palette[cor] ?? cor ?? palette.cyan), [trilhasDb, matriculas]);
   const trilhaAtual = trilhas[Math.min(selectedTrilha, trilhas.length - 1)];
   const favoritos = useMemo(() => favoritosIds.map((id) => courses.find((c) => c.id === id)).filter(Boolean), [favoritosIds, courses]);
@@ -687,12 +688,16 @@ export default function NexaAcademy() {
   const [salvandoTreino, setSalvandoTreino] = useState(false);
   const novoItem = () => ({ tipo: "video", titulo: "", url: "", texto: "" });
   const treinoInicial = {
-    title: "", cat: categoriasDb[0]?.nome ?? "", level: "Básico", dur: "", desc: "",
+    title: "", cat: "", level: "Básico", dur: "", desc: "",
     modulos: [{ titulo: "Módulo 1", imagem: "", itens: [novoItem()] }],
   };
   const [novoTreino, setNovoTreino] = useState(treinoInicial);
+  const [novaCategoria, setNovaCategoria] = useState("");
   const [tentouSalvarTreino, setTentouSalvarTreino] = useState(false);
   const { validTitle: tituloTreinoValido, validDuration: duracaoTreinoValida, validModules: modulosValidos, canSave: podeSalvarTreino } = academyController.validateTrainingDraft(novoTreino);
+  const NOVA_CATEGORIA = "__nova__";
+  const criandoCategoria = novoTreino.cat === NOVA_CATEGORIA;
+  const categoriaValida = !criandoCategoria || novaCategoria.trim().length >= 2;
 
   const tiposConteudo = [
     { value: "video", label: "Vídeo", icon: Video },
@@ -749,6 +754,7 @@ export default function NexaAcademy() {
 
   function resetTreinoModal() {
     setNovoTreino(treinoInicial);
+    setNovaCategoria("");
     setTentouSalvarTreino(false);
     setShowTreinamentoModal(false);
     setEditandoTreinoIdx(null);
@@ -756,6 +762,7 @@ export default function NexaAcademy() {
 
   function abrirNovoTreino() {
     setNovoTreino(treinoInicial);
+    setNovaCategoria("");
     setEditandoTreinoIdx(null);
     setTentouSalvarTreino(false);
     setShowTreinamentoModal(true);
@@ -768,7 +775,7 @@ export default function NexaAcademy() {
       const modulos = await repo.fetchTreinamentoParaEdicao(t.id);
       setNovoTreino({
         title: t.title || "",
-        cat: t.cat || categoriasDb[0]?.nome || "",
+        cat: categoriasDb.some((c) => c.nome === t.cat) ? t.cat : "",
         level: t.level || "Básico",
         dur: t.dur || "",
         desc: t.desc || "",
@@ -776,6 +783,7 @@ export default function NexaAcademy() {
           ? modulos.map((m) => ({ ...m, itens: m.itens.length ? m.itens : [novoItem()] }))
           : [{ titulo: "Módulo 1", imagem: "", itens: [novoItem()] }],
       });
+      setNovaCategoria("");
       setEditandoTreinoIdx(idx);
       setTentouSalvarTreino(false);
       setShowTreinamentoModal(true);
@@ -794,18 +802,22 @@ export default function NexaAcademy() {
 
   async function salvarTreinamento() {
     setTentouSalvarTreino(true);
-    if (!podeSalvarTreino || salvandoTreino) return;
-    const categoriaId = categoriasDb.find((c) => c.nome === novoTreino.cat)?.id ?? null;
+    if (!podeSalvarTreino || !categoriaValida || salvandoTreino) return;
     const existente = editandoTreinoIdx !== null ? adminTrainings[editandoTreinoIdx] : null;
     const draft = { ...novoTreino, modulos: academyController.sanitizeModules(novoTreino.modulos) };
     setSalvandoTreino(true);
     const ok = await executar(
-      () => repo.salvarTreinamento(draft, categoriaId, existente?.id),
+      async () => {
+        const categoriaId = criandoCategoria
+          ? await repo.obterOuCriarCategoria(novaCategoria)
+          : categoriasDb.find((c) => c.nome === novoTreino.cat)?.id ?? null;
+        await repo.salvarTreinamento(draft, categoriaId, existente?.id);
+      },
       existente ? "Treinamento atualizado" : "Treinamento cadastrado",
     );
     setSalvandoTreino(false);
     if (ok) {
-      invalidar(keys.treinamentos, keys.adminResumo, keys.logs, ["conteudo"]);
+      invalidar(keys.treinamentos, keys.categorias, keys.adminResumo, keys.logs, ["conteudo"]);
       resetTreinoModal();
     }
   }
@@ -1861,8 +1873,26 @@ export default function NexaAcademy() {
                     borderRadius: 9, padding: "9px 12px", color: palette.textPrimary, fontSize: 13, outline: "none",
                   }}
                 >
-                  {categories.filter((c) => c !== "Todos").map((c) => <option key={c} value={c}>{c}</option>)}
+                  <option value="">Sem categoria</option>
+                  {categoriasDb.map((c) => <option key={c.id} value={c.nome}>{c.nome}</option>)}
+                  <option value={NOVA_CATEGORIA}>+ Criar nova categoria</option>
                 </select>
+                {criandoCategoria && (
+                  <input
+                    autoFocus
+                    value={novaCategoria}
+                    onChange={(e) => setNovaCategoria(e.target.value)}
+                    placeholder="Nome da nova categoria"
+                    style={{
+                      width: "100%", marginTop: 8, background: palette.bgPanel,
+                      border: `1px solid ${tentouSalvarTreino && !categoriaValida ? "#F2596B" : palette.border}`,
+                      borderRadius: 9, padding: "9px 12px", color: palette.textPrimary, fontSize: 13, outline: "none",
+                    }}
+                  />
+                )}
+                {criandoCategoria && tentouSalvarTreino && !categoriaValida && (
+                  <div style={{ marginTop: 4, color: "#F2596B", fontSize: 11 }}>Informe o nome da categoria.</div>
+                )}
               </div>
               <div style={{ flex: 1 }}>
                 <label style={{ fontSize: 11.5, color: palette.textMuted, display: "block", marginBottom: 6 }}>Nível</label>

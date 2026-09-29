@@ -94,6 +94,19 @@ export async function fetchCategorias(): Promise<Categoria[]> {
   return check(await supabase.from("categorias").select("id, nome").eq("ativo", true).order("ordem"));
 }
 
+/** Cria a categoria (ou reaproveita uma com o mesmo nome) e devolve o id. */
+export async function obterOuCriarCategoria(nome: string): Promise<string> {
+  const limpo = nome.trim();
+  const existente = check(await supabase.from("categorias").select("id, ativo").ilike("nome", limpo.replace(/[%_\\]/g, "\\$&")).maybeSingle()) as { id: string; ativo: boolean } | null;
+  if (existente) {
+    if (!existente.ativo) check(await supabase.from("categorias").update({ ativo: true }).eq("id", existente.id));
+    return existente.id;
+  }
+  const ultima = check(await supabase.from("categorias").select("ordem").order("ordem", { ascending: false }).limit(1)) as { ordem: number }[];
+  const row = check(await supabase.from("categorias").insert({ nome: limpo, ordem: (ultima[0]?.ordem ?? 0) + 1 }).select("id").single());
+  return row.id as string;
+}
+
 export interface Treinamento {
   id: string;
   slug: string;
