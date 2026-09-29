@@ -10,9 +10,9 @@ import { lessonDetails } from "@/mocks/lesson-detail";
 
 describe("regras da academia", () => {
   test("aceita somente e-mail corporativo com usuário", () => {
-    expect(isValidCorporateEmail("alani@ciahering.com.br")).toBe(true);
+    expect(isValidCorporateEmail("maria.silva@ciahering.com.br")).toBe(true);
     expect(isValidCorporateEmail("@ciahering.com.br")).toBe(false);
-    expect(canRegisterUser("Alani Rigotti de Oliveira", "alani@gmail.com")).toBe(false);
+    expect(canRegisterUser("Maria da Silva", "maria.silva@gmail.com")).toBe(false);
   });
 
   test("valida alteração de senha", () => {

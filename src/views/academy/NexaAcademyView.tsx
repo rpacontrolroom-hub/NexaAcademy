@@ -1905,7 +1905,7 @@ export default function NexaAcademy() {
             <input
               value={novoNome}
               onChange={(e) => setNovoNome(e.target.value)}
-              placeholder="Ex: Alani Rigotti de Oliveira"
+              placeholder="Ex: Maria da Silva"
               style={{
                 width: "100%", background: palette.bgPanel, border: `1px solid ${palette.border}`,
                 borderRadius: 9, padding: "9px 12px", color: palette.textPrimary, fontSize: 13,
