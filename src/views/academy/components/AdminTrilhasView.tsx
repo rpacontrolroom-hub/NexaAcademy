@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { theme as palette } from "@/styles/theme";
-import { ArrowDown, ArrowUp, Map, Pencil, PlusCircle, Search, Trash2, X } from "lucide-react";
+import { ArrowDown, ArrowUp, ImagePlus, Map, Pencil, PlusCircle, Search, Trash2, X } from "lucide-react";
 import { keys, useTrilhasAdmin } from "@/hooks/use-academy";
 import * as repo from "@/data/academy-repository";
 
@@ -18,6 +18,10 @@ const trilhaCss = `
   .admin-trilha-etapas { display:flex; flex-direction:column; gap:8px; }
   .admin-trilha-etapa { display:grid; grid-template-columns:26px minmax(0,1fr) minmax(0,1fr) auto; align-items:center; gap:8px; padding:8px 10px; border:1px solid #e4e4e4; border-radius:9px; background:#fafafa; }
   .admin-trilha-etapa-num { font-weight:700; font-size:12px; color:#555; text-align:center; }
+  .admin-trilha-thumb { width:64px; aspect-ratio:16/9; flex-shrink:0; border-radius:6px; object-fit:cover; background:#f1f1f1; }
+  .admin-trilha-capa { position:relative; aspect-ratio:16/9; max-height:220px; display:grid; place-items:center; overflow:hidden; border:1px dashed #cfcfcf; border-radius:10px; background:#fafafa; color:#777; cursor:pointer; text-align:center; font-size:12px; }
+  .admin-trilha-capa img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .admin-trilha-capa-acoes { display:flex; gap:8px; margin-top:8px; }
   @media (max-width:700px) {
     .admin-trilha-form { grid-template-columns:1fr; }
     .admin-trilha-toolbar { align-items:stretch; flex-direction:column; }
@@ -35,7 +39,14 @@ interface EtapaForm {
   treinamentoId: string;
 }
 
-const formInicial = { id: "", titulo: "", descricao: "", status: "ativo" as "ativo" | "inativo", etapas: [] as EtapaForm[] };
+const formInicial = {
+  id: "", titulo: "", descricao: "", status: "ativo" as "ativo" | "inativo", etapas: [] as EtapaForm[],
+  capaAtual: null as string | null,
+  capaArquivo: null as File | null,
+  removerCapa: false,
+};
+
+const CAPA_MAXIMA = 5 * 1024 * 1024;
 
 export default function AdminTrilhasView({ trainings }: AdminTrilhasViewProps) {
   const queryClient = useQueryClient();
@@ -45,6 +56,17 @@ export default function AdminTrilhasView({ trainings }: AdminTrilhasViewProps) {
   const [form, setForm] = useState(formInicial);
   const [tentou, setTentou] = useState(false);
   const [salvando, setSalvando] = useState(false);
+  const capaInputRef = useRef<HTMLInputElement>(null);
+  const [capaPrevia, setCapaPrevia] = useState<string | null>(null);
+
+  // Prévia local do arquivo escolhido; libera a URL temporária ao trocar ou fechar.
+  useEffect(() => {
+    if (!form.capaArquivo) { setCapaPrevia(null); return; }
+    const url = URL.createObjectURL(form.capaArquivo);
+    setCapaPrevia(url);
+    return () => URL.revokeObjectURL(url);
+  }, [form.capaArquivo]);
+  const capaExibida = capaPrevia ?? (form.removerCapa ? null : form.capaAtual);
 
   const termo = busca.trim().toLowerCase();
   const lista = trilhas.filter((t) => !termo || t.titulo.toLowerCase().includes(termo) || (t.descricao ?? "").toLowerCase().includes(termo));
@@ -68,10 +90,31 @@ export default function AdminTrilhasView({ trainings }: AdminTrilhasViewProps) {
       titulo: t.titulo,
       descricao: t.descricao ?? "",
       status: t.status,
+      capaAtual: t.capa_url ?? null,
+      capaArquivo: null,
+      removerCapa: false,
       etapas: t.etapas.map((e) => ({ titulo: e.titulo, treinamentoId: e.treinamento_id ?? "" })),
     });
     setTentou(false);
     setShowModal(true);
+  }
+
+  function escolherCapa(file: File | undefined) {
+    if (capaInputRef.current) capaInputRef.current.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("A capa precisa ser uma imagem (PNG, JPG ou WEBP).");
+      return;
+    }
+    if (file.size > CAPA_MAXIMA) {
+      toast.error("A capa pode ter no máximo 5 MB.");
+      return;
+    }
+    setForm((f) => ({ ...f, capaArquivo: file, removerCapa: false }));
+  }
+
+  function removerCapa() {
+    setForm((f) => ({ ...f, capaArquivo: null, removerCapa: true }));
   }
 
   function alterarEtapa(index: number, patch: Partial<EtapaForm>) {
@@ -113,6 +156,7 @@ export default function AdminTrilhasView({ trainings }: AdminTrilhasViewProps) {
         titulo: form.titulo,
         descricao: form.descricao,
         status: form.status,
+        capa: form.capaArquivo ?? (form.removerCapa && form.capaAtual ? null : undefined),
         etapas: form.etapas.map((e) => ({ titulo: e.titulo, treinamento_id: e.treinamentoId || null })),
       });
       toast.success(form.id ? "Trilha atualizada" : "Trilha criada");
@@ -165,7 +209,7 @@ export default function AdminTrilhasView({ trainings }: AdminTrilhasViewProps) {
                 <tr key={t.id}>
                   <td>
                     <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-                      <Map size={16} style={{ marginTop: 2, flexShrink: 0 }} />
+                      {t.capa_url ? <img className="admin-trilha-thumb" src={t.capa_url} alt="" /> : <Map size={16} style={{ marginTop: 2, flexShrink: 0 }} />}
                       <div>
                         <strong style={{ display: "block", fontSize: 12.5 }}>{t.titulo}</strong>
                         {t.descricao && <div style={{ marginTop: 3, color: palette.textFaint, fontSize: 11, maxWidth: 460 }}>{t.descricao}</div>}
@@ -203,6 +247,22 @@ export default function AdminTrilhasView({ trainings }: AdminTrilhasViewProps) {
               <label><span className="nexa-label">Nome da trilha</span><input className="nexa-input" placeholder="Ex: Onboarding RPA" value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} />{erro("titulo")}</label>
               <label><span className="nexa-label">Status</span><select className="nexa-input" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as typeof form.status })}><option value="ativo">Ativa (aparece no app)</option><option value="inativo">Inativa (oculta no app)</option></select></label>
               <label style={{ gridColumn: "1 / -1" }}><span className="nexa-label">Descrição</span><textarea className="nexa-input" rows={2} style={{ resize: "vertical", minHeight: 60 }} placeholder="Para quem é a trilha e o que ela cobre" value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} /></label>
+
+              <div style={{ gridColumn: "1 / -1" }}>
+                <span className="nexa-label">Capa</span>
+                <input ref={capaInputRef} type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={(e) => escolherCapa(e.target.files?.[0])} />
+                <div className="admin-trilha-capa" role="button" tabIndex={0} onClick={() => capaInputRef.current?.click()} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") capaInputRef.current?.click(); }}>
+                  {capaExibida
+                    ? <img src={capaExibida} alt="Capa da trilha" />
+                    : <div><ImagePlus size={22} style={{ display: "block", margin: "0 auto 6px" }} />Clique para enviar a capa<br /><small style={{ color: palette.textFaint }}>PNG, JPG ou WEBP · até 5 MB · formato 16:9</small></div>}
+                </div>
+                {capaExibida && (
+                  <div className="admin-trilha-capa-acoes">
+                    <button className="nexa-btn-ghost" type="button" onClick={() => capaInputRef.current?.click()}><ImagePlus size={14} /> Trocar capa</button>
+                    <button className="nexa-btn-ghost" type="button" onClick={removerCapa}><Trash2 size={14} /> Remover capa</button>
+                  </div>
+                )}
+              </div>
 
               <div style={{ gridColumn: "1 / -1" }}>
                 <span className="nexa-label">Etapas</span>

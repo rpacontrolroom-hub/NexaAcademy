@@ -251,6 +251,7 @@ const css = `
   .nexa-trilha-overview-card {
     padding: 18px; cursor:pointer; position:relative; overflow:hidden;
   }
+  .nexa-trilha-cover { display:block; width:calc(100% + 36px); aspect-ratio:16/9; margin:-18px -18px 14px; object-fit:cover; background:#f1f1f1; }
 
   /* Right column items */
   .nexa-side-item { display:flex; gap:10px; padding: 10px; border-radius:10px; align-items:flex-start; }
@@ -1227,6 +1228,7 @@ export default function NexaAcademy() {
                     onClick={() => setSelectedTrilha(i)}
                     style={{ border: selectedTrilha === i ? `1px solid ${t.color}66` : undefined }}
                   >
+                    {t.cover && <img className="nexa-trilha-cover" src={t.cover} alt="" />}
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
                       <Map size={18} color={t.color} />
                       {t.progress === 100 ? (

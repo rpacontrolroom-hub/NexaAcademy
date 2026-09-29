@@ -322,18 +322,25 @@ export interface TrilhaBanco {
   titulo: string;
   descricao: string | null;
   cor: string | null;
+  capa_url?: string | null;
   etapas: { ordem: number; titulo: string; treinamento_id: string | null }[];
 }
 
+/** Busca trilhas incluindo a capa. Se a migration da capa (trilhas.capa_url)
+ *  ainda não foi aplicada, repete a consulta sem a coluna para não quebrar a tela. */
+async function consultarTrilhas(colunas: string, apenasAtivas: boolean) {
+  const consulta = (cols: string) => {
+    let q = supabase.from("trilhas").select(`${cols}, etapas:trilha_etapas(ordem, titulo, treinamento_id)`);
+    if (apenasAtivas) q = q.eq("status", "ativo");
+    return q.order("created_at").order("ordem", { referencedTable: "trilha_etapas" });
+  };
+  const comCapa = await consulta(`${colunas}, capa_url`);
+  if (comCapa.error?.message.includes("capa_url")) return check(await consulta(colunas));
+  return check(comCapa);
+}
+
 export async function fetchTrilhas(): Promise<TrilhaBanco[]> {
-  return check(
-    await supabase
-      .from("trilhas")
-      .select("id, titulo, descricao, cor, etapas:trilha_etapas(ordem, titulo, treinamento_id)")
-      .eq("status", "ativo")
-      .order("created_at")
-      .order("ordem", { referencedTable: "trilha_etapas" }),
-  ) as TrilhaBanco[];
+  return (await consultarTrilhas("id, titulo, descricao, cor", true)) as TrilhaBanco[];
 }
 
 /* Admin: todas as trilhas (ativas e inativas), com as etapas. */
@@ -342,13 +349,7 @@ export interface TrilhaAdmin extends TrilhaBanco {
 }
 
 export async function fetchTrilhasAdmin(): Promise<TrilhaAdmin[]> {
-  return check(
-    await supabase
-      .from("trilhas")
-      .select("id, titulo, descricao, cor, status, etapas:trilha_etapas(ordem, titulo, treinamento_id)")
-      .order("created_at")
-      .order("ordem", { referencedTable: "trilha_etapas" }),
-  ) as TrilhaAdmin[];
+  return (await consultarTrilhas("id, titulo, descricao, cor, status", false)) as TrilhaAdmin[];
 }
 
 export async function salvarTrilha(trilha: {
@@ -356,9 +357,18 @@ export async function salvarTrilha(trilha: {
   titulo: string;
   descricao: string;
   status: "ativo" | "inativo";
+  /** Arquivo novo para enviar, URL atual para manter, null para remover a capa, undefined para não mexer. */
+  capa?: File | string | null;
   etapas: { titulo: string; treinamento_id: string | null }[];
 }) {
-  const dados = { titulo: trilha.titulo.trim(), descricao: trilha.descricao.trim() || null, status: trilha.status };
+  const capaUrl = trilha.capa instanceof File ? await uploadArquivo(trilha.capa, "trilhas") : trilha.capa;
+  const dados = {
+    titulo: trilha.titulo.trim(),
+    descricao: trilha.descricao.trim() || null,
+    status: trilha.status,
+    // Só envia a coluna quando há capa envolvida (funciona mesmo antes da migration da capa).
+    ...(capaUrl !== undefined ? { capa_url: capaUrl } : {}),
+  };
   let id = trilha.id;
   if (id) check(await supabase.from("trilhas").update(dados).eq("id", id));
   else id = check(await supabase.from("trilhas").insert({ ...dados, cor: "cyan" }).select("id").single()).id as string;
@@ -394,6 +404,7 @@ export function montarTrilhas(trilhas: TrilhaBanco[], matriculas: Matricula[], r
       title: t.titulo,
       desc: t.descricao ?? "",
       color: resolverCor(t.cor),
+      cover: t.capa_url ?? null,
       modulos: steps.length,
       progress: steps.length ? Math.round((feitas / steps.length) * 100) : 0,
       steps,
