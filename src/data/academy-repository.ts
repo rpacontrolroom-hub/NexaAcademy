@@ -269,14 +269,40 @@ export interface AulaDetalhe {
 }
 
 export async function fetchAulaDetalhe(aulaId: string): Promise<AulaDetalhe | null> {
-  return check(
+  const aula = check(
     await supabase
       .from("aulas")
-      .select("id, titulo, tipo, url, conteudo, descricao, resumo, objetivos, aprendizados, transcricao, materiais:aula_materiais(id, titulo, arquivo_url, tamanho_bytes)")
+      .select("id, modulo_id, titulo, tipo, url, conteudo, descricao, resumo, objetivos, aprendizados, transcricao, materiais:aula_materiais(id, titulo, arquivo_url, tamanho_bytes)")
       .eq("id", aulaId)
       .order("ordem", { referencedTable: "aula_materiais" })
       .maybeSingle(),
-  ) as AulaDetalhe | null;
+  ) as (AulaDetalhe & { modulo_id: string }) | null;
+  if (!aula) return null;
+  // Os materiais do módulo aparecem em todas as aulas dele, antes dos materiais próprios da aula.
+  const doModulo = (await fetchMateriaisDosModulos([aula.modulo_id]))[aula.modulo_id] ?? [];
+  return { ...aula, materiais: [...doModulo, ...(aula.materiais ?? [])] };
+}
+
+type MaterialBanco = { id: string; titulo: string; arquivo_url: string | null; tamanho_bytes: number | null };
+
+// A tabela modulo_materiais vem de uma migration posterior; sem ela, segue sem materiais de módulo.
+function tabelaModuloMateriaisAusente(error: { message: string; code?: string } | null) {
+  return !!error && (error.code === "42P01" || error.code === "PGRST205" || error.message.includes("modulo_materiais"));
+}
+
+/** Materiais por módulo: { [moduloId]: materiais em ordem }. */
+export async function fetchMateriaisDosModulos(moduloIds: string[]): Promise<Record<string, MaterialBanco[]>> {
+  if (!moduloIds.length) return {};
+  const { data, error } = await supabase
+    .from("modulo_materiais")
+    .select("id, modulo_id, titulo, arquivo_url, tamanho_bytes")
+    .in("modulo_id", moduloIds)
+    .order("ordem");
+  if (tabelaModuloMateriaisAusente(error)) return {};
+  if (error) throw new Error(error.message);
+  const porModulo: Record<string, MaterialBanco[]> = {};
+  for (const m of data as (MaterialBanco & { modulo_id: string })[]) (porModulo[m.modulo_id] ??= []).push({ id: m.id, titulo: m.titulo, arquivo_url: m.arquivo_url, tamanho_bytes: m.tamanho_bytes });
+  return porModulo;
 }
 
 /** Registra que o usuário abriu a aula (cria a matrícula na primeira vez). */
@@ -557,10 +583,12 @@ export async function fetchTreinamentoParaEdicao(treinamentoId: string): Promise
       .order("ordem")
       .order("ordem", { referencedTable: "aulas" }),
   );
+  const materiaisModulo = await fetchMateriaisDosModulos(rows.map((m: any) => m.id));
   return rows.map((m: any) => ({
     id: m.id,
     titulo: m.titulo,
     imagem: m.imagem_url ?? "",
+    materiais: (materiaisModulo[m.id] ?? []).map((mt) => ({ id: mt.id, titulo: mt.titulo, arquivoUrl: mt.arquivo_url, tamanhoBytes: mt.tamanho_bytes })),
     itens: m.aulas.map((a: any) => ({
       id: a.id, tipo: a.tipo, titulo: a.titulo, url: a.url ?? "", texto: a.conteudo ?? "",
       materiais: [...(a.aula_materiais ?? [])].sort((x: any, y: any) => x.ordem - y.ordem).map((mt: any) => ({ id: mt.id, titulo: mt.titulo, arquivoUrl: mt.arquivo_url, tamanhoBytes: mt.tamanho_bytes })),
@@ -573,20 +601,26 @@ const GRADIENTES: [string, string][] = [
   ["#3D6BFF", "#9B6BFF"], ["#2DD4E8", "#3D6BFF"], ["#9B6BFF", "#2DD4E8"],
 ];
 
-/** Remove os materiais tirados da aula, envia os arquivos novos e grava nome e ordem. */
-async function sincronizarMateriais(aulaId: string, materiais: TrainingMaterial[]) {
-  const existentes = check(await supabase.from("aula_materiais").select("id").eq("aula_id", aulaId)).map((m: any) => m.id as string);
+/** Remove os materiais retirados, envia os arquivos novos e grava nome e ordem.
+ *  Serve para aula_materiais (por aula) e modulo_materiais (por módulo). */
+async function sincronizarMateriais(tabela: "aula_materiais" | "modulo_materiais", coluna: "aula_id" | "modulo_id", donoId: string, materiais: TrainingMaterial[]) {
+  const consulta = await supabase.from(tabela).select("id").eq(coluna, donoId);
+  if (tabela === "modulo_materiais" && tabelaModuloMateriaisAusente(consulta.error)) {
+    if (materiais.length) throw new Error("Para salvar materiais do módulo, rode no Supabase a migration 20260929020000_modulo_materiais.sql.");
+    return;
+  }
+  const existentes = check(consulta).map((m: any) => m.id as string);
   const manter = new Set(materiais.map((m) => m.id).filter(Boolean) as string[]);
   const remover = existentes.filter((id) => !manter.has(id));
-  if (remover.length) check(await supabase.from("aula_materiais").delete().in("id", remover));
+  if (remover.length) check(await supabase.from(tabela).delete().in("id", remover));
 
   for (const [ordem, material] of materiais.entries()) {
     const titulo = material.titulo.trim() || material.arquivo?.name || "Material";
     if (material.id) {
-      check(await supabase.from("aula_materiais").update({ titulo, ordem }).eq("id", material.id));
+      check(await supabase.from(tabela).update({ titulo, ordem }).eq("id", material.id));
     } else if (material.arquivo) {
       const arquivoUrl = await uploadArquivo(material.arquivo, "materiais");
-      check(await supabase.from("aula_materiais").insert({ aula_id: aulaId, titulo, arquivo_url: arquivoUrl, tamanho_bytes: material.arquivo.size, ordem }));
+      check(await supabase.from(tabela).insert({ [coluna]: donoId, titulo, arquivo_url: arquivoUrl, tamanho_bytes: material.arquivo.size, ordem }));
     }
   }
 }
@@ -636,6 +670,7 @@ export async function salvarTreinamento(draft: TrainingDraft, categoriaId: strin
     let moduloId = m.id;
     if (moduloId) check(await supabase.from("modulos").update(dados).eq("id", moduloId));
     else moduloId = check(await supabase.from("modulos").insert(dados).select("id").single()).id as string;
+    await sincronizarMateriais("modulo_materiais", "modulo_id", moduloId!, m.materiais ?? []);
 
     const itens = m.itens as (TrainingModule["itens"][number] & { id?: string })[];
     const aulasExistentes = check(await supabase.from("aulas").select("id").eq("modulo_id", moduloId)).map((a: any) => a.id);
@@ -658,7 +693,7 @@ export async function salvarTreinamento(draft: TrainingDraft, categoriaId: strin
       let aulaId = item.id;
       if (aulaId) check(await supabase.from("aulas").update(aula).eq("id", aulaId));
       else aulaId = check(await supabase.from("aulas").insert(aula).select("id").single()).id as string;
-      await sincronizarMateriais(aulaId!, item.materiais ?? []);
+      await sincronizarMateriais("aula_materiais", "aula_id", aulaId!, item.materiais ?? []);
     }
   }
 

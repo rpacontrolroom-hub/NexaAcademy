@@ -23,6 +23,8 @@ export interface TrainingModule {
   id?: string;
   titulo: string;
   imagem: string;
+  /** Materiais do módulo: aparecem em todas as aulas dele. */
+  materiais?: TrainingMaterial[];
   itens: TrainingContent[];
 }
 

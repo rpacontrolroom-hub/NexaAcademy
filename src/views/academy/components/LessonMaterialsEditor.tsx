@@ -12,6 +12,8 @@ const FORMATOS = ".pdf,.doc,.docx,.xls,.xlsx,.xlsm,.csv,.ppt,.pptx,.txt,.odt,.od
 interface LessonMaterialsEditorProps {
   materiais: TrainingMaterial[];
   onChange: (materiais: TrainingMaterial[]) => void;
+  titulo?: string;
+  descricao?: string;
 }
 
 const campo = {
@@ -19,7 +21,7 @@ const campo = {
   borderRadius: 7, padding: "7px 8px", color: palette.textPrimary, fontSize: 12, outline: "none",
 };
 
-export default function LessonMaterialsEditor({ materiais, onChange }: LessonMaterialsEditorProps) {
+export default function LessonMaterialsEditor({ materiais, onChange, titulo = "Materiais da aula", descricao }: LessonMaterialsEditorProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [nome, setNome] = useState("");
   const [arquivo, setArquivo] = useState<File | null>(null);
@@ -43,10 +45,11 @@ export default function LessonMaterialsEditor({ materiais, onChange }: LessonMat
   }
 
   return (
-    <div style={{ marginTop: 8, paddingTop: 8, borderTop: `1px dashed ${palette.border}` }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 6, color: palette.textMuted, fontSize: 11, marginBottom: 6 }}>
-        <Paperclip size={12} /> Materiais da aula
+    <div>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, color: palette.textPrimary, fontSize: 12, fontWeight: 600, marginBottom: descricao ? 2 : 6 }}>
+        <Paperclip size={13} /> {titulo}
       </div>
+      {descricao && <div style={{ color: palette.textFaint, fontSize: 10.5, marginBottom: 8 }}>{descricao}</div>}
 
       {materiais.length > 0 && (
         <div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 6 }}>

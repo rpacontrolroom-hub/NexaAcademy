@@ -745,7 +745,7 @@ export default function NexaAcademy() {
   function addModulo() {
     setNovoTreino((prev) => ({
       ...prev,
-      modulos: [...prev.modulos, { titulo: `Módulo ${prev.modulos.length + 1}`, imagem: "", itens: [novoItem()] }],
+      modulos: [...prev.modulos, { titulo: `Módulo ${prev.modulos.length + 1}`, imagem: "", materiais: [], itens: [novoItem()] }],
     }));
   }
   function removeModulo(mIdx) {
@@ -2108,6 +2108,15 @@ export default function NexaAcademy() {
                       </div>
                     </div>
 
+                    <div style={{ marginBottom: 12, padding: "10px 12px", background: palette.bgCard, border: `1px solid ${palette.border}`, borderRadius: 9 }}>
+                      <LessonMaterialsEditor
+                        titulo="Materiais do módulo"
+                        descricao="Aparecem em “Materiais da aula” em todas as aulas deste módulo."
+                        materiais={m.materiais ?? []}
+                        onChange={(materiais) => updateModulo(mIdx, { materiais })}
+                      />
+                    </div>
+
                     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                       {m.itens.map((it, iIdx) => {
                         const tipoInvalido = tentouSalvarTreino && it.titulo.trim().length === 0;
@@ -2188,10 +2197,6 @@ export default function NexaAcademy() {
                                 }}
                               />
                             )}
-                            <LessonMaterialsEditor
-                              materiais={it.materiais ?? []}
-                              onChange={(materiais) => updateItem(mIdx, iIdx, { materiais })}
-                            />
                           </div>
                         );
                       })}
