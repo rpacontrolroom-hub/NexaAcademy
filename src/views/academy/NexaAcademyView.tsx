@@ -415,7 +415,6 @@ const adminNavItems = [
   {
     key: "admin-treinamentos", label: "Treinamentos", icon: GraduationCap,
     children: [
-      { key: "admin-categorias", label: "Categorias", icon: Folder },
       { key: "admin-trilhas", label: "Trilhas", icon: Map },
       { key: "admin-aulas", label: "Aulas", icon: BookOpen },
       { key: "admin-quizzes", label: "Quizzes", icon: HelpCircle },
