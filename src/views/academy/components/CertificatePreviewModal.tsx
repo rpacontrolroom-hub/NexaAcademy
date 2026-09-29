@@ -53,11 +53,6 @@ const certificateCss = `
   .certificate-new-signer { margin-top:1.4%; font-size:clamp(9px,1.5vw,22px); }
   .certificate-new-role { margin-top:.8%; color:#64748b; font-size:clamp(7px,1vw,15px); white-space:nowrap; }
   .certificate-new-code { position:absolute; right:2.3%; bottom:1.4%; color:#8794a6; font:600 clamp(6px,.65vw,9px)/1 monospace; }
-  .certificate-program-sheet { padding:12% 6.2% 8%; background:#fff; }
-  .certificate-program-title { margin:0 0 3.6%; font-size:clamp(15px,2vw,30px); font-weight:500; }
-  .certificate-program-grid { display:grid; grid-template-columns:1fr 1fr; gap:8%; }
-  .certificate-program-list { margin:0; padding-left:1.7em; font-size:clamp(10px,1.55vw,23px); line-height:1.78; }
-  .certificate-program-score { margin-top:3.5%; font-size:clamp(12px,1.75vw,26px); }
   .certificate-actions { display:flex; justify-content:flex-end; gap:10px; padding:14px; margin-top:0; background:#fff; border-top:1px solid #e5e5e5; }
   .certificate-action {
     min-height:40px; display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:0 18px;
@@ -72,10 +67,6 @@ const certificateCss = `
 `;
 
 export default function CertificatePreviewModal({ recipientName, template, training, onClose }: CertificatePreviewModalProps) {
-  const splitIndex = Math.ceil(template.programContent.length / 2);
-  const firstColumn = template.programContent.slice(0, splitIndex);
-  const secondColumn = template.programContent.slice(splitIndex);
-
   return (
     <div className="certificate-overlay" onClick={onClose} role="presentation">
       <style>{certificateCss}</style>
@@ -109,19 +100,6 @@ export default function CertificatePreviewModal({ recipientName, template, train
               <div className="certificate-new-brand"><img src="/certificates/nexa-certificate-logo.png" alt="Nexa Academy" /></div>
             </footer>
             <div className="certificate-new-code">Código: {training.codigo}</div>
-          </article>
-
-          <article className="certificate-sheet certificate-program-sheet" aria-label={`Conteúdo programático de ${training.titulo}`}>
-            <h3 className="certificate-program-title">Conteúdo programático:</h3>
-            <div className="certificate-program-grid">
-              <ol className="certificate-program-list">
-                {firstColumn.map((item) => <li key={item}>{item}</li>)}
-              </ol>
-              <ol className="certificate-program-list" start={splitIndex + 1}>
-                {secondColumn.map((item) => <li key={item}>{item}</li>)}
-              </ol>
-            </div>
-            <div className="certificate-program-score">Aproveitamento: {training.aproveitamento}%</div>
           </article>
         </div>
 
