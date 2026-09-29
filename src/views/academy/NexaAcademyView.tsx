@@ -1106,7 +1106,7 @@ export default function NexaAcademy() {
           {mode === "app" && active === "dashboard" && (
             <>
               <div style={{ marginBottom: 22 }}>
-                <h1 className="nexa-heading" style={{ fontSize: 30, fontWeight: 700, margin: 0 }}>Olá, {primeiroNome} 👋</h1>
+                <h1 className="nexa-heading" style={{ fontSize: 30, fontWeight: 700, margin: 0 }}>Olá, {primeiroNome}</h1>
                 <p style={{ color: palette.textMuted, fontSize: 13, marginTop: 4 }}>
                   {continuar
                     ? <>Você já concluiu {Math.round(continuar.matricula.progresso)}% de <strong style={{ color: "#111" }}>{continuar.curso.title}</strong>. Continue de onde parou.</>
