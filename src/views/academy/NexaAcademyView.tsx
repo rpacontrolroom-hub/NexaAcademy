@@ -20,7 +20,6 @@ import { theme as palette } from "@/styles/theme";
 import CourseDetailView from "@/views/academy/components/CourseDetailView";
 import LessonDetailView from "@/views/academy/components/LessonDetailView";
 import AdminCertificatesView from "@/views/academy/components/AdminCertificatesView";
-import AdminVideosView from "@/views/academy/components/AdminVideosView";
 import AdminTrilhasView from "@/views/academy/components/AdminTrilhasView";
 import CertificatePreviewModal from "@/views/academy/components/CertificatePreviewModal";
 import {
@@ -419,12 +418,10 @@ const adminNavItems = [
       { key: "admin-categorias", label: "Categorias", icon: Folder },
       { key: "admin-trilhas", label: "Trilhas", icon: Map },
       { key: "admin-aulas", label: "Aulas", icon: BookOpen },
-      { key: "admin-videos", label: "Vídeos", icon: Video },
       { key: "admin-quizzes", label: "Quizzes", icon: HelpCircle },
     ],
   },
   { key: "admin-certificados", label: "Certificados", icon: Award },
-  { key: "admin-config", label: "Configurações", icon: Settings },
 ];
 const adminNavFlat = adminNavItems.flatMap((item) => [item, ...(item.children ?? [])]);
 
@@ -1724,14 +1721,11 @@ export default function NexaAcademy() {
             />
           )}
 
-          {/* ---------- ADMIN: VÍDEOS ---------- */}
-          {mode === "admin" && adminActive === "admin-videos" && <AdminVideosView trainings={adminTrainings} />}
-
           {/* ---------- ADMIN: TRILHAS ---------- */}
           {mode === "admin" && adminActive === "admin-trilhas" && <AdminTrilhasView trainings={adminTrainings} />}
 
           {/* ---------- ADMIN: outras seções (placeholder) ---------- */}
-          {mode === "admin" && !["admin-dashboard", "admin-usuarios", "admin-treinamentos", "admin-certificados", "admin-videos", "admin-trilhas"].includes(adminActive) && (
+          {mode === "admin" && !["admin-dashboard", "admin-usuarios", "admin-treinamentos", "admin-certificados", "admin-trilhas"].includes(adminActive) && (
             <AdminPlaceholder
               title={adminNavFlat.find((n) => n.key === adminActive)?.label || ""}
               icon={adminNavFlat.find((n) => n.key === adminActive)?.icon || Folder}

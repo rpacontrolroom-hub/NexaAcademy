@@ -23,8 +23,6 @@ export const keys = {
   horasMensais: ["horas-mensais"] as const,
   topTreinamentos: ["top-treinamentos"] as const,
   logs: ["logs"] as const,
-  videos: ["videos"] as const,
-  aulasDoTreinamento: (treinamentoId?: string | null) => ["aulas-do-treinamento", treinamentoId] as const,
 };
 
 export function usePerfil(userId?: string) {
@@ -112,12 +110,4 @@ export function useHorasMensais(enabled: boolean) {
 
 export function useTopTreinamentos(enabled: boolean) {
   return useQuery({ queryKey: keys.topTreinamentos, queryFn: () => repo.fetchTopTreinamentos(), enabled });
-}
-
-export function useVideos(enabled = true) {
-  return useQuery({ queryKey: keys.videos, queryFn: repo.fetchVideos, enabled });
-}
-
-export function useAulasDoTreinamento(treinamentoId?: string | null) {
-  return useQuery({ queryKey: keys.aulasDoTreinamento(treinamentoId), queryFn: () => repo.fetchAulasDoTreinamento(treinamentoId!), enabled: !!treinamentoId });
 }
