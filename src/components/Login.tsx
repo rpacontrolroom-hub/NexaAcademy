@@ -26,7 +26,6 @@ const css = `
   .login-brand img { width:62px; height:62px; display:block; object-fit:cover; border-radius:12px; }
   .login-brand-name { font-size:25px; font-weight:800; letter-spacing:.28em; line-height:1; }
   .login-brand-academy { margin-top:10px; font-size:14px; font-weight:700; letter-spacing:.34em; }
-  .login-brand-by { margin-top:9px; font-size:13px; color:#333; }
   .login-intro { max-width: 540px; }
   .login-intro h1 { margin: 0 0 16px; font-size: clamp(30px, 2.6vw, 42px); line-height: 1.15; letter-spacing: -.035em; }
   .login-intro > p { margin: 0; color: #555; font-size: 18px; line-height: 1.55; max-width: 455px; }
@@ -65,7 +64,6 @@ const css = `
     .login-brand img { width:50px; height:50px; }
     .login-brand-name { font-size:21px; }
     .login-brand-academy { margin-top: 8px; font-size: 12px; }
-    .login-brand-by { margin-top: 7px; font-size: 12px; }
     .login-right { padding: 24px 16px 34px; justify-content: flex-start; }
     .login-card { width: 100%; padding: 30px 20px; border-radius: 12px; }
     .login-card h2 { font-size: 26px; }
@@ -231,12 +229,11 @@ export default function Login() {
       <div className="login-root">
         <div className="login-shell">
           <aside className="login-left">
-            <div className="login-brand" aria-label="Nexa Academy by Hering">
+            <div className="login-brand" aria-label="Nexa Academy">
               <img src="/nexa-ai-logo.png?v=20260716" alt="Logo Nexa Academy" />
               <div>
                 <div className="login-brand-name">NEXA</div>
                 <div className="login-brand-academy">ACADEMY</div>
-                <div className="login-brand-by">by Hering</div>
               </div>
             </div>
             <div className="login-intro">

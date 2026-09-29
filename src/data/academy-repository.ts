@@ -322,6 +322,44 @@ export async function fetchTrilhas(): Promise<TrilhaBanco[]> {
   ) as TrilhaBanco[];
 }
 
+/* Admin: todas as trilhas (ativas e inativas), com as etapas. */
+export interface TrilhaAdmin extends TrilhaBanco {
+  status: "ativo" | "inativo";
+}
+
+export async function fetchTrilhasAdmin(): Promise<TrilhaAdmin[]> {
+  return check(
+    await supabase
+      .from("trilhas")
+      .select("id, titulo, descricao, cor, status, etapas:trilha_etapas(ordem, titulo, treinamento_id)")
+      .order("created_at")
+      .order("ordem", { referencedTable: "trilha_etapas" }),
+  ) as TrilhaAdmin[];
+}
+
+export async function salvarTrilha(trilha: {
+  id?: string;
+  titulo: string;
+  descricao: string;
+  status: "ativo" | "inativo";
+  etapas: { titulo: string; treinamento_id: string | null }[];
+}) {
+  const dados = { titulo: trilha.titulo.trim(), descricao: trilha.descricao.trim() || null, status: trilha.status };
+  let id = trilha.id;
+  if (id) check(await supabase.from("trilhas").update(dados).eq("id", id));
+  else id = check(await supabase.from("trilhas").insert({ ...dados, cor: "cyan" }).select("id").single()).id as string;
+  // As etapas são regravadas inteiras para manter a ordem sequencial (unique trilha_id + ordem).
+  check(await supabase.from("trilha_etapas").delete().eq("trilha_id", id));
+  if (trilha.etapas.length) {
+    check(await supabase.from("trilha_etapas").insert(trilha.etapas.map((e, i) => ({ trilha_id: id, ordem: i + 1, titulo: e.titulo.trim(), treinamento_id: e.treinamento_id }))));
+  }
+  await logAtividade(`${trilha.id ? "Trilha atualizada" : "Trilha criada"}: ${dados.titulo}`, "trilhas", id);
+}
+
+export async function excluirTrilha(id: string) {
+  check(await supabase.from("trilhas").delete().eq("id", id));
+}
+
 /** Status de cada etapa a partir das matrículas: concluída se o treinamento está 100%. */
 export function montarTrilhas(trilhas: TrilhaBanco[], matriculas: Matricula[], resolverCor: (cor: string | null) => string): (LearningPath & { id: string; etapas: TrilhaBanco["etapas"] })[] {
   const concluidos = new Set(matriculas.filter((m) => m.progresso >= 100).map((m) => m.treinamento_id));

@@ -21,6 +21,7 @@ import CourseDetailView from "@/views/academy/components/CourseDetailView";
 import LessonDetailView from "@/views/academy/components/LessonDetailView";
 import AdminCertificatesView from "@/views/academy/components/AdminCertificatesView";
 import AdminVideosView from "@/views/academy/components/AdminVideosView";
+import AdminTrilhasView from "@/views/academy/components/AdminTrilhasView";
 import CertificatePreviewModal from "@/views/academy/components/CertificatePreviewModal";
 import {
   LayoutDashboard, GraduationCap, Map, FileText, Award, Sparkles,
@@ -968,7 +969,7 @@ export default function NexaAcademy() {
           <div className="nexa-logo-wordmark">
             <div className="nexa-logo-text">Nexa</div>
             <div className="nexa-logo-academy">Academy</div>
-            <div className="nexa-logo-sub">{mode === "admin" ? "Painel administrativo" : "by Hering"}</div>
+            {mode === "admin" && <div className="nexa-logo-sub">Painel administrativo</div>}
           </div>
         </div>
 
@@ -1726,8 +1727,11 @@ export default function NexaAcademy() {
           {/* ---------- ADMIN: VÍDEOS ---------- */}
           {mode === "admin" && adminActive === "admin-videos" && <AdminVideosView trainings={adminTrainings} />}
 
+          {/* ---------- ADMIN: TRILHAS ---------- */}
+          {mode === "admin" && adminActive === "admin-trilhas" && <AdminTrilhasView trainings={adminTrainings} />}
+
           {/* ---------- ADMIN: outras seções (placeholder) ---------- */}
-          {mode === "admin" && !["admin-dashboard", "admin-usuarios", "admin-treinamentos", "admin-certificados", "admin-videos"].includes(adminActive) && (
+          {mode === "admin" && !["admin-dashboard", "admin-usuarios", "admin-treinamentos", "admin-certificados", "admin-videos", "admin-trilhas"].includes(adminActive) && (
             <AdminPlaceholder
               title={adminNavFlat.find((n) => n.key === adminActive)?.label || ""}
               icon={adminNavFlat.find((n) => n.key === adminActive)?.icon || Folder}

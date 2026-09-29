@@ -15,6 +15,7 @@ export const keys = {
   comentarios: (aulaId?: string | null) => ["comentarios", aulaId] as const,
   favoritos: (userId?: string) => ["favoritos", userId] as const,
   trilhas: ["trilhas"] as const,
+  trilhasAdmin: ["trilhas", "admin"] as const,
   modelos: ["modelos-certificado"] as const,
   meusCertificados: (userId?: string) => ["meus-certificados", userId] as const,
   usuarios: ["usuarios"] as const,
@@ -83,6 +84,10 @@ export function useFavoritos(userId?: string) {
 
 export function useTrilhas(enabled = true) {
   return useQuery({ queryKey: keys.trilhas, queryFn: repo.fetchTrilhas, enabled });
+}
+
+export function useTrilhasAdmin(enabled = true) {
+  return useQuery({ queryKey: keys.trilhasAdmin, queryFn: repo.fetchTrilhasAdmin, enabled });
 }
 
 export function useModelosCertificado(enabled = true) {
