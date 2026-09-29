@@ -316,6 +316,38 @@ export async function definirFavorito(userId: string, treinamentoId: string, fav
   else check(await supabase.from("favoritos").delete().eq("user_id", userId).eq("treinamento_id", treinamentoId));
 }
 
+/* ---------------- Notificações ---------------- */
+export interface Notificacao {
+  id: string;
+  titulo: string;
+  mensagem: string;
+  link: string | null;
+  created_at: string;
+  lida: boolean;
+}
+
+/** Notificações para o usuário (as gerais e as dele). O RLS de notificacao_leituras
+ *  só devolve as leituras do próprio usuário, então o embed indica se ele já leu. */
+export async function fetchNotificacoes(userId: string): Promise<Notificacao[]> {
+  const rows = check(
+    await supabase
+      .from("notificacoes")
+      .select("id, titulo, mensagem, link, created_at, destinatario_id, leituras:notificacao_leituras(user_id)")
+      .or(`destinatario_id.is.null,destinatario_id.eq.${userId}`)
+      .order("created_at", { ascending: false })
+      .limit(30),
+  );
+  return rows.map((n: any) => ({
+    id: n.id, titulo: n.titulo, mensagem: n.mensagem, link: n.link, created_at: n.created_at,
+    lida: (n.leituras ?? []).some((l: any) => l.user_id === userId),
+  }));
+}
+
+export async function marcarNotificacoesLidas(userId: string, ids: string[]) {
+  if (!ids.length) return;
+  check(await supabase.from("notificacao_leituras").upsert(ids.map((id) => ({ notificacao_id: id, user_id: userId })), { onConflict: "notificacao_id,user_id", ignoreDuplicates: true }));
+}
+
 /* ---------------- Trilhas ---------------- */
 export interface TrilhaBanco {
   id: string;

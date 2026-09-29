@@ -16,6 +16,7 @@ export const keys = {
   favoritos: (userId?: string) => ["favoritos", userId] as const,
   trilhas: ["trilhas"] as const,
   trilhasAdmin: ["trilhas", "admin"] as const,
+  notificacoes: (userId?: string) => ["notificacoes", userId] as const,
   modelos: ["modelos-certificado"] as const,
   meusCertificados: (userId?: string) => ["meus-certificados", userId] as const,
   usuarios: ["usuarios"] as const,
@@ -110,4 +111,8 @@ export function useHorasMensais(enabled: boolean) {
 
 export function useTopTreinamentos(enabled: boolean) {
   return useQuery({ queryKey: keys.topTreinamentos, queryFn: () => repo.fetchTopTreinamentos(), enabled });
+}
+
+export function useNotificacoes(userId?: string) {
+  return useQuery({ queryKey: keys.notificacoes(userId), queryFn: () => repo.fetchNotificacoes(userId!), enabled: !!userId, refetchInterval: 60_000 });
 }

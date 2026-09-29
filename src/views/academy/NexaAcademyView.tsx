@@ -20,12 +20,13 @@ import { theme as palette } from "@/styles/theme";
 import CourseDetailView from "@/views/academy/components/CourseDetailView";
 import LessonDetailView from "@/views/academy/components/LessonDetailView";
 import LessonMaterialsEditor from "@/views/academy/components/LessonMaterialsEditor";
+import NotificationBell from "@/views/academy/components/NotificationBell";
 import AdminCertificatesView from "@/views/academy/components/AdminCertificatesView";
 import AdminTrilhasView from "@/views/academy/components/AdminTrilhasView";
 import CertificatePreviewModal from "@/views/academy/components/CertificatePreviewModal";
 import {
   LayoutDashboard, GraduationCap, Map, FileText, Award, Sparkles,
-  User, Settings, Search, Bell, ChevronDown, ChevronRight, Play, Clock, Flame,
+  User, Settings, Search, ChevronDown, ChevronRight, Play, Clock, Flame,
   CheckCircle2, Lock, Star, X, Send, BookOpen, Code2, Workflow,
   Database, Network, Cpu, ShieldCheck, Users, Layers, Video,
   HelpCircle, ScrollText, Shield, ArrowLeft, TrendingUp,
@@ -328,7 +329,6 @@ const css = `
   .nexa-topbar { min-height: 94px; padding: 18px 32px 16px 40px; border-bottom-color: #e9e9e9; background: rgba(248,248,248,.92); }
   .nexa-search { width: min(526px, 52vw); height: 58px; padding: 0 22px; gap: 16px; border-radius: 12px; background: #fff; border-color: #e1e1e1; color: #666; font-size: 14px; }
   .nexa-topbar-icons { gap: 22px; }
-  .nexa-topbar-bell { display: flex; align-items: center; justify-content: center; color: #111; }
   .nexa-content { padding: 28px 32px 48px 40px; }
   .nexa-card { background: #fff; border-color: #e3e3e3; border-radius: 12px; box-shadow: 0 5px 18px rgba(0,0,0,.025); }
   .nexa-hero {
@@ -1052,7 +1052,7 @@ export default function NexaAcademy() {
             {mode === "admin" ? "Buscar usuários, treinamentos, logs..." : "Pesquisar cursos, documentações, autores..."}
           </div>
           <div className="nexa-topbar-icons">
-            <div className="nexa-topbar-bell"><Bell size={22} /></div>
+            <NotificationBell userId={userId} />
             <div className="nexa-profile-menu-wrap">
               <button
                 type="button"
