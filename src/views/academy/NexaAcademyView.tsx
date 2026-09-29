@@ -270,6 +270,14 @@ const css = `
   .nexa-pill.active {
     background:#111; border-color:#111; color:#fff;
   }
+  .nexa-pill-fav { display:inline-flex; align-items:center; gap:5px; }
+  .nexa-fav-button {
+    position:absolute; top:8px; right:8px; width:30px; height:30px; display:flex; align-items:center; justify-content:center;
+    padding:0; border:1px solid rgba(0,0,0,.08); border-radius:50%; background:rgba(255,255,255,.92); color:#555; cursor:pointer;
+    transition:transform .15s ease, color .15s ease;
+  }
+  .nexa-fav-button:hover { transform:scale(1.08); color:#111; }
+  .nexa-fav-button.active { color:#111; }
 
   /* Admin table */
   .nexa-table { width:100%; border-collapse: collapse; font-size: 12.5px; }
@@ -448,14 +456,26 @@ function StatCard({ icon: Icon, label, value, color }) {
   );
 }
 
-function CourseCard({ c, onOpen }) {
+function CourseCard({ c, onOpen, isFavorite = false, onToggleFavorite = null }) {
   const Icon = c.icon;
   return (
     <div className="nexa-card hoverable" style={{ overflow: "hidden", cursor: "pointer" }} onClick={onOpen}>
       <div className="nexa-course-cover" style={{ background: c.cover ? "#e5e5e5" : `linear-gradient(135deg, ${c.grad[0]}, ${c.grad[1]})` }}>
         {c.cover ? <img className="nexa-course-cover-image" src={c.cover} alt={`Capa do curso ${c.title}`} /> : <Icon size={30} color="rgba(255,255,255,0.9)" />}
         {!c.cover && <div style={{ position: "absolute", top: 8, left: 8 }}><span className="nexa-badge">{c.level}</span></div>}
-        {c.progress === 100 && <div style={{ position: "absolute", top: 8, right: 8 }}><CheckCircle2 size={18} color="#fff" /></div>}
+        {c.progress === 100 && <div style={{ position: "absolute", top: 8, right: onToggleFavorite ? 46 : 8 }}><CheckCircle2 size={18} color="#fff" /></div>}
+        {onToggleFavorite && (
+          <button
+            type="button"
+            className={`nexa-fav-button ${isFavorite ? "active" : ""}`}
+            onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
+            aria-pressed={isFavorite}
+            aria-label={isFavorite ? `Remover "${c.title}" dos favoritos` : `Adicionar "${c.title}" aos favoritos`}
+            title={isFavorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+          >
+            <Star size={15} fill={isFavorite ? "currentColor" : "none"} />
+          </button>
+        )}
       </div>
       <div className="nexa-course-body">
         <div style={{ fontSize: 11, color: palette.cyan, fontWeight: 600, marginBottom: 4 }}>{c.cat}</div>
@@ -941,7 +961,10 @@ export default function NexaAcademy() {
     if (ok) invalidar(keys.favoritos(userId), keys.meuResumo(userId));
   }
 
-  const filtered = catFilter === "Todos" ? courses : courses.filter((c) => c.cat === catFilter);
+  const FILTRO_FAVORITOS = "__favoritos__";
+  const filtered = catFilter === "Todos" ? courses
+    : catFilter === FILTRO_FAVORITOS ? favoritos
+    : courses.filter((c) => c.cat === catFilter);
   const navItems = mode === "admin" ? adminNavItems : userNavItems;
   const certificateCourseTitles = adminTrainings.map((training) => training.title).sort((a, b) => a.localeCompare(b, "pt-BR"));
 
@@ -1222,12 +1245,28 @@ export default function NexaAcademy() {
               </div>
               <div style={{ display: "flex", gap: 8, marginBottom: 22, overflowX: "auto", paddingBottom: 4 }}>
                 {categories.map((cat) => (
-                  <span key={cat} className={`nexa-pill ${catFilter === cat ? "active" : ""}`} onClick={() => setCatFilter(cat)}>{cat}</span>
+                  <Fragment key={cat}>
+                    <span className={`nexa-pill ${catFilter === cat ? "active" : ""}`} onClick={() => setCatFilter(cat)}>{cat}</span>
+                    {cat === "Todos" && (
+                      <span className={`nexa-pill nexa-pill-fav ${catFilter === FILTRO_FAVORITOS ? "active" : ""}`} onClick={() => setCatFilter(FILTRO_FAVORITOS)}>
+                        <Star size={12} fill={catFilter === FILTRO_FAVORITOS ? "currentColor" : "none"} /> Favoritos{favoritos.length > 0 ? ` (${favoritos.length})` : ""}
+                      </span>
+                    )}
+                  </Fragment>
                 ))}
               </div>
               {filtered.length > 0
-                ? <div className="nexa-grid-3">{filtered.map((c) => <CourseCard key={c.id} c={c} onOpen={() => abrirCurso(c.id)} />)}</div>
-                : <EmptyCoursesState onShowAll={() => setCatFilter("Todos")} showAllAction={catFilter !== "Todos"} />}
+                ? <div className="nexa-grid-3">{filtered.map((c) => <CourseCard key={c.id} c={c} onOpen={() => abrirCurso(c.id)} isFavorite={favoritosIds.includes(c.id)} onToggleFavorite={() => alternarFavorito(c.id)} />)}</div>
+                : catFilter === FILTRO_FAVORITOS
+                  ? (
+                    <div className="nexa-card" style={{ padding: "48px 24px", textAlign: "center" }}>
+                      <Star size={26} color={palette.textFaint} style={{ marginBottom: 12 }} />
+                      <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>Nenhum favorito ainda</div>
+                      <div style={{ fontSize: 12.5, color: palette.textMuted, marginBottom: 16 }}>Clique na estrela de um treinamento para guardá-lo aqui.</div>
+                      <button className="nexa-btn-ghost" type="button" onClick={() => setCatFilter("Todos")}>Ver todos os treinamentos</button>
+                    </div>
+                  )
+                  : <EmptyCoursesState onShowAll={() => setCatFilter("Todos")} showAllAction={catFilter !== "Todos"} />}
             </>
           )}
 
