@@ -25,6 +25,7 @@ import AdminSetPasswordModal from "@/views/academy/components/AdminSetPasswordMo
 import ForcePasswordChange from "@/views/academy/components/ForcePasswordChange";
 import AdminCertificatesView from "@/views/academy/components/AdminCertificatesView";
 import AdminTrilhasView from "@/views/academy/components/AdminTrilhasView";
+import AdminQuizzesView from "@/views/academy/components/AdminQuizzesView";
 import CertificatePreviewModal from "@/views/academy/components/CertificatePreviewModal";
 import {
   LayoutDashboard, GraduationCap, Map, FileText, Award, Sparkles,
@@ -1864,8 +1865,11 @@ export default function NexaAcademy() {
           {/* ---------- ADMIN: TRILHAS ---------- */}
           {mode === "admin" && adminActive === "admin-trilhas" && <AdminTrilhasView trainings={adminTrainings} />}
 
+          {/* ---------- ADMIN: QUIZZES ---------- */}
+          {mode === "admin" && adminActive === "admin-quizzes" && <AdminQuizzesView trainings={adminTrainings} />}
+
           {/* ---------- ADMIN: outras seções (placeholder) ---------- */}
-          {mode === "admin" && !["admin-dashboard", "admin-usuarios", "admin-treinamentos", "admin-certificados", "admin-trilhas"].includes(adminActive) && (
+          {mode === "admin" && !["admin-dashboard", "admin-usuarios", "admin-treinamentos", "admin-certificados", "admin-trilhas", "admin-quizzes"].includes(adminActive) && (
             <AdminPlaceholder
               title={adminNavFlat.find((n) => n.key === adminActive)?.label || ""}
               icon={adminNavFlat.find((n) => n.key === adminActive)?.icon || Folder}

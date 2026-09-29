@@ -17,6 +17,9 @@ export const keys = {
   trilhas: ["trilhas"] as const,
   trilhasAdmin: ["trilhas", "admin"] as const,
   notificacoes: (userId?: string) => ["notificacoes", userId] as const,
+  quizzesAdmin: ["quizzes", "admin"] as const,
+  quizzesAluno: (tipo: "aula" | "treinamento", id?: string | null) => ["quizzes", tipo, id] as const,
+  aulasDoTreinamento: (treinamentoId?: string | null) => ["aulas-do-treinamento", treinamentoId] as const,
   modelos: ["modelos-certificado"] as const,
   meusCertificados: (userId?: string) => ["meus-certificados", userId] as const,
   usuarios: ["usuarios"] as const,
@@ -115,4 +118,20 @@ export function useTopTreinamentos(enabled: boolean) {
 
 export function useNotificacoes(userId?: string) {
   return useQuery({ queryKey: keys.notificacoes(userId), queryFn: () => repo.fetchNotificacoes(userId!), enabled: !!userId, refetchInterval: 60_000 });
+}
+
+export function useAulasDoTreinamento(treinamentoId?: string | null) {
+  return useQuery({ queryKey: keys.aulasDoTreinamento(treinamentoId), queryFn: () => repo.fetchAulasDoTreinamento(treinamentoId!), enabled: !!treinamentoId });
+}
+
+export function useQuizzesAdmin(enabled = true) {
+  return useQuery({ queryKey: keys.quizzesAdmin, queryFn: repo.fetchQuizzesAdmin, enabled });
+}
+
+export function useQuizzesDaAula(aulaId?: string | null) {
+  return useQuery({ queryKey: keys.quizzesAluno("aula", aulaId), queryFn: () => repo.fetchQuizzesAluno({ aulaId: aulaId! }), enabled: !!aulaId });
+}
+
+export function useAvaliacaoDoTreinamento(treinamentoId?: string | null) {
+  return useQuery({ queryKey: keys.quizzesAluno("treinamento", treinamentoId), queryFn: () => repo.fetchQuizzesAluno({ treinamentoId: treinamentoId! }), enabled: !!treinamentoId });
 }

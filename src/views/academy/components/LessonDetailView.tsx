@@ -15,7 +15,8 @@ import {
 } from "lucide-react";
 
 import { courseController } from "@/controllers/course-controller";
-import { keys, useAula, useCursoDetalhe } from "@/hooks/use-academy";
+import { keys, useAula, useCursoDetalhe, useQuizzesDaAula } from "@/hooks/use-academy";
+import QuizPlayer from "@/views/academy/components/QuizPlayer";
 import { PERCENTUAL_MINIMO_VIDEO, useProgressoVideo } from "@/hooks/use-progresso-video";
 import LessonComments from "@/views/academy/components/LessonComments";
 import * as repo from "@/data/academy-repository";
@@ -156,6 +157,7 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
     () => aoAssistirMinimoRef.current(),
     repo.registrarProgressoVideo,
   );
+  const { data: quizzesDaAula = [] } = useQuizzesDaAula(lessonId);
 
   if (!course) {
     return (
@@ -194,11 +196,17 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
   const completed = lesson.completed;
   const videoId = videoIdAula;
   const videoLiberado = !videoId || completed || percentualAssistido >= PERCENTUAL_MINIMO_VIDEO;
+  // Aula com quiz: só conclui depois de ser aprovado em todos os quizzes dela.
+  const quizLiberado = completed || quizzesDaAula.every((q) => q.tentativas.some((t) => t.aprovado));
+  const podeConcluir = videoLiberado && quizLiberado;
+  const motivoBloqueio = !videoLiberado
+    ? `Assista pelo menos ${PERCENTUAL_MINIMO_VIDEO}% do vídeo para concluir a aula.`
+    : !quizLiberado ? "Seja aprovado no quiz desta aula para concluí-la." : undefined;
 
   async function concluirAula() {
     if (!userId || completed || salvando) return;
-    if (!videoLiberado) {
-      toast.info(`Assista pelo menos ${PERCENTUAL_MINIMO_VIDEO}% do vídeo para concluir a aula.`);
+    if (!podeConcluir) {
+      toast.info(motivoBloqueio);
       return;
     }
     setSalvando(true);
@@ -266,7 +274,7 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
                       <div className="lesson-watch-track"><span style={{ width: `${percentualAssistido}%` }} /></div>
                       <span className="lesson-done-hint">
                         {videoLiberado
-                          ? "Vídeo assistido. Clique em Concluir aula para seguir."
+                          ? (quizLiberado ? "Vídeo assistido. Clique em Concluir aula para seguir." : "Vídeo assistido. Agora responda o quiz abaixo para concluir a aula.")
                           : `Você assistiu ${percentualAssistido}% · assista ${PERCENTUAL_MINIMO_VIDEO}% para liberar a conclusão`}
                       </span>
                     </div>
@@ -281,7 +289,7 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
               </>
             ) : aula?.tipo === "texto" && aula.conteudo ? (
               <div className="lesson-text">{aula.conteudo}</div>
-            ) : (
+            ) : quizzesDaAula.length > 0 && !aula?.url ? null : (
               <div className="lesson-video">
                 <div className="lesson-video-brand" style={{ fontSize: 18, top: 60 }}>{aula?.url ? "Conteúdo externo" : "Conteúdo em preparação"}</div>
                 {aula?.url
@@ -289,6 +297,11 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
                   : <span className="lesson-video-play" style={{ opacity: .35, cursor: "default" }}><Play size={25} fill="#fff" /></span>}
               </div>
             )}
+            {quizzesDaAula.map((quiz) => (
+              <div key={quiz.id} style={{ borderTop: "1px solid #e7e7e7" }}>
+                <QuizPlayer quiz={quiz} />
+              </div>
+            ))}
           </article>
 
           <div className="lesson-detail-navigation">
@@ -298,10 +311,10 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
                 <span className="lesson-complete-button done"><CheckCircle2 size={15} />Aula concluída</span>
               ) : (
                 <button
-                  className={`lesson-complete-button ${videoLiberado ? "ready" : ""}`}
+                  className={`lesson-complete-button ${podeConcluir ? "ready" : ""}`}
                   onClick={concluirAula}
-                  disabled={salvando || !videoLiberado}
-                  title={videoLiberado ? undefined : `Assista pelo menos ${PERCENTUAL_MINIMO_VIDEO}% do vídeo para concluir`}
+                  disabled={salvando || !podeConcluir}
+                  title={motivoBloqueio}
                 >
                   <CheckCircle2 size={15} />{salvando ? "Concluindo..." : "Concluir aula"}
                 </button>

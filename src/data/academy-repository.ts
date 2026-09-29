@@ -811,3 +811,126 @@ export async function fetchHorasMensais(now = new Date()): Promise<{ mes: string
 export async function fetchTopTreinamentos(limite = 4): Promise<{ name: string; acessos: number }[]> {
   return check(await supabase.from("vw_treinamentos_mais_acessados").select("name, acessos").limit(limite));
 }
+
+/** Aulas de um treinamento para selects do admin ("Módulo 1 · Aula 2 — Título"). */
+export async function fetchAulasDoTreinamento(treinamentoId: string): Promise<{ id: string; label: string }[]> {
+  const modulos = await fetchConteudoTreinamento(treinamentoId);
+  return modulos.flatMap((m) => m.aulas.map((a, i) => ({ id: a.id, label: `Módulo ${m.ordem} · Aula ${i + 1} — ${a.titulo}` })));
+}
+
+/* ---------------- Quizzes ---------------- */
+export interface QuizAlternativaAdmin { id?: string; texto: string; correta: boolean }
+export interface QuizPerguntaAdmin { id?: string; enunciado: string; alternativas: QuizAlternativaAdmin[] }
+export interface QuizAdmin {
+  id: string;
+  titulo: string;
+  treinamento_id: string | null;
+  aula_id: string | null;
+  nota_minima: number;
+  max_tentativas: number | null;
+  status: "publicado" | "rascunho";
+  treinamento: string;
+  aula: string | null;
+  perguntas: QuizPerguntaAdmin[];
+}
+
+export async function fetchQuizzesAdmin(): Promise<QuizAdmin[]> {
+  const rows = check(
+    await supabase
+      .from("quizzes")
+      .select("id, titulo, treinamento_id, aula_id, nota_minima, max_tentativas, status, treinamentos(titulo), aulas(titulo), perguntas:quiz_perguntas(id, ordem, enunciado, alternativas:quiz_alternativas(id, ordem, texto, correta))")
+      .order("created_at", { ascending: false }),
+  );
+  return rows.map((q: any) => ({
+    id: q.id, titulo: q.titulo, treinamento_id: q.treinamento_id, aula_id: q.aula_id,
+    nota_minima: Number(q.nota_minima), max_tentativas: q.max_tentativas, status: q.status,
+    treinamento: q.treinamentos?.titulo ?? "—",
+    aula: q.aulas?.titulo ?? null,
+    perguntas: [...(q.perguntas ?? [])].sort((a: any, b: any) => a.ordem - b.ordem).map((p: any) => ({
+      id: p.id, enunciado: p.enunciado,
+      alternativas: [...(p.alternativas ?? [])].sort((a: any, b: any) => a.ordem - b.ordem).map((a: any) => ({ id: a.id, texto: a.texto, correta: a.correta })),
+    })),
+  }));
+}
+
+export async function salvarQuiz(quiz: {
+  id?: string;
+  titulo: string;
+  treinamento_id: string;
+  aula_id: string | null;
+  nota_minima: number;
+  max_tentativas: number | null;
+  status: "publicado" | "rascunho";
+  perguntas: QuizPerguntaAdmin[];
+}) {
+  const dados = {
+    titulo: quiz.titulo.trim(), treinamento_id: quiz.treinamento_id, aula_id: quiz.aula_id,
+    nota_minima: quiz.nota_minima, max_tentativas: quiz.max_tentativas, status: quiz.status,
+  };
+  let id = quiz.id;
+  if (id) check(await supabase.from("quizzes").update(dados).eq("id", id));
+  else id = check(await supabase.from("quizzes").insert(dados).select("id").single()).id as string;
+
+  // Perguntas e alternativas são regravadas (a ordem é única por quiz).
+  check(await supabase.from("quiz_perguntas").delete().eq("quiz_id", id));
+  for (const [i, p] of quiz.perguntas.entries()) {
+    const pergunta = check(await supabase.from("quiz_perguntas").insert({ quiz_id: id, ordem: i + 1, enunciado: p.enunciado.trim() }).select("id").single());
+    check(await supabase.from("quiz_alternativas").insert(
+      p.alternativas.map((a, j) => ({ pergunta_id: pergunta.id, ordem: j + 1, texto: a.texto.trim(), correta: a.correta })),
+    ));
+  }
+  await logAtividade(`${quiz.id ? "Quiz atualizado" : "Quiz criado"}: ${dados.titulo}`, "quizzes", id);
+}
+
+export async function excluirQuiz(id: string) {
+  check(await supabase.from("quizzes").delete().eq("id", id));
+}
+
+/* Aluno: o quiz chega sem a indicação da alternativa correta (vw_quiz_alternativas_publicas). */
+export interface QuizAluno {
+  id: string;
+  titulo: string;
+  nota_minima: number;
+  max_tentativas: number | null;
+  perguntas: { id: string; enunciado: string; alternativas: { id: string; texto: string }[] }[];
+  tentativas: { id: string; nota: number; aprovado: boolean; realizado_em: string }[];
+}
+
+/** Quizzes publicados de uma aula (aulaId) ou a avaliação final do treinamento (sem aula). */
+export async function fetchQuizzesAluno(filtro: { aulaId: string } | { treinamentoId: string }): Promise<QuizAluno[]> {
+  let consulta = supabase
+    .from("quizzes")
+    .select("id, titulo, nota_minima, max_tentativas, perguntas:quiz_perguntas(id, ordem, enunciado)")
+    .eq("status", "publicado")
+    .order("created_at");
+  consulta = "aulaId" in filtro
+    ? consulta.eq("aula_id", filtro.aulaId)
+    : consulta.eq("treinamento_id", filtro.treinamentoId).is("aula_id", null);
+  const quizzes = check(await consulta) as any[];
+  if (!quizzes.length) return [];
+
+  const perguntaIds = quizzes.flatMap((q) => (q.perguntas ?? []).map((p: any) => p.id));
+  const [alternativas, tentativas] = await Promise.all([
+    perguntaIds.length
+      ? supabase.from("vw_quiz_alternativas_publicas").select("id, pergunta_id, ordem, texto").in("pergunta_id", perguntaIds).order("ordem")
+      : Promise.resolve({ data: [], error: null }),
+    supabase.from("quiz_tentativas").select("id, quiz_id, nota, aprovado, realizado_em").in("quiz_id", quizzes.map((q) => q.id)).order("realizado_em", { ascending: false }),
+  ]);
+  const alts = check(alternativas as any) as any[];
+  const tents = check(tentativas as any) as any[];
+
+  return quizzes.map((q) => ({
+    id: q.id, titulo: q.titulo, nota_minima: Number(q.nota_minima), max_tentativas: q.max_tentativas,
+    perguntas: [...(q.perguntas ?? [])].sort((a: any, b: any) => a.ordem - b.ordem).map((p: any) => ({
+      id: p.id, enunciado: p.enunciado,
+      alternativas: alts.filter((a) => a.pergunta_id === p.id).map((a) => ({ id: a.id, texto: a.texto })),
+    })),
+    tentativas: tents.filter((t) => t.quiz_id === q.id).map((t) => ({ id: t.id, nota: Number(t.nota), aprovado: t.aprovado, realizado_em: t.realizado_em })),
+  }));
+}
+
+/** Correção no servidor (responder_quiz): devolve nota e aprovação. */
+export async function responderQuiz(quizId: string, respostas: Record<string, string>): Promise<{ nota: number; aprovado: boolean }> {
+  const row = check(await supabase.rpc("responder_quiz", { p_quiz_id: quizId, p_respostas: respostas })) as any;
+  return { nota: Number(row.nota), aprovado: row.aprovado };
+}

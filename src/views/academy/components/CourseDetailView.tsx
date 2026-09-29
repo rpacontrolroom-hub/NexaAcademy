@@ -14,7 +14,8 @@ import {
 } from "lucide-react";
 
 import { courseController } from "@/controllers/course-controller";
-import { useCursoDetalhe } from "@/hooks/use-academy";
+import { useAvaliacaoDoTreinamento, useCursoDetalhe } from "@/hooks/use-academy";
+import QuizPlayer from "@/views/academy/components/QuizPlayer";
 import type { Matricula, Treinamento } from "@/data/academy-repository";
 
 interface CourseDetailViewProps {
@@ -96,6 +97,7 @@ export default function CourseDetailView({ userId, course: treinamento, matricul
   const [activeTab, setActiveTab] = useState<"content" | "about" | "materials">("content");
   const [selectedModuleIndex, setSelectedModuleIndex] = useState<number | null>(null);
   const { course, isLoading } = useCursoDetalhe(userId, treinamento, matricula?.progresso ?? 0);
+  const { data: avaliacoes = [] } = useAvaliacaoDoTreinamento(treinamento?.id);
 
   if (!treinamento) {
     return (
@@ -261,6 +263,22 @@ export default function CourseDetailView({ userId, course: treinamento, matricul
           </div>
         )}
       </div>
+
+      {avaliacoes.length > 0 && (
+        <section className="course-detail-panel" style={{ marginTop: 18 }} aria-label="Avaliação final">
+          <div style={{ padding: "16px 20px 0" }}>
+            <h2 style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>Avaliação final</h2>
+            <p style={{ margin: "4px 0 0", color: "#777", fontSize: 12 }}>A nota da avaliação compõe o aproveitamento exigido para o certificado.</p>
+          </div>
+          {course.progress < 100 ? (
+            <div className="course-detail-empty" style={{ margin: 18 }}>
+              <div><Lock size={24} /><p>Conclua todas as aulas para liberar a avaliação final.</p></div>
+            </div>
+          ) : (
+            avaliacoes.map((quiz) => <QuizPlayer key={quiz.id} quiz={quiz} />)
+          )}
+        </section>
+      )}
     </section>
   );
 }
