@@ -40,6 +40,7 @@ export interface Perfil {
   nome: string;
   email: string;
   cargo: string | null;
+  avatar_url: string | null;
   perfil: "usuario" | "administrador";
   status: "ativo" | "inativo";
   ultimo_acesso: string | null;
@@ -56,6 +57,13 @@ export async function registrarAcesso(userId: string) {
 
 export async function atualizarMeuPerfil(userId: string, patch: { nome: string; cargo: string }) {
   check(await supabase.from("profiles").update({ nome: patch.nome.trim(), cargo: patch.cargo.trim() || null }).eq("id", userId));
+}
+
+/** Envia a foto para avatars/<userId>/ (pasta liberada ao próprio usuário) e grava no perfil.
+ *  Com `null`, remove a foto do perfil. */
+export async function atualizarMinhaFoto(userId: string, foto: File | null) {
+  const avatarUrl = foto ? await uploadArquivo(foto, `avatars/${userId}`) : null;
+  check(await supabase.from("profiles").update({ avatar_url: avatarUrl }).eq("id", userId));
 }
 
 export async function alterarSenha(email: string, senhaAtual: string, novaSenha: string) {

@@ -1,6 +1,6 @@
 // Legacy JSX markup is intentionally retained verbatim while domain rules are typed in MVC services.
 // @ts-nocheck
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { Toaster, toast } from "sonner";
@@ -26,7 +26,7 @@ import AdminTrilhasView from "@/views/academy/components/AdminTrilhasView";
 import CertificatePreviewModal from "@/views/academy/components/CertificatePreviewModal";
 import {
   LayoutDashboard, GraduationCap, Map, FileText, Award, Sparkles,
-  User, Settings, Search, ChevronDown, ChevronRight, Play, Clock, Flame,
+  User, Settings, Search, ChevronDown, ChevronRight, Play, Clock, Flame, Camera, Trash2,
   CheckCircle2, Lock, Star, X, Send, BookOpen, Code2, Workflow,
   Database, Network, Cpu, ShieldCheck, Users, Layers, Video,
   HelpCircle, ScrollText, Shield, ArrowLeft, TrendingUp,
@@ -118,8 +118,9 @@ const css = `
     width: 32px; height:32px; border-radius:50%;
     background: linear-gradient(135deg, ${palette.purple}, ${palette.blue});
     display:flex; align-items:center; justify-content:center;
-    font-size: 12px; font-weight:700; flex-shrink:0;
+    font-size: 12px; font-weight:700; flex-shrink:0; overflow:hidden;
   }
+  .nexa-avatar img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
   .nexa-mode-switch {
     display:flex; align-items:center; justify-content:center; gap:7px;
     font-size: 12px; font-weight:600; padding: 8px 10px; border-radius:9px;
@@ -429,6 +430,10 @@ const adminNavFlat = adminNavItems.flatMap((item) => [item, ...(item.children ??
 const iconMap = { Workflow, Database, Code2, Network, Cpu, ShieldCheck, BookOpen };
 
 /* ---------------- Reusable components ---------------- */
+function AvatarConteudo({ nome, foto }) {
+  return foto ? <img src={foto} alt="" /> : initials(nome);
+}
+
 function StatCard({ icon: Icon, label, value, color }) {
   return (
     <div className="nexa-card nexa-stat">
@@ -612,6 +617,7 @@ export default function NexaAcademy() {
     perfilDb: u.perfil,
     status: u.status,
     acesso: timeAgo(u.ultimo_acesso),
+    foto: u.avatar_url,
   }));
   const maxHoras = Math.max(1, ...horasMensais.map((m) => m.horas));
   const monthlyHours = horasMensais.map((m) => ({ mes: m.mes, v: (m.horas / maxHoras) * 100, horas: m.horas }));
@@ -830,6 +836,19 @@ export default function NexaAcademy() {
   const primeiroNome = academyController.getFirstName(perfil?.nome ?? "");
   const [perfilCargo, setPerfilCargo] = useState("");
   const [perfilSalvo, setPerfilSalvo] = useState(false);
+  const fotoInputRef = useRef(null);
+  const [enviandoFoto, setEnviandoFoto] = useState(false);
+
+  async function trocarFoto(file) {
+    if (fotoInputRef.current) fotoInputRef.current.value = "";
+    if (file === undefined) return;
+    if (file && !file.type.startsWith("image/")) return toast.error("A foto precisa ser uma imagem (PNG, JPG ou WEBP).");
+    if (file && file.size > 5 * 1024 * 1024) return toast.error("A foto pode ter no máximo 5 MB.");
+    setEnviandoFoto(true);
+    const ok = await executar(() => repo.atualizarMinhaFoto(userId, file), file ? "Foto atualizada" : "Foto removida");
+    setEnviandoFoto(false);
+    if (ok) invalidar(keys.perfil(userId), keys.usuarios);
+  }
 
   useEffect(() => {
     if (!perfil) return;
@@ -1063,7 +1082,7 @@ export default function NexaAcademy() {
                 aria-expanded={profileMenuOpen}
                 aria-label="Abrir menu do usuário"
               >
-                {initials(perfil?.nome || perfilEmail)}
+                <AvatarConteudo nome={perfil?.nome || perfilEmail} foto={perfil?.avatar_url} />
               </button>
               {profileMenuOpen && (
                 <>
@@ -1363,12 +1382,19 @@ export default function NexaAcademy() {
                   {/* Dados pessoais */}
                   <div className="nexa-card" style={{ padding: 22 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20 }}>
-                      <div className="nexa-avatar" style={{ width: 56, height: 56, fontSize: 18 }}>
-                        {initials(perfil?.nome || perfilEmail)}
+                      <div className="nexa-avatar" style={{ width: 72, height: 72, fontSize: 22 }}>
+                        <AvatarConteudo nome={perfil?.nome || perfilEmail} foto={perfil?.avatar_url} />
                       </div>
                       <div>
                         <div style={{ fontSize: 15, fontWeight: 600, fontFamily: "'Space Grotesk',sans-serif" }}>{perfil?.nome}</div>
                         <div style={{ fontSize: 12, color: palette.textFaint }}>{perfilEmail}</div>
+                        <input ref={fotoInputRef} type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={(e) => trocarFoto(e.target.files?.[0])} />
+                        <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
+                          <button className="nexa-btn-ghost" type="button" disabled={enviandoFoto} onClick={() => fotoInputRef.current?.click()}>
+                            <Camera size={14} /> {enviandoFoto ? "Enviando..." : perfil?.avatar_url ? "Trocar foto" : "Enviar foto"}
+                          </button>
+                          {perfil?.avatar_url && <button className="nexa-btn-ghost" type="button" disabled={enviandoFoto} onClick={() => trocarFoto(null)}><Trash2 size={14} /> Remover</button>}
+                        </div>
                       </div>
                     </div>
 
@@ -1580,7 +1606,7 @@ export default function NexaAcademy() {
                       <tr key={u.id}>
                         <td>
                           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                            <div className="nexa-avatar" style={{ width: 26, height: 26, fontSize: 10 }}>{initials(u.name)}</div>
+                            <div className="nexa-avatar" style={{ width: 26, height: 26, fontSize: 10 }}><AvatarConteudo nome={u.name} foto={u.foto} /></div>
                             {u.name}
                           </div>
                         </td>
