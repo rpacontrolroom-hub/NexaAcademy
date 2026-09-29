@@ -220,7 +220,7 @@ export default function CourseDetailView({ userId, course: treinamento, matricul
                       {item.type === "video" ? <Video size={15} /> : <FileText size={15} />}
                       <span>{item.code ?? `${selectedModule.order}.${index + 1}`} {item.title}</span>
                       <span className="course-detail-lesson-duration">{item.duration}</span>
-                      {item.completed ? <CheckCircle2 size={16} color="#111" /> : <Play size={15} />}
+                      {item.completed ? <CheckCircle2 size={16} color="#2d7147" /> : <Play size={15} />}
                     </div>
                   ))}
                 </div>

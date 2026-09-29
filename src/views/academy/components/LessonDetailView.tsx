@@ -80,7 +80,9 @@ const extraLessonCss = `
   .lesson-player { position:relative; margin:16px; aspect-ratio:16/9; overflow:hidden; background:#000; border-radius:9px; }
   .lesson-player iframe { position:absolute; inset:0; width:100%; height:100%; border:0; }
   .lesson-player:fullscreen { margin:0; border-radius:0; aspect-ratio:auto; }
-  .lesson-player-actions { display:flex; justify-content:flex-end; margin:-4px 16px 16px; }
+  .lesson-player-actions { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin:-4px 16px 16px; }
+  .lesson-done-badge { display:inline-flex; align-items:center; gap:7px; padding:7px 12px; border-radius:999px; background:#e7f4ec; color:#2d7147; font-size:12px; font-weight:700; }
+  .lesson-done-hint { color:#888; font-size:11.5px; }
   .lesson-text { margin:16px; padding:18px; white-space:pre-wrap; color:#333; background:#fafafa; border:1px solid #e4e4e4; border-radius:9px; font-size:12.5px; line-height:1.7; }
   .lesson-open-link { display:inline-flex; align-items:center; gap:7px; margin-top:14px; padding:9px 14px; color:#fff; background:#111; border-radius:7px; font-size:11.5px; font-weight:600; text-decoration:none; }
   .lesson-material-row a { color:inherit; }
@@ -97,6 +99,9 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
   const queryClient = useQueryClient();
   const [salvando, setSalvando] = useState(false);
   const playerRef = useRef<HTMLDivElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  // Atualizado a cada render com a ação atual (depende de "completed" e da aula aberta).
+  const aoTerminarVideoRef = useRef<() => void>(() => {});
   const { course, isLoading } = useCursoDetalhe(userId, treinamento, matricula?.progresso ?? 0);
   const { data: aula } = useAula(lessonId);
 
@@ -114,6 +119,21 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, lessonId]);
+
+  // Eventos do player do YouTube (API oficial via postMessage): estado 0 = vídeo terminou.
+  useEffect(() => {
+    function aoReceberMensagem(event: MessageEvent) {
+      if (!/^https:\/\/www\.youtube(-nocookie)?\.com$/.test(event.origin)) return;
+      if (event.source !== iframeRef.current?.contentWindow) return;
+      let dados: { event?: string; info?: number | { playerState?: number } } | null;
+      try { dados = typeof event.data === "string" ? JSON.parse(event.data) : event.data; } catch { return; }
+      const info = dados?.info;
+      const estado = dados?.event === "onStateChange" ? info : dados?.event === "infoDelivery" && typeof info === "object" ? info?.playerState : undefined;
+      if (estado === 0) aoTerminarVideoRef.current();
+    }
+    window.addEventListener("message", aoReceberMensagem);
+    return () => window.removeEventListener("message", aoReceberMensagem);
+  }, []);
 
   if (!course) {
     return (
@@ -166,6 +186,29 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
     }
   }
 
+  async function concluirAoTerminarVideo() {
+    if (!userId || completed || salvando) return;
+    setSalvando(true);
+    try {
+      await repo.definirAulaConcluida(userId, lessonId, true);
+      invalidarProgresso();
+      toast.success(nextLesson ? "Aula concluída! Siga para a próxima." : "Aula concluída!");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : String(err));
+    } finally {
+      setSalvando(false);
+    }
+  }
+  aoTerminarVideoRef.current = concluirAoTerminarVideo;
+
+  /** Pede ao player para avisar mudanças de estado (play, pausa, fim). */
+  function escutarPlayer() {
+    const player = iframeRef.current?.contentWindow;
+    if (!player) return;
+    player.postMessage(JSON.stringify({ event: "listening", id: videoId, channel: "widget" }), "*");
+    player.postMessage(JSON.stringify({ event: "command", func: "addEventListener", args: ["onStateChange"], id: videoId, channel: "widget" }), "*");
+  }
+
   function maximizarVideo() {
     const el = playerRef.current;
     if (!el) return;
@@ -199,10 +242,14 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
             {videoId ? (
               <>
                 <div className="lesson-player" ref={playerRef}>
-                  {/* rel=0: sugestões só do mesmo canal; iv_load_policy=3: sem anotações; playsinline: não força tela cheia no celular. */}
-                  <iframe src={`https://www.youtube-nocookie.com/embed/${videoId}?rel=0&iv_load_policy=3&playsinline=1`} title={detail.title} allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowFullScreen />
+                  {/* rel=0: sugestões só do mesmo canal; iv_load_policy=3: sem anotações; playsinline: não força tela cheia no celular;
+                      enablejsapi: permite saber quando o vídeo termina para concluir a aula. */}
+                  <iframe ref={iframeRef} onLoad={escutarPlayer} src={`https://www.youtube-nocookie.com/embed/${videoId}?rel=0&iv_load_policy=3&playsinline=1&enablejsapi=1&origin=${encodeURIComponent(typeof window === "undefined" ? "" : window.location.origin)}`} title={detail.title} allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowFullScreen />
                 </div>
                 <div className="lesson-player-actions">
+                  {completed
+                    ? <span className="lesson-done-badge"><CheckCircle2 size={16} /> Aula concluída</span>
+                    : <span className="lesson-done-hint">A aula é concluída automaticamente ao terminar o vídeo.</span>}
                   <button className="lesson-nav-button" onClick={maximizarVideo}><Maximize2 size={14} />Maximizar vídeo</button>
                 </div>
               </>
@@ -231,7 +278,7 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
               {module.lessons.map((item, index) => (
                 <button key={item.id} className={`lesson-content-row ${item.id === lesson.id ? "active" : ""}`} onClick={() => onNavigate(item.id)}>
                   <span>{index + 1}.</span><span>{item.title}</span><span className="lesson-content-duration">{item.duration}</span>
-                  {item.completed ? <CheckCircle2 size={15} /> : item.id === lesson.id ? <Play size={14} /> : <span style={{ width:14, height:14, border:"1px solid #aaa", borderRadius:"50%" }} />}
+                  {item.completed ? <CheckCircle2 size={15} color="#2d7147" /> : item.id === lesson.id ? <Play size={14} /> : <span style={{ width:14, height:14, border:"1px solid #aaa", borderRadius:"50%" }} />}
                 </button>
               ))}
             </div>
