@@ -325,18 +325,33 @@ export interface Comentario {
   created_at: string;
   user_id: string;
   autor: string;
+  autorFoto: string | null;
 }
 
 export async function fetchComentarios(aulaId: string): Promise<Comentario[]> {
   const rows = check(
-    await supabase.from("aula_comentarios").select("id, conteudo, created_at, user_id, profiles(nome)").eq("aula_id", aulaId).order("created_at"),
+    await supabase.from("aula_comentarios").select("id, conteudo, created_at, user_id, profiles(nome, avatar_url)").eq("aula_id", aulaId).order("created_at"),
   );
-  return rows.map((c: any) => ({ id: c.id, conteudo: c.conteudo, created_at: c.created_at, user_id: c.user_id, autor: c.profiles?.nome ?? "Usuário" }));
+  // O RLS de profiles só devolve o próprio perfil; nome e foto dos demais vêm de vw_perfis_publicos.
+  const ids = [...new Set(rows.map((c: any) => c.user_id as string))];
+  const autores = new Map<string, { nome: string; avatar_url: string | null }>();
+  if (ids.length) {
+    const { data } = await supabase.from("vw_perfis_publicos").select("id, nome, avatar_url").in("id", ids);
+    for (const p of (data ?? []) as { id: string; nome: string; avatar_url: string | null }[]) autores.set(p.id, p);
+  }
+  return rows.map((c: any) => {
+    const autor = autores.get(c.user_id) ?? c.profiles;
+    return { id: c.id, conteudo: c.conteudo, created_at: c.created_at, user_id: c.user_id, autor: autor?.nome ?? "Usuário", autorFoto: autor?.avatar_url ?? null };
+  });
 }
 
 export async function adicionarComentario(aulaId: string, conteudo: string) {
   const userId = await currentUserId();
   check(await supabase.from("aula_comentarios").insert({ aula_id: aulaId, user_id: userId, conteudo: conteudo.trim() }));
+}
+
+export async function excluirComentario(id: string) {
+  check(await supabase.from("aula_comentarios").delete().eq("id", id));
 }
 
 /* ---------------- Favoritos ---------------- */

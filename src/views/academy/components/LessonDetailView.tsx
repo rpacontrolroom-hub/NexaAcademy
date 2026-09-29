@@ -17,6 +17,7 @@ import {
 import { courseController } from "@/controllers/course-controller";
 import { keys, useAula, useCursoDetalhe } from "@/hooks/use-academy";
 import { PERCENTUAL_MINIMO_VIDEO, useProgressoVideo } from "@/hooks/use-progresso-video";
+import LessonComments from "@/views/academy/components/LessonComments";
 import * as repo from "@/data/academy-repository";
 import { formatBytes, youtubeId } from "@/lib/format";
 import type { LessonDetail } from "@/models/lesson-detail";
@@ -90,7 +91,6 @@ const extraLessonCss = `
   .lesson-player-shell:fullscreen { margin:0; border-radius:0; }
   .lesson-player-shell:fullscreen .lesson-player { flex:1; aspect-ratio:auto; }
   .lesson-player-actions { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin:-4px 16px 16px; }
-  .lesson-done-badge { display:inline-flex; align-items:center; gap:7px; padding:7px 12px; border-radius:999px; background:#e7f4ec; color:#2d7147; font-size:12px; font-weight:700; }
   .lesson-done-hint { color:#888; font-size:11.5px; }
   .lesson-watch { display:flex; flex-direction:column; gap:6px; min-width:220px; flex:1; max-width:420px; }
   .lesson-watch-track { height:4px; overflow:hidden; border-radius:999px; background:#e3e3e3; }
@@ -257,20 +257,19 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
                     </button>
                   </div>
                 </div>
-                <div className="lesson-player-actions">
-                  {completed
-                    ? <span className="lesson-done-badge"><CheckCircle2 size={16} /> Aula concluída</span>
-                    : (
-                      <div className="lesson-watch">
-                        <div className="lesson-watch-track"><span style={{ width: `${percentualAssistido}%` }} /></div>
-                        <span className="lesson-done-hint">
-                          {videoLiberado
-                            ? "Vídeo assistido. Clique em Concluir aula para seguir."
-                            : `Você assistiu ${percentualAssistido}% · assista ${PERCENTUAL_MINIMO_VIDEO}% para liberar a conclusão`}
-                        </span>
-                      </div>
-                    )}
-                </div>
+                {/* Depois de concluída, o status fica só no botão do rodapé ("Aula concluída"). */}
+                {!completed && (
+                  <div className="lesson-player-actions">
+                    <div className="lesson-watch">
+                      <div className="lesson-watch-track"><span style={{ width: `${percentualAssistido}%` }} /></div>
+                      <span className="lesson-done-hint">
+                        {videoLiberado
+                          ? "Vídeo assistido. Clique em Concluir aula para seguir."
+                          : `Você assistiu ${percentualAssistido}% · assista ${PERCENTUAL_MINIMO_VIDEO}% para liberar a conclusão`}
+                      </span>
+                    </div>
+                  </div>
+                )}
                 {chegouAoFim && !videoLiberado && (
                   <div className="lesson-skip-warning" role="alert">
                     <AlertTriangle size={16} />
@@ -310,6 +309,8 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
                 : <button className="lesson-nav-button next" onClick={onBack}>Voltar ao treinamento<ChevronRight size={15} /></button>)}
             </div>
           </div>
+
+          <LessonComments aulaId={lessonId} userId={userId} />
         </div>
 
         <aside className="lesson-detail-side">
