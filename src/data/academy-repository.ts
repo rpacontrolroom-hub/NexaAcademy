@@ -305,18 +305,39 @@ export async function fetchMateriaisDosModulos(moduloIds: string[]): Promise<Rec
   return porModulo;
 }
 
+// As funções abaixo vêm da migration 20260929040000_seguranca_progresso.sql. Enquanto ela
+// não é aplicada, o app usa a gravação direta antiga (a função ainda não existe no banco).
+function funcaoAusente(error: { code?: string; message: string } | null) {
+  return !!error && (error.code === "PGRST202" || error.code === "42883");
+}
+
 /** Registra que o usuário abriu a aula (cria a matrícula na primeira vez). */
 export async function registrarAulaAberta(userId: string, aulaId: string) {
+  const { error } = await supabase.rpc("registrar_aula_aberta", { p_aula_id: aulaId });
+  if (!funcaoAusente(error)) return;
   await supabase.from("aula_progresso").upsert({ user_id: userId, aula_id: aulaId }, { onConflict: "user_id,aula_id", ignoreDuplicates: true });
 }
 
-export async function definirAulaConcluida(userId: string, aulaId: string, concluida: boolean) {
+/** Conclui a aula no servidor, que confere se o vídeo foi assistido (90%). */
+export async function concluirAula(userId: string, aulaId: string) {
+  const { error } = await supabase.rpc("concluir_aula", { p_aula_id: aulaId });
+  if (!error) return;
+  if (!funcaoAusente(error)) throw new Error(error.message);
   check(
     await supabase.from("aula_progresso").upsert(
-      { user_id: userId, aula_id: aulaId, concluida, concluida_em: concluida ? new Date().toISOString() : null },
+      { user_id: userId, aula_id: aulaId, concluida: true, concluida_em: new Date().toISOString() },
       { onConflict: "user_id,aula_id" },
     ),
   );
+}
+
+/** Envia os segundos novos assistidos. Devolve o % assistido segundo o servidor
+ *  (null se a função ainda não existe no banco). */
+export async function registrarProgressoVideo(aulaId: string, segundos: number, duracao: number): Promise<number | null> {
+  const { data, error } = await supabase.rpc("registrar_progresso_video", { p_aula_id: aulaId, p_segundos: segundos, p_duracao: duracao });
+  if (funcaoAusente(error)) return null;
+  if (error) throw new Error(error.message);
+  return Number(data);
 }
 
 export interface Comentario {

@@ -151,8 +151,10 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
   const videoIdAula = youtubeId(aula?.url);
   const { percentual: percentualAssistido, chegouAoFim, escutarPlayer } = useProgressoVideo(
     iframeRef,
+    userId && videoIdAula ? lessonId : null,
     userId && videoIdAula ? `nexa:video:${userId}:${lessonId}:${videoIdAula}` : null,
     () => aoAssistirMinimoRef.current(),
+    repo.registrarProgressoVideo,
   );
 
   if (!course) {
@@ -201,7 +203,7 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
     }
     setSalvando(true);
     try {
-      await repo.definirAulaConcluida(userId, lessonId, true);
+      await repo.concluirAula(userId, lessonId);
       invalidarProgresso();
       toast.success(nextLesson ? "Aula concluída! Siga para a próxima." : "Aula concluída!");
     } catch (err) {
