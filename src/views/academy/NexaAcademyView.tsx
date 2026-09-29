@@ -756,7 +756,8 @@ export default function NexaAcademy() {
     { value: "texto", label: "Texto", icon: FileText },
     { value: "doc", label: "Documento", icon: FileText },
     { value: "quiz", label: "Quiz", icon: HelpCircle },
-    { value: "aula", label: "Aula", icon: BookOpen },
+    // Tipo antigo: não é mais oferecido, só aparece em itens que já estavam salvos assim.
+    { value: "aula", label: "Aula", icon: BookOpen, oculto: true },
   ];
 
   function updateModulo(mIdx, patch) {
@@ -2232,7 +2233,7 @@ export default function NexaAcademy() {
                                   borderRadius: 7, padding: "7px 8px", color: palette.textPrimary, fontSize: 12, outline: "none",
                                 }}
                               >
-                                {tiposConteudo.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                                {tiposConteudo.filter((t) => !t.oculto || t.value === it.tipo).map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
                               </select>
                               <input
                                 value={it.titulo}
