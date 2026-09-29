@@ -21,12 +21,14 @@ import CourseDetailView from "@/views/academy/components/CourseDetailView";
 import LessonDetailView from "@/views/academy/components/LessonDetailView";
 import LessonMaterialsEditor from "@/views/academy/components/LessonMaterialsEditor";
 import NotificationBell from "@/views/academy/components/NotificationBell";
+import AdminSetPasswordModal from "@/views/academy/components/AdminSetPasswordModal";
+import ForcePasswordChange from "@/views/academy/components/ForcePasswordChange";
 import AdminCertificatesView from "@/views/academy/components/AdminCertificatesView";
 import AdminTrilhasView from "@/views/academy/components/AdminTrilhasView";
 import CertificatePreviewModal from "@/views/academy/components/CertificatePreviewModal";
 import {
   LayoutDashboard, GraduationCap, Map, FileText, Award, Sparkles,
-  User, Settings, Search, ChevronDown, ChevronRight, Play, Clock, Flame, Camera, Trash2,
+  User, Settings, Search, ChevronDown, ChevronRight, Play, Clock, Flame, Camera, Trash2, KeyRound,
   CheckCircle2, Lock, Star, X, Send, BookOpen, Code2, Workflow,
   Database, Network, Cpu, ShieldCheck, Users, Layers, Video,
   HelpCircle, ScrollText, Shield, ArrowLeft, TrendingUp,
@@ -586,6 +588,7 @@ export default function NexaAcademy() {
   const [tentouEnviar, setTentouEnviar] = useState(false);
   const [enviandoCadastro, setEnviandoCadastro] = useState(false);
   const [menuUsuarioId, setMenuUsuarioId] = useState(null);
+  const [senhaUsuario, setSenhaUsuario] = useState(null);
 
   // --- Sessão: sem login volta para a tela inicial; usuário inativo é desconectado ---
   useEffect(() => {
@@ -1723,6 +1726,13 @@ export default function NexaAcademy() {
                                 >
                                   {u.status === "ativo" ? <><X size={13} /> Desativar acesso</> : <><CheckCircle2 size={13} /> Reativar acesso</>}
                                 </button>
+                                <button
+                                  type="button"
+                                  onClick={() => { setMenuUsuarioId(null); setSenhaUsuario(u); }}
+                                  style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", background: "transparent", border: "none", color: palette.textPrimary, padding: "9px 12px", fontSize: 12.5, cursor: "pointer", textAlign: "left", borderTop: `1px solid ${palette.border}` }}
+                                >
+                                  <KeyRound size={13} color={palette.cyan} /> Definir senha
+                                </button>
                               </div>
                             </>
                           )}
@@ -1849,6 +1859,14 @@ export default function NexaAcademy() {
           )}
         </div>
       </main>
+
+      {/* Admin: definir senha de um usuário */}
+      {senhaUsuario && <AdminSetPasswordModal usuario={senhaUsuario} onClose={() => setSenhaUsuario(null)} />}
+
+      {/* Senha temporária definida pelo admin: bloqueia o app até a pessoa criar a própria. */}
+      {perfil?.trocar_senha && userId && (
+        <ForcePasswordChange userId={userId} onConcluido={() => invalidar(keys.perfil(userId))} onSair={sair} />
+      )}
 
       {/* Modal: Certificado emitido */}
       {certificadoPreview && certificadoTemplatePreview && (

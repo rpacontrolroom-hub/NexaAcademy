@@ -45,6 +45,8 @@ export interface Perfil {
   status: "ativo" | "inativo";
   ultimo_acesso: string | null;
   created_at: string;
+  /** Senha definida pelo admin: o usuário precisa criar a própria no próximo acesso. */
+  trocar_senha?: boolean;
 }
 
 export async function fetchMeuPerfil(userId: string): Promise<Perfil | null> {
@@ -64,6 +66,22 @@ export async function atualizarMeuPerfil(userId: string, patch: { nome: string; 
 export async function atualizarMinhaFoto(userId: string, foto: File | null) {
   const avatarUrl = foto ? await uploadArquivo(foto, `avatars/${userId}`) : null;
   check(await supabase.from("profiles").update({ avatar_url: avatarUrl }).eq("id", userId));
+}
+
+/** Admin define a senha de outro usuário (função admin_definir_senha, no servidor). */
+export async function adminDefinirSenha(userId: string, senha: string, temporaria: boolean) {
+  const { error } = await supabase.rpc("admin_definir_senha", { p_user_id: userId, p_senha: senha, p_temporaria: temporaria });
+  if (error?.code === "PGRST202" || error?.code === "42883") {
+    throw new Error("Para definir senhas, rode no Supabase a migration 20260929050000_admin_definir_senha.sql.");
+  }
+  if (error) throw new Error(error.message);
+}
+
+/** Usuário com senha temporária cria a própria senha e libera o acesso. */
+export async function concluirTrocaDeSenha(userId: string, novaSenha: string) {
+  const { error } = await supabase.auth.updateUser({ password: novaSenha });
+  if (error) throw new Error(/should be different/i.test(error.message) ? "Escolha uma senha diferente da senha temporária." : error.message);
+  check(await supabase.from("profiles").update({ trocar_senha: false }).eq("id", userId));
 }
 
 export async function alterarSenha(email: string, senhaAtual: string, novaSenha: string) {
