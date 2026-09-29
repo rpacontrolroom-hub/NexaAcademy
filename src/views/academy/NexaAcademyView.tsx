@@ -1495,12 +1495,9 @@ export default function NexaAcademy() {
           {/* ---------- ADMIN: DASHBOARD ---------- */}
           {mode === "admin" && adminActive === "admin-dashboard" && (
             <>
-              <div style={{ marginBottom: 22, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <div>
-                  <h1 className="nexa-heading" style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>Painel Administrativo</h1>
-                  <p style={{ color: palette.textMuted, fontSize: 13, marginTop: 4 }}>Visão geral da plataforma Nexa Academy</p>
-                </div>
-                <button className="nexa-btn-ghost" onClick={() => { setAdminActive("admin-treinamentos"); abrirNovoTreino(); }}><PlusCircle size={15} /> Novo treinamento</button>
+              <div style={{ marginBottom: 22 }}>
+                <h1 className="nexa-heading" style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>Painel Administrativo</h1>
+                <p style={{ color: palette.textMuted, fontSize: 13, marginTop: 4 }}>Visão geral da plataforma Nexa Academy</p>
               </div>
 
               <div className="nexa-grid-4" style={{ marginBottom: 18 }}>
