@@ -678,7 +678,6 @@ export default function NexaAcademy() {
     .map((m) => ({ matricula: m, curso: courses.find((c) => c.id === m.treinamento_id) }))
     .filter((x) => x.curso);
   const continuar = emAndamento[0] ?? null;
-  const sugestao = courses.find((c) => !progressoPorTreinamento.has(c.id)) ?? null;
   const ultimosTreinamentos = (matriculas.length
     ? matriculas.map((m) => courses.find((c) => c.id === m.treinamento_id)).filter(Boolean)
     : courses
@@ -1182,24 +1181,39 @@ export default function NexaAcademy() {
 
               <div className="nexa-grid-2col" style={{ marginBottom: 22 }}>
                 <div className="nexa-hero">
-                  <div style={{ position: "relative", zIndex: 2 }}>
-                    <span className="nexa-badge" style={{ background: "rgba(45,212,232,0.15)", color: palette.cyan }}>{continuar ? "Continuar estudando" : "Comece agora"}</span>
-                    <h2 className="nexa-heading" style={{ fontSize: 24, margin: "24px 0 8px" }}>{continuar?.curso.title ?? sugestao?.title ?? "Nenhum treinamento disponível"}</h2>
-                    <p style={{ fontSize: 12.5, color: palette.textMuted, marginBottom: 16, maxWidth: 420 }}>
-                      {(continuar?.curso ?? sugestao) ? `${(continuar?.curso ?? sugestao).cat} · ${(continuar?.curso ?? sugestao).level} · ${(continuar?.curso ?? sugestao).dur}` : "Fale com seu líder técnico para liberar treinamentos."}
-                    </p>
-                    {continuar && (
+                  {continuar ? (
+                    <div style={{ position: "relative", zIndex: 2 }}>
+                      <span className="nexa-badge" style={{ background: "rgba(45,212,232,0.15)", color: palette.cyan }}>Continuar estudando</span>
+                      <h2 className="nexa-heading" style={{ fontSize: 24, margin: "24px 0 8px" }}>{continuar.curso.title}</h2>
+                      <p style={{ fontSize: 12.5, color: palette.textMuted, marginBottom: 16, maxWidth: 420 }}>
+                        {`${continuar.curso.cat} · ${continuar.curso.level} · ${continuar.curso.dur}`}
+                      </p>
                       <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
                         <div className="nexa-progress-track" style={{ flex: 1 }}><div className="nexa-progress-fill" style={{ width: `${continuar.matricula.progresso}%` }} /></div>
                         <span style={{ fontSize: 12, color: palette.textMuted, flexShrink: 0 }}>{Math.round(continuar.matricula.progresso)}%</span>
                       </div>
-                    )}
-                    {(continuar || sugestao) && (
-                      <button className="nexa-btn-primary" onClick={() => continuar ? abrirCurso(continuar.curso.id, continuar.matricula.ultima_aula_id) : abrirCurso(sugestao.id)}>
-                        <Play size={14} fill="#fff" /> {continuar ? "Continuar aula" : "Começar treinamento"}
+                      <button className="nexa-btn-primary" onClick={() => abrirCurso(continuar.curso.id, continuar.matricula.ultima_aula_id)}>
+                        <Play size={14} fill="#fff" /> Continuar aula
                       </button>
-                    )}
-                  </div>
+                    </div>
+                  ) : (
+                    <div style={{ position: "relative", zIndex: 2 }}>
+                      <span className="nexa-badge">Nenhum treinamento em andamento</span>
+                      <h2 className="nexa-heading" style={{ fontSize: 24, margin: "24px 0 8px" }}>
+                        {courses.length ? "Que tal começar um treinamento hoje?" : "Nenhum treinamento disponível ainda"}
+                      </h2>
+                      <p style={{ fontSize: 12.5, color: palette.textMuted, marginBottom: 16, maxWidth: 420 }}>
+                        {courses.length
+                          ? `Você não tem nenhum treinamento em andamento no momento. Explore os ${courses.length} disponíveis e escolha o próximo passo.`
+                          : "Assim que novos treinamentos forem publicados, eles aparecem por aqui."}
+                      </p>
+                      {courses.length > 0 && (
+                        <button className="nexa-btn-primary" onClick={() => setActive("treinamentos")}>
+                          <GraduationCap size={15} /> Ver treinamentos
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div className="nexa-dashboard-side">
