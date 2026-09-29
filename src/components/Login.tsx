@@ -154,6 +154,20 @@ export default function Login() {
   const [erro, setErro] = useState<string | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
 
+  // Link de e-mail inválido/expirado volta com "#error=...&error_code=otp_expired".
+  // Sem isso a tela abria sem explicar nada.
+  useEffect(() => {
+    const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    const codigo = hash.get("error_code") ?? hash.get("error");
+    if (!codigo) return;
+    setErro(
+      codigo === "otp_expired"
+        ? "Este link expirou ou já foi usado. Peça um novo em \"Esqueci minha senha\" e abra o link assim que o e-mail chegar."
+        : hash.get("error_description")?.replace(/\+/g, " ") ?? "Não foi possível validar o link do e-mail. Peça um novo.",
+    );
+    window.history.replaceState(null, "", window.location.pathname + window.location.search);
+  }, []);
+
   // Links de convite/recuperação voltam para "/?definir-senha=1" já com a sessão.
   useEffect(() => {
     if (loading) return;
