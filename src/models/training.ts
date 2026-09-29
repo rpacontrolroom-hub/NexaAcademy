@@ -17,6 +17,8 @@ export interface TrainingContent {
   url: string;
   texto: string;
   materiais?: TrainingMaterial[];
+  /** Item do tipo quiz: quiz do treinamento (tabela quizzes) exibido nesta aula. */
+  quizId?: string;
 }
 
 export interface TrainingModule {

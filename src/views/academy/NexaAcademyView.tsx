@@ -10,7 +10,7 @@ import { useAuth } from "@/hooks/use-auth";
 import {
   keys, usePerfil, useCategorias, useTreinamentos, useMatriculas, useFavoritos, useTrilhas,
   useMeuResumo, useMeusCertificados, useModelosCertificado, useUsuarios, useAdminResumo,
-  useHorasMensais, useTopTreinamentos,
+  useHorasMensais, useTopTreinamentos, useQuizzesAdmin,
 } from "@/hooks/use-academy";
 import * as repo from "@/data/academy-repository";
 import { academyController } from "@/controllers/academy-controller";
@@ -736,9 +736,13 @@ export default function NexaAcademy() {
   ];
   const [showTreinamentoModal, setShowTreinamentoModal] = useState(false);
   const [editandoTreinoIdx, setEditandoTreinoIdx] = useState(null);
+  // Quizzes do treinamento em edição, para os itens do tipo quiz.
+  const { data: quizzesAdmin = [] } = useQuizzesAdmin(inAdmin);
+  const treinoEmEdicaoId = editandoTreinoIdx !== null ? adminTrainings[editandoTreinoIdx]?.id : null;
+  const quizzesDoTreino = treinoEmEdicaoId ? quizzesAdmin.filter((q) => q.treinamento_id === treinoEmEdicaoId) : [];
   const [menuTreinoIdx, setMenuTreinoIdx] = useState(null);
   const [salvandoTreino, setSalvandoTreino] = useState(false);
-  const novoItem = () => ({ tipo: "video", titulo: "", url: "", texto: "", materiais: [] });
+  const novoItem = () => ({ tipo: "video", titulo: "", url: "", texto: "", materiais: [], quizId: "" });
   const treinoInicial = {
     title: "", cat: "", level: "Básico", dur: "", desc: "",
     modulos: [{ titulo: "Módulo 1", imagem: "", itens: [novoItem()] }],
@@ -870,7 +874,7 @@ export default function NexaAcademy() {
     );
     setSalvandoTreino(false);
     if (ok) {
-      invalidar(keys.treinamentos, keys.categorias, keys.adminResumo, keys.logs, ["conteudo"], ["aula"]);
+      invalidar(keys.treinamentos, keys.categorias, keys.adminResumo, keys.logs, ["conteudo"], ["aula"], ["quizzes"]);
       resetTreinoModal();
     }
   }
@@ -2259,6 +2263,30 @@ export default function NexaAcademy() {
                                   outline: "none", resize: "vertical", fontFamily: "inherit", lineHeight: 1.5,
                                 }}
                               />
+                            ) : it.tipo === "quiz" ? (
+                              quizzesDoTreino.length ? (
+                                <select
+                                  value={it.quizId ?? ""}
+                                  onChange={(e) => updateItem(mIdx, iIdx, { quizId: e.target.value })}
+                                  style={{
+                                    width: "100%", background: palette.bgPanel, border: `1px solid ${palette.border}`,
+                                    borderRadius: 7, padding: "7px 8px", color: palette.textPrimary, fontSize: 12, outline: "none",
+                                  }}
+                                >
+                                  <option value="">Selecione o quiz</option>
+                                  {quizzesDoTreino.map((q) => (
+                                    <option key={q.id} value={q.id}>
+                                      {q.titulo} · {q.perguntas.length} pergunta(s){q.status === "rascunho" ? " · rascunho" : ""}
+                                    </option>
+                                  ))}
+                                </select>
+                              ) : (
+                                <div style={{ padding: "8px 10px", borderRadius: 7, background: palette.bgPanel, border: `1px dashed ${palette.border}`, color: palette.textMuted, fontSize: 11.5, lineHeight: 1.5 }}>
+                                  {editandoTreinoIdx === null
+                                    ? "Salve o treinamento, crie o quiz em Treinamentos → Quizzes escolhendo este treinamento e depois volte aqui para selecioná-lo."
+                                    : "Nenhum quiz criado para este treinamento. Crie em Treinamentos → Quizzes e depois selecione aqui."}
+                                </div>
+                              )
                             ) : (
                               <input
                                 value={it.url}
@@ -2266,7 +2294,6 @@ export default function NexaAcademy() {
                                 placeholder={
                                   it.tipo === "video" ? "URL do vídeo (YouTube, Vimeo...)" :
                                   it.tipo === "doc" ? "URL do documento (PDF, Drive...)" :
-                                  it.tipo === "quiz" ? "Link do quiz (opcional)" :
                                   "URL da aula (opcional)"
                                 }
                                 style={{

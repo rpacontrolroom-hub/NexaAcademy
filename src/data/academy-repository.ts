@@ -638,6 +638,9 @@ export async function fetchTreinamentoParaEdicao(treinamentoId: string): Promise
       .order("ordem", { referencedTable: "aulas" }),
   );
   const materiaisModulo = await fetchMateriaisDosModulos(rows.map((m: any) => m.id));
+  // Quiz ligado a cada aula (itens do tipo quiz mostram o quiz escolhido).
+  const quizzesLigados = check(await supabase.from("quizzes").select("id, aula_id").eq("treinamento_id", treinamentoId).not("aula_id", "is", null)) as { id: string; aula_id: string }[];
+  const quizPorAula = new Map(quizzesLigados.map((q) => [q.aula_id, q.id]));
   return rows.map((m: any) => ({
     id: m.id,
     titulo: m.titulo,
@@ -645,6 +648,7 @@ export async function fetchTreinamentoParaEdicao(treinamentoId: string): Promise
     materiais: (materiaisModulo[m.id] ?? []).map((mt) => ({ id: mt.id, titulo: mt.titulo, arquivoUrl: mt.arquivo_url, tamanhoBytes: mt.tamanho_bytes })),
     itens: m.aulas.map((a: any) => ({
       id: a.id, tipo: a.tipo, titulo: a.titulo, url: a.url ?? "", texto: a.conteudo ?? "",
+      quizId: quizPorAula.get(a.id) ?? "",
       materiais: [...(a.aula_materiais ?? [])].sort((x: any, y: any) => x.ordem - y.ordem).map((mt: any) => ({ id: mt.id, titulo: mt.titulo, arquivoUrl: mt.arquivo_url, tamanhoBytes: mt.tamanho_bytes })),
     })),
   }));
@@ -679,6 +683,12 @@ async function sincronizarMateriais(tabela: "aula_materiais" | "modulo_materiais
   }
 }
 
+/** quizzes.aula_id tem "on delete cascade": sem isto, apagar a aula apagaria o quiz.
+ *  Soltos da aula, eles voltam a ser avaliação final do treinamento. */
+async function desvincularQuizzes(aulaIds: string[]) {
+  if (aulaIds.length) check(await supabase.from("quizzes").update({ aula_id: null }).in("aula_id", aulaIds));
+}
+
 /** Cria ou atualiza o treinamento e sincroniza módulos/aulas preservando os IDs
  *  existentes (assim o progresso dos alunos não se perde ao editar). */
 export async function salvarTreinamento(draft: TrainingDraft, categoriaId: string | null, treinamentoId?: string | null) {
@@ -711,7 +721,11 @@ export async function salvarTreinamento(draft: TrainingDraft, categoriaId: strin
   const existentes = check(await supabase.from("modulos").select("id").eq("treinamento_id", id)).map((m: any) => m.id);
   const manter = new Set(modulos.map((m) => m.id).filter(Boolean));
   const remover = existentes.filter((mid: string) => !manter.has(mid));
-  if (remover.length) check(await supabase.from("modulos").delete().in("id", remover));
+  if (remover.length) {
+    const aulasRemovidas = check(await supabase.from("aulas").select("id").in("modulo_id", remover)).map((a: any) => a.id as string);
+    await desvincularQuizzes(aulasRemovidas);
+    check(await supabase.from("modulos").delete().in("id", remover));
+  }
 
   // Move para posições temporárias negativas antes de reordenar,
   // senão o unique (treinamento_id, ordem) quebra no meio da troca.
@@ -730,7 +744,10 @@ export async function salvarTreinamento(draft: TrainingDraft, categoriaId: strin
     const aulasExistentes = check(await supabase.from("aulas").select("id").eq("modulo_id", moduloId)).map((a: any) => a.id);
     const manterAulas = new Set(itens.map((i) => i.id).filter(Boolean) as string[]);
     const removerAulas = aulasExistentes.filter((aid: string) => !manterAulas.has(aid));
-    if (removerAulas.length) check(await supabase.from("aulas").delete().in("id", removerAulas));
+    if (removerAulas.length) {
+      await desvincularQuizzes(removerAulas);
+      check(await supabase.from("aulas").delete().in("id", removerAulas));
+    }
     let tmpAula = -1;
     for (const aid of manterAulas) check(await supabase.from("aulas").update({ ordem: tmpAula-- }).eq("id", aid));
 
@@ -741,13 +758,18 @@ export async function salvarTreinamento(draft: TrainingDraft, categoriaId: strin
         codigo: `${index + 1}.${i + 1}`,
         titulo: item.titulo.trim(),
         tipo: item.tipo,
-        url: item.tipo === "texto" ? null : item.url.trim() || null,
+        url: item.tipo === "texto" || item.tipo === "quiz" ? null : item.url.trim() || null,
         conteudo: item.tipo === "texto" ? item.texto.trim() : null,
       };
       let aulaId = item.id;
       if (aulaId) check(await supabase.from("aulas").update(aula).eq("id", aulaId));
       else aulaId = check(await supabase.from("aulas").insert(aula).select("id").single()).id as string;
       await sincronizarMateriais("aula_materiais", "aula_id", aulaId!, item.materiais ?? []);
+      // Item do tipo quiz: liga o quiz escolhido a esta aula e solta os que estavam nela antes.
+      if (item.tipo === "quiz") {
+        check(await supabase.from("quizzes").update({ aula_id: null }).eq("aula_id", aulaId!).neq("id", item.quizId ?? "00000000-0000-0000-0000-000000000000"));
+        if (item.quizId) check(await supabase.from("quizzes").update({ aula_id: aulaId, treinamento_id: id }).eq("id", item.quizId));
+      }
     }
   }
 
