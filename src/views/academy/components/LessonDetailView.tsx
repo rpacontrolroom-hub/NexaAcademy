@@ -86,6 +86,7 @@ const lessonDetailCss = `
 const extraLessonCss = `
   .lesson-player-shell { display:flex; flex-direction:column; margin:16px; overflow:hidden; background:#000; border-radius:9px; }
   .lesson-player { position:relative; aspect-ratio:16/9; overflow:hidden; background:#000; }
+  .lesson-player-shield { position:absolute; top:0; left:0; right:0; height:64px; z-index:2; }
   .lesson-player iframe { position:absolute; inset:0; width:100%; height:100%; border:0; }
   .lesson-player-bar { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:40px; padding:0 8px 0 14px; background:#0f0f0f; border-top:1px solid #222; color:#ddd; }
   .lesson-player-bar-title { overflow:hidden; font-size:12px; white-space:nowrap; text-overflow:ellipsis; }
@@ -284,7 +285,9 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
                   <div className="lesson-player">
                     {/* rel=0: sugestões só do mesmo canal; iv_load_policy=3: sem anotações; playsinline: não força tela cheia no celular;
                         enablejsapi: permite medir quanto do vídeo foi assistido para concluir a aula. */}
-                    <iframe ref={iframeRef} onLoad={escutarPlayer} src={`https://www.youtube-nocookie.com/embed/${videoId}?rel=0&iv_load_policy=3&playsinline=1&enablejsapi=1&origin=${encodeURIComponent(typeof window === "undefined" ? "" : window.location.origin)}`} title={detail.title} allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowFullScreen />
+                    {/* Cobre o topo do player (título, "Assistir mais tarde" e "Compartilhar"), que levam ao YouTube. */}
+                    <div className="lesson-player-shield" aria-hidden="true" />
+                    <iframe ref={iframeRef} onLoad={escutarPlayer} src={`https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1&iv_load_policy=3&playsinline=1&enablejsapi=1&origin=${encodeURIComponent(typeof window === "undefined" ? "" : window.location.origin)}`} title={detail.title} allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowFullScreen />
                   </div>
                   <div className="lesson-player-bar">
                     <span className="lesson-player-bar-title">{detail.title}</span>
