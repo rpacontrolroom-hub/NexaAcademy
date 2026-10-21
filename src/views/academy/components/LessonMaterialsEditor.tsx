@@ -5,8 +5,8 @@ import { theme as palette } from "@/styles/theme";
 import { formatBytes } from "@/lib/format";
 import type { TrainingMaterial } from "@/models/training";
 
-// Limite padrão de upload do Supabase Storage (plano free).
-const TAMANHO_MAXIMO = 50 * 1024 * 1024;
+// Precisa caber no limite global de upload do projeto Supabase (Storage > Settings).
+const TAMANHO_MAXIMO = 300 * 1024 * 1024;
 const FORMATOS = ".pdf,.doc,.docx,.xls,.xlsx,.xlsm,.csv,.ppt,.pptx,.txt,.odt,.ods,.odp,.rtf,.zip,.png,.jpg,.jpeg";
 
 interface LessonMaterialsEditorProps {
@@ -103,7 +103,7 @@ export default function LessonMaterialsEditor({ materiais, onChange, titulo = "M
           <PlusCircle size={12} /> Adicionar
         </button>
       </div>
-      <div style={{ marginTop: 4, color: palette.textFaint, fontSize: 10.5 }}>PDF, Word, Excel, PowerPoint, CSV, TXT, ZIP ou imagem · até 50 MB. O envio acontece ao salvar o treinamento.</div>
+      <div style={{ marginTop: 4, color: palette.textFaint, fontSize: 10.5 }}>PDF, Word, Excel, PowerPoint, CSV, TXT, ZIP ou imagem · até 300 MB. O envio acontece ao salvar o treinamento.</div>
     </div>
   );
 }
