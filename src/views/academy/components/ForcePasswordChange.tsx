@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import RequiredMark from "@/components/RequiredMark";
 import { toast } from "sonner";
 import { KeyRound, LogOut } from "lucide-react";
 import { theme as palette } from "@/styles/theme";
@@ -48,9 +49,9 @@ export default function ForcePasswordChange({ userId, onConcluido, onSair }: For
           Você entrou com uma senha temporária definida pelo administrador. Para continuar, crie uma senha só sua.
         </p>
 
-        <label style={{ display: "block", fontSize: 11.5, color: palette.textMuted, marginBottom: 6 }}>Nova senha</label>
+        <label style={{ display: "block", fontSize: 11.5, color: palette.textMuted, marginBottom: 6 }}>Nova senha<RequiredMark /></label>
         <input type="password" value={senha} onChange={(e) => setSenha(e.target.value)} autoComplete="new-password" autoFocus style={{ ...campo, marginBottom: 12 }} />
-        <label style={{ display: "block", fontSize: 11.5, color: palette.textMuted, marginBottom: 6 }}>Confirmar nova senha</label>
+        <label style={{ display: "block", fontSize: 11.5, color: palette.textMuted, marginBottom: 6 }}>Confirmar nova senha<RequiredMark /></label>
         <input type="password" value={confirmacao} onChange={(e) => setConfirmacao(e.target.value)} autoComplete="new-password" style={campo} />
         {erro && <div role="alert" style={{ marginTop: 10, color: "#c2414f", fontSize: 12 }}>{erro}</div>}
 

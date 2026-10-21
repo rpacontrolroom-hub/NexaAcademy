@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Eye, EyeOff, Lock, Mail, User } from "lucide-react";
+import RequiredMark from "@/components/RequiredMark";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/use-auth";
 import { CORPORATE_EMAIL_DOMAIN, isValidCorporateEmail } from "@/services/user-service";
@@ -265,7 +266,7 @@ export default function Login() {
               <form onSubmit={handleSubmit}>
                 {modo === "cadastro" && (
                   <div className="login-field">
-                    <label className="login-label" htmlFor="nome">Nome completo</label>
+                    <label className="login-label" htmlFor="nome">Nome completo<RequiredMark /></label>
                     <div className="login-input-wrap">
                       <User size={22} className="leading" />
                       <input id="nome" className="login-input" required value={nome} onChange={(e) => setNome(e.target.value)} autoComplete="name" />
@@ -274,7 +275,7 @@ export default function Login() {
                 )}
                 {modo !== "definir-senha" && (
                   <div className="login-field">
-                    <label className="login-label" htmlFor="email">E-mail</label>
+                    <label className="login-label" htmlFor="email">E-mail<RequiredMark /></label>
                     <div className="login-input-wrap">
                       <Mail size={22} className="leading" />
                       <input id="email" type="email" className="login-input" required value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="username" placeholder={`nome${CORPORATE_EMAIL_DOMAIN}`} />
@@ -283,7 +284,7 @@ export default function Login() {
                 )}
                 {modo !== "esqueci" && (
                   <div className="login-field">
-                    <label className="login-label" htmlFor="password">{modo === "login" ? "Senha" : "Nova senha"}</label>
+                    <label className="login-label" htmlFor="password">{modo === "login" ? "Senha" : "Nova senha"}<RequiredMark /></label>
                     <div className="login-input-wrap">
                       <Lock size={22} className="leading" />
                       <input id="password" className="login-input" type={showPw ? "text" : "password"} required value={password} onChange={(e) => setPassword(e.target.value)} autoComplete={modo === "login" ? "current-password" : "new-password"} />
@@ -295,7 +296,7 @@ export default function Login() {
                 )}
                 {(modo === "cadastro" || modo === "definir-senha") && (
                   <div className="login-field">
-                    <label className="login-label" htmlFor="confirmacao">Confirmar senha</label>
+                    <label className="login-label" htmlFor="confirmacao">Confirmar senha<RequiredMark /></label>
                     <div className="login-input-wrap">
                       <Lock size={22} className="leading" />
                       <input id="confirmacao" className="login-input" type={showPw ? "text" : "password"} required value={confirmacao} onChange={(e) => setConfirmacao(e.target.value)} autoComplete="new-password" />

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import RequiredMark from "@/components/RequiredMark";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { theme as palette } from "@/styles/theme";
@@ -204,15 +205,15 @@ export default function AdminQuizzesView({ trainings }: AdminQuizzesViewProps) {
             </div>
 
             <div className="admin-quiz-form">
-              <label style={{ gridColumn: "1 / -1" }}><span className="nexa-label">Título</span><input className="nexa-input" placeholder="Ex: Avaliação do módulo 1" value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} />{erro("titulo")}</label>
-              <label><span className="nexa-label">Treinamento</span><select className="nexa-input" value={form.treinamentoId} onChange={(e) => setForm({ ...form, treinamentoId: e.target.value, aulaId: "" })}><option value="" disabled>Selecionar treinamento</option>{trainings.map((t) => <option key={t.id} value={t.id}>{t.title}</option>)}</select>{erro("treinamentoId")}</label>
+              <label style={{ gridColumn: "1 / -1" }}><span className="nexa-label">Título<RequiredMark /></span><input className="nexa-input" placeholder="Ex: Avaliação do módulo 1" value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} />{erro("titulo")}</label>
+              <label><span className="nexa-label">Treinamento<RequiredMark /></span><select className="nexa-input" value={form.treinamentoId} onChange={(e) => setForm({ ...form, treinamentoId: e.target.value, aulaId: "" })}><option value="" disabled>Selecionar treinamento</option>{trainings.map((t) => <option key={t.id} value={t.id}>{t.title}</option>)}</select>{erro("treinamentoId")}</label>
               <label><span className="nexa-label">Aula (opcional)</span><select className="nexa-input" value={form.aulaId} onChange={(e) => setForm({ ...form, aulaId: e.target.value })} disabled={!form.treinamentoId}><option value="">Avaliação final (sem aula)</option>{aulas.map((a) => <option key={a.id} value={a.id}>{a.label}</option>)}</select></label>
-              <label><span className="nexa-label">Nota mínima para aprovar (%)</span><input className="nexa-input" inputMode="decimal" value={form.notaMinima} onChange={(e) => setForm({ ...form, notaMinima: e.target.value })} />{erro("notaMinima")}</label>
+              <label><span className="nexa-label">Nota mínima para aprovar (%)<RequiredMark /></span><input className="nexa-input" inputMode="decimal" value={form.notaMinima} onChange={(e) => setForm({ ...form, notaMinima: e.target.value })} />{erro("notaMinima")}</label>
               <label><span className="nexa-label">Limite de tentativas</span><input className="nexa-input" inputMode="numeric" placeholder="Vazio = ilimitado" value={form.maxTentativas} onChange={(e) => setForm({ ...form, maxTentativas: e.target.value })} />{erro("maxTentativas")}</label>
               <label><span className="nexa-label">Status</span><select className="nexa-input" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as typeof form.status })}><option value="publicado">Publicado (aparece para os alunos)</option><option value="rascunho">Rascunho (oculto)</option></select></label>
 
               <div style={{ gridColumn: "1 / -1" }}>
-                <span className="nexa-label">Perguntas</span>
+                <span className="nexa-label">Perguntas<RequiredMark /></span>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                   {form.perguntas.map((p, i) => (
                     <div className="admin-quiz-pergunta" key={i}>

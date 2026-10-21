@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import RequiredMark from "@/components/RequiredMark";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { theme as palette } from "@/styles/theme";
@@ -244,7 +245,7 @@ export default function AdminTrilhasView({ trainings }: AdminTrilhasViewProps) {
             </div>
 
             <div className="admin-trilha-form">
-              <label><span className="nexa-label">Nome da trilha</span><input className="nexa-input" placeholder="Ex: Onboarding RPA" value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} />{erro("titulo")}</label>
+              <label><span className="nexa-label">Nome da trilha<RequiredMark /></span><input className="nexa-input" placeholder="Ex: Onboarding RPA" value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} />{erro("titulo")}</label>
               <label><span className="nexa-label">Status</span><select className="nexa-input" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as typeof form.status })}><option value="ativo">Ativa (aparece no app)</option><option value="inativo">Inativa (oculta no app)</option></select></label>
               <label style={{ gridColumn: "1 / -1" }}><span className="nexa-label">Descrição</span><textarea className="nexa-input" rows={2} style={{ resize: "vertical", minHeight: 60 }} placeholder="Para quem é a trilha e o que ela cobre" value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} /></label>
 
@@ -265,7 +266,7 @@ export default function AdminTrilhasView({ trainings }: AdminTrilhasViewProps) {
               </div>
 
               <div style={{ gridColumn: "1 / -1" }}>
-                <span className="nexa-label">Etapas</span>
+                <span className="nexa-label">Etapas<RequiredMark /></span>
                 <div className="admin-trilha-etapas">
                   {form.etapas.map((etapa, i) => (
                     <div className="admin-trilha-etapa" key={i}>

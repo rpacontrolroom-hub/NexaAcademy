@@ -1,4 +1,5 @@
 import { useState } from "react";
+import RequiredMark from "@/components/RequiredMark";
 import { toast } from "sonner";
 import { Copy, Eye, EyeOff, KeyRound, RefreshCw, X } from "lucide-react";
 import { theme as palette } from "@/styles/theme";
@@ -75,7 +76,7 @@ export default function AdminSetPasswordModal({ usuario, onClose }: AdminSetPass
           <button className="nexa-btn-ghost" type="button" onClick={onClose} aria-label="Fechar"><X size={15} /></button>
         </div>
 
-        <label style={{ display: "block", fontSize: 11.5, color: palette.textMuted, marginBottom: 6 }}>Nova senha</label>
+        <label style={{ display: "block", fontSize: 11.5, color: palette.textMuted, marginBottom: 6 }}>Nova senha<RequiredMark /></label>
         <div style={{ display: "flex", gap: 6, marginBottom: 4 }}>
           <input
             type={mostrar ? "text" : "password"}
@@ -92,7 +93,7 @@ export default function AdminSetPasswordModal({ usuario, onClose }: AdminSetPass
           <RefreshCw size={12} /> Gerar senha segura
         </button>
 
-        <label style={{ display: "block", fontSize: 11.5, color: palette.textMuted, marginBottom: 6 }}>Confirmar senha</label>
+        <label style={{ display: "block", fontSize: 11.5, color: palette.textMuted, marginBottom: 6 }}>Confirmar senha<RequiredMark /></label>
         <input
           type={mostrar ? "text" : "password"}
           value={confirmacao}

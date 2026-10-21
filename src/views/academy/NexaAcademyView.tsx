@@ -26,6 +26,7 @@ import ForcePasswordChange from "@/views/academy/components/ForcePasswordChange"
 import AdminCertificatesView from "@/views/academy/components/AdminCertificatesView";
 import AdminTrilhasView from "@/views/academy/components/AdminTrilhasView";
 import AdminQuizzesView from "@/views/academy/components/AdminQuizzesView";
+import RequiredMark from "@/components/RequiredMark";
 import CertificatePreviewModal from "@/views/academy/components/CertificatePreviewModal";
 import {
   LayoutDashboard, GraduationCap, Map, FileText, Award, Sparkles,
@@ -1504,7 +1505,7 @@ export default function NexaAcademy() {
 
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
                       <div>
-                        <label style={{ fontSize: 11.5, color: palette.textMuted, display: "block", marginBottom: 6 }}>Nome completo</label>
+                        <label style={{ fontSize: 11.5, color: palette.textMuted, display: "block", marginBottom: 6 }}>Nome completo<RequiredMark /></label>
                         <input
                           value={perfilNome}
                           onChange={(e) => { setPerfilNome(e.target.value); setPerfilSalvo(false); }}
@@ -1544,7 +1545,7 @@ export default function NexaAcademy() {
                     </div>
                     <p style={{ fontSize: 12, color: palette.textMuted, marginBottom: 16 }}>Use uma senha com no mínimo 8 caracteres.</p>
 
-                    <label style={{ fontSize: 11.5, color: palette.textMuted, display: "block", marginBottom: 6 }}>Senha atual</label>
+                    <label style={{ fontSize: 11.5, color: palette.textMuted, display: "block", marginBottom: 6 }}>Senha atual<RequiredMark /></label>
                     <input
                       type="password"
                       value={senhaAtual}
@@ -1554,7 +1555,7 @@ export default function NexaAcademy() {
 
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 6 }}>
                       <div>
-                        <label style={{ fontSize: 11.5, color: palette.textMuted, display: "block", marginBottom: 6 }}>Nova senha</label>
+                        <label style={{ fontSize: 11.5, color: palette.textMuted, display: "block", marginBottom: 6 }}>Nova senha<RequiredMark /></label>
                         <input
                           type="password"
                           value={novaSenha}
@@ -1563,7 +1564,7 @@ export default function NexaAcademy() {
                         />
                       </div>
                       <div>
-                        <label style={{ fontSize: 11.5, color: palette.textMuted, display: "block", marginBottom: 6 }}>Confirmar nova senha</label>
+                        <label style={{ fontSize: 11.5, color: palette.textMuted, display: "block", marginBottom: 6 }}>Confirmar nova senha<RequiredMark /></label>
                         <input
                           type="password"
                           value={confirmarSenha}
@@ -1925,7 +1926,7 @@ export default function NexaAcademy() {
               Apenas e-mails corporativos <strong style={{ color: palette.textPrimary }}>{DOMINIO_PERMITIDO}</strong> podem ser cadastrados. O colaborador receberá um link por e-mail para acessar e definir a senha.
             </p>
 
-            <label style={{ fontSize: 11.5, color: palette.textMuted, display: "block", marginBottom: 6 }}>Nome completo</label>
+            <label style={{ fontSize: 11.5, color: palette.textMuted, display: "block", marginBottom: 6 }}>Nome completo<RequiredMark /></label>
             <input
               value={novoNome}
               onChange={(e) => setNovoNome(e.target.value)}
@@ -1937,7 +1938,7 @@ export default function NexaAcademy() {
               }}
             />
 
-            <label style={{ fontSize: 11.5, color: palette.textMuted, display: "block", marginBottom: 6 }}>E-mail corporativo</label>
+            <label style={{ fontSize: 11.5, color: palette.textMuted, display: "block", marginBottom: 6 }}>E-mail corporativo<RequiredMark /></label>
             <input
               value={novoEmail}
               onChange={(e) => setNovoEmail(e.target.value)}
@@ -2000,7 +2001,7 @@ export default function NexaAcademy() {
               Cadastre um novo treinamento na Nexa Academy. Ele ficará imediatamente disponível para o time.
             </p>
 
-            <label style={{ fontSize: 11.5, color: palette.textMuted, display: "block", marginBottom: 6 }}>Título</label>
+            <label style={{ fontSize: 11.5, color: palette.textMuted, display: "block", marginBottom: 6 }}>Título<RequiredMark /></label>
             <input
               value={novoTreino.title}
               onChange={(e) => setNovoTreino({ ...novoTreino, title: e.target.value })}
@@ -2033,7 +2034,7 @@ export default function NexaAcademy() {
                     autoFocus
                     value={novaCategoria}
                     onChange={(e) => setNovaCategoria(e.target.value)}
-                    placeholder="Nome da nova categoria"
+                    placeholder="Nome da nova categoria *"
                     style={{
                       width: "100%", marginTop: 8, background: palette.bgPanel,
                       border: `1px solid ${tentouSalvarTreino && !categoriaValida ? "#F2596B" : palette.border}`,
@@ -2059,7 +2060,7 @@ export default function NexaAcademy() {
                 </select>
               </div>
               <div style={{ width: 110 }}>
-                <label style={{ fontSize: 11.5, color: palette.textMuted, display: "block", marginBottom: 6 }}>Duração</label>
+                <label style={{ fontSize: 11.5, color: palette.textMuted, display: "block", marginBottom: 6 }}>Duração<RequiredMark /></label>
                 <input
                   value={novoTreino.dur}
                   onChange={(e) => setNovoTreino({ ...novoTreino, dur: e.target.value })}
@@ -2178,6 +2179,7 @@ export default function NexaAcademy() {
                           padding: "4px 2px", outline: "none", fontFamily: "'Space Grotesk',sans-serif",
                         }}
                       />
+                      <RequiredMark />
                       {novoTreino.modulos.length > 1 && (
                         <button
                           type="button"
@@ -2303,9 +2305,11 @@ export default function NexaAcademy() {
                                   borderRadius: 7, padding: "7px 8px", color: palette.textPrimary, fontSize: 12, outline: "none",
                                 }}
                               />
+                              <span style={{ alignSelf: "center" }}><RequiredMark /></span>
                             </div>
                             {it.tipo === "texto" ? (
                               <>
+                                <div style={{ fontSize: 11, color: palette.textMuted, marginBottom: 4 }}>Conteúdo do texto<RequiredMark /></div>
                                 <textarea
                                   value={it.texto}
                                   onChange={(e) => updateItem(mIdx, iIdx, { texto: e.target.value })}
