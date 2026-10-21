@@ -2352,7 +2352,7 @@ export default function NexaAcademy() {
                                 onChange={(e) => updateItem(mIdx, iIdx, { url: e.target.value })}
                                 placeholder={
                                   it.tipo === "video" ? "URL do vídeo (YouTube, Vimeo...)" :
-                                  it.tipo === "doc" ? "URL do documento (PDF, Drive...)" :
+                                  it.tipo === "doc" ? "Link do Google Drive, Slides ou PDF (compartilhado)" :
                                   "URL da aula (opcional)"
                                 }
                                 style={{

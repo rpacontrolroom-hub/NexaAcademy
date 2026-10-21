@@ -22,7 +22,7 @@ import { PERCENTUAL_MINIMO_VIDEO, useProgressoVideo } from "@/hooks/use-progress
 import LessonComments from "@/views/academy/components/LessonComments";
 import TextLessonContent, { minutosDeLeitura } from "@/views/academy/components/TextLessonContent";
 import * as repo from "@/data/academy-repository";
-import { formatBytes, linkValido, youtubeId } from "@/lib/format";
+import { embedDocumento, formatBytes, linkValido, youtubeId } from "@/lib/format";
 import type { LessonDetail } from "@/models/lesson-detail";
 
 interface LessonDetailViewProps {
@@ -105,6 +105,11 @@ const extraLessonCss = `
   .lesson-complete-button.ready { color:#fff; background:#2d7147; border-color:#2d7147; cursor:pointer; }
   .lesson-complete-button.ready:hover { background:#255d3a; }
   .lesson-complete-button.done { color:#2d7147; background:#e7f4ec; border-color:#cfe8d8; cursor:default; }
+  .lesson-doc-frame { margin:16px 16px 0; height:75vh; min-height:460px; overflow:hidden; background:#f4f4f4; border:1px solid #e2e2e2; border-radius:9px; }
+  .lesson-doc-frame.slides { height:auto; min-height:0; aspect-ratio:16/9; }
+  .lesson-doc-frame iframe { display:block; width:100%; height:100%; border:0; }
+  .lesson-doc-bar { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin:10px 16px 16px; color:#888; font-size:11.5px; }
+  .lesson-doc-bar a { text-decoration:none; }
   .lesson-reading-bar { display:flex; align-items:center; gap:12px; padding:14px 18px; color:#777; border-bottom:1px solid #ececec; font-size:11.5px; }
   .lesson-reading-chip { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; color:#111; background:#f1f1f1; border-radius:999px; font-weight:700; }
   .lesson-reading-end { display:flex; align-items:center; justify-content:center; gap:8px; margin:0 16px 18px; padding:12px 14px; color:#666; background:#fafafa; border:1px solid #ececec; border-radius:9px; font-size:12px; }
@@ -215,6 +220,7 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
   const videoLiberado = !videoId || completed || percentualAssistido >= PERCENTUAL_MINIMO_VIDEO;
   // Aula com quiz: só conclui depois de ser aprovado em todos os quizzes dela.
   const quizLiberado = completed || quizzesDaAula.every((q) => q.tentativas.some((t) => t.aprovado));
+  const embedAula = !videoId ? embedDocumento(aula?.url) : null;
   const textoAula = !videoId && aula?.tipo === "texto" ? aula.conteudo?.trim() ?? "" : "";
   const textoLiberado = !textoAula || completed || leuAteFim;
   const podeConcluir = videoLiberado && textoLiberado && quizLiberado;
@@ -323,6 +329,16 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
                       : "Leia até o fim para liberar a conclusão da aula."}
                   </div>
                 )}
+              </>
+            ) : embedAula && aula?.url ? (
+              <>
+                <div className={`lesson-doc-frame ${embedAula.tipo}`}>
+                  <iframe src={embedAula.src} title={detail.title} allow="fullscreen" allowFullScreen loading="lazy" />
+                </div>
+                <div className="lesson-doc-bar">
+                  <span>Não carregou? Confira se o arquivo está compartilhado no Drive.</span>
+                  <a className="lesson-nav-button" href={aula.url} target="_blank" rel="noreferrer"><ExternalLink size={14} />Abrir em nova aba</a>
+                </div>
               </>
             ) : quizzesDaAula.length > 0 && !aula?.url ? null : (
               <div className="lesson-video">

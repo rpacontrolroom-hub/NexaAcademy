@@ -55,6 +55,31 @@ export function linkValido(url: string): boolean {
   }
 }
 
+/** Link de visualização embutida para PDF, Google Drive, Slides, Docs e Planilhas.
+ *  `null` quando o link não tem como ser exibido dentro da página. */
+export function embedDocumento(url: string | null | undefined): { src: string; tipo: "slides" | "pagina" } | null {
+  if (!url || !linkValido(url)) return null;
+  const u = new URL(url.trim());
+  const host = u.hostname.replace(/^www\./, "");
+  const id = (re: RegExp) => u.pathname.match(re)?.[1];
+
+  if (host === "docs.google.com") {
+    const slides = id(/^\/presentation\/d\/([\w-]+)/);
+    if (slides) return { src: `https://docs.google.com/presentation/d/${slides}/embed?start=false&loop=false`, tipo: "slides" };
+    const doc = u.pathname.match(/^\/(document|spreadsheets)\/d\/([\w-]+)/);
+    if (doc) return { src: `https://docs.google.com/${doc[1]}/d/${doc[2]}/preview`, tipo: "pagina" };
+  }
+  if (host === "drive.google.com") {
+    const pasta = id(/^\/drive\/(?:u\/\d+\/)?folders\/([\w-]+)/);
+    if (pasta) return { src: `https://drive.google.com/embeddedfolderview?id=${pasta}#list`, tipo: "pagina" };
+    const arquivo = id(/^\/file\/d\/([\w-]+)/) ?? ((u.pathname === "/open" || u.pathname === "/uc") ? u.searchParams.get("id") : null);
+    if (arquivo) return { src: `https://drive.google.com/file/d/${arquivo}/preview`, tipo: "pagina" };
+  }
+  // PDF em qualquer endereço: o navegador mostra no próprio iframe (se o site permitir).
+  if (u.pathname.toLowerCase().endsWith(".pdf")) return { src: u.toString(), tipo: "pagina" };
+  return null;
+}
+
 export function formatDate(iso: string | null | undefined): string | null {
   return iso ? new Date(iso).toLocaleDateString("pt-BR") : null;
 }
