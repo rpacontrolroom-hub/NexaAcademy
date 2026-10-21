@@ -5,7 +5,8 @@ import { useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { Toaster, toast } from "sonner";
 import { supabase } from "@/lib/supabase";
-import { timeAgo, initials, mascaraHoras, minutosParaHoras } from "@/lib/format";
+import { timeAgo, initials, mascaraHoras, minutosParaHoras, youtubeId, formatSeconds } from "@/lib/format";
+import { buscarDuracaoYoutube } from "@/lib/youtube-duracao";
 import { useAuth } from "@/hooks/use-auth";
 import {
   keys, usePerfil, useCategorias, useTreinamentos, useMatriculas, useFavoritos, useTrilhas,
@@ -751,7 +752,38 @@ export default function NexaAcademy() {
   const [novoTreino, setNovoTreino] = useState(treinoInicial);
   const [novaCategoria, setNovaCategoria] = useState("");
   const [tentouSalvarTreino, setTentouSalvarTreino] = useState(false);
-  const { validTitle: tituloTreinoValido, validDuration: duracaoTreinoValida, validModules: modulosValidos, canSave: podeSalvarTreino } = academyController.validateTrainingDraft(novoTreino);
+  // Duração do treinamento: soma dos vídeos quando todos têm a duração lida do YouTube; senão, o campo manual.
+  const [medicaoVideo, setMedicaoVideo] = useState({});
+  const tentadosDuracao = useRef(new Set());
+  const itensVideo = novoTreino.modulos.flatMap((m) => m.itens).filter((i) => i.tipo === "video");
+  const duracaoAutoMin = itensVideo.length > 0 && itensVideo.every((i) => (i.duracaoSegundos || 0) > 0)
+    ? Math.max(1, Math.round(itensVideo.reduce((s, i) => s + i.duracaoSegundos, 0) / 60))
+    : 0;
+  const duracaoEfetiva = duracaoAutoMin > 0 ? minutosParaHoras(duracaoAutoMin) : novoTreino.dur;
+  const { validTitle: tituloTreinoValido, validDuration: duracaoTreinoValida, validModules: modulosValidos, canSave: podeSalvarTreino } = academyController.validateTrainingDraft({ ...novoTreino, dur: duracaoEfetiva });
+
+  useEffect(() => {
+    if (!showTreinamentoModal) { tentadosDuracao.current = new Set(); return; }
+    for (const m of novoTreino.modulos) {
+      for (const it of m.itens) {
+        const yid = it.tipo === "video" ? youtubeId(it.url) : null;
+        if (!yid || (it.duracaoSegundos || 0) > 0 || tentadosDuracao.current.has(yid)) continue;
+        tentadosDuracao.current.add(yid);
+        setMedicaoVideo((p) => ({ ...p, [yid]: "medindo" }));
+        buscarDuracaoYoutube(yid).then((seg) => {
+          setMedicaoVideo((p) => ({ ...p, [yid]: seg ? "ok" : "falhou" }));
+          if (!seg) return;
+          setNovoTreino((prev) => ({
+            ...prev,
+            modulos: prev.modulos.map((mm) => ({
+              ...mm,
+              itens: mm.itens.map((ii) => (ii.tipo === "video" && youtubeId(ii.url) === yid ? { ...ii, duracaoSegundos: seg } : ii)),
+            })),
+          }));
+        });
+      }
+    }
+  }, [showTreinamentoModal, novoTreino.modulos]);
   const NOVA_CATEGORIA = "__nova__";
   const criandoCategoria = novoTreino.cat === NOVA_CATEGORIA;
   const categoriaValida = !criandoCategoria || novaCategoria.trim().length >= 2;
@@ -863,7 +895,7 @@ export default function NexaAcademy() {
     setTentouSalvarTreino(true);
     if (!podeSalvarTreino || !categoriaValida || salvandoTreino) return;
     const existente = editandoTreinoIdx !== null ? adminTrainings[editandoTreinoIdx] : null;
-    const draft = { ...novoTreino, modulos: academyController.sanitizeModules(novoTreino.modulos) };
+    const draft = { ...novoTreino, dur: duracaoEfetiva, modulos: academyController.sanitizeModules(novoTreino.modulos) };
     setSalvandoTreino(true);
     const ok = await executar(
       async () => {
@@ -2062,18 +2094,25 @@ export default function NexaAcademy() {
               <div style={{ width: 140 }}>
                 <label style={{ fontSize: 11.5, color: palette.textMuted, display: "block", marginBottom: 6 }}>Duração (horas)<RequiredMark /></label>
                 <input
-                  value={novoTreino.dur}
+                  value={duracaoEfetiva}
                   onChange={(e) => setNovoTreino((prev) => ({ ...prev, dur: mascaraHoras(e.target.value, prev.dur) }))}
+                  disabled={duracaoAutoMin > 0}
                   inputMode="numeric"
                   maxLength={5}
                   placeholder="02:30"
-                  title="Carga horária no formato HH:MM"
+                  title={duracaoAutoMin > 0 ? "Calculada somando a duração dos vídeos" : "Carga horária no formato HH:MM"}
                   style={{
                     width: "100%", background: palette.bgPanel,
                     border: `1px solid ${tentouSalvarTreino && !duracaoTreinoValida ? "#F2596B" : palette.border}`,
                     borderRadius: 9, padding: "9px 12px", color: palette.textPrimary, fontSize: 13, outline: "none",
+                    opacity: duracaoAutoMin > 0 ? 0.75 : 1,
                   }}
                 />
+                <div style={{ marginTop: 3, fontSize: 10, color: palette.textFaint, lineHeight: 1.3 }}>
+                  {duracaoAutoMin > 0
+                    ? "Automática: soma dos vídeos"
+                    : Object.values(medicaoVideo).includes("medindo") ? "Medindo os vídeos..." : itensVideo.length ? "Vídeo não medido: preencha" : ""}
+                </div>
               </div>
             </div>
 
@@ -2354,19 +2393,30 @@ export default function NexaAcademy() {
                                 </div>
                               )
                             ) : (
-                              <input
-                                value={it.url}
-                                onChange={(e) => updateItem(mIdx, iIdx, { url: e.target.value })}
-                                placeholder={
-                                  it.tipo === "video" ? "URL do vídeo (YouTube, Vimeo...)" :
-                                  it.tipo === "doc" ? "Link do Google Drive, Slides ou PDF (compartilhado)" :
-                                  "URL da aula (opcional)"
-                                }
-                                style={{
-                                  width: "100%", background: palette.bgPanel, border: `1px solid ${palette.border}`,
-                                  borderRadius: 7, padding: "7px 8px", color: palette.textPrimary, fontSize: 12, outline: "none",
-                                }}
-                              />
+                              <>
+                                <input
+                                  value={it.url}
+                                  onChange={(e) => updateItem(mIdx, iIdx, { url: e.target.value, duracaoSegundos: 0 })}
+                                  placeholder={
+                                    it.tipo === "video" ? "URL do vídeo (YouTube)" :
+                                    it.tipo === "doc" ? "Link do Google Drive, Slides ou PDF (compartilhado)" :
+                                    "URL da aula (opcional)"
+                                  }
+                                  style={{
+                                    width: "100%", background: palette.bgPanel, border: `1px solid ${palette.border}`,
+                                    borderRadius: 7, padding: "7px 8px", color: palette.textPrimary, fontSize: 12, outline: "none",
+                                  }}
+                                />
+                                {it.tipo === "video" && it.url.trim() && (
+                                  <div style={{ marginTop: 4, fontSize: 10.5, color: palette.textFaint }}>
+                                    {(it.duracaoSegundos || 0) > 0
+                                      ? `Duração do vídeo: ${formatSeconds(it.duracaoSegundos)}`
+                                      : !youtubeId(it.url) ? "Só vídeos do YouTube têm a duração lida automaticamente."
+                                      : medicaoVideo[youtubeId(it.url)] === "falhou" ? "Não foi possível ler a duração (vídeo privado ou indisponível?)."
+                                      : "Lendo a duração do vídeo..."}
+                                  </div>
+                                )}
+                              </>
                             )}
                           </div>
                         );

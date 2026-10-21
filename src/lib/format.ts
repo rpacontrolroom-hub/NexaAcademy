@@ -31,7 +31,7 @@ export function mascaraHoras(valor: string, anterior = ""): string {
 
 /** HH:MM completo, com minutos de 00 a 59 e pelo menos 1 minuto no total. */
 export function horasValidas(valor: string): boolean {
-  return /^\d{2}:[0-5]\d$/.test(valor.trim()) && valor.trim() !== "00:00";
+  return /^\d{2,3}:[0-5]\d$/.test(valor.trim()) && !/^0+:00$/.test(valor.trim());
 }
 
 /** 150 -> "02:30" */

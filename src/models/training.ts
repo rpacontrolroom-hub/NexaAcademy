@@ -16,6 +16,8 @@ export interface TrainingContent {
   titulo: string;
   url: string;
   texto: string;
+  /** Vídeo do YouTube: duração lida do próprio vídeo (0 = ainda não medida). */
+  duracaoSegundos?: number;
   materiais?: TrainingMaterial[];
   /** Item do tipo quiz: quiz do treinamento (tabela quizzes) exibido nesta aula. */
   quizId?: string;

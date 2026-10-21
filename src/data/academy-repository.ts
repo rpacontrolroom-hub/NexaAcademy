@@ -632,7 +632,7 @@ export async function fetchTreinamentoParaEdicao(treinamentoId: string): Promise
   const rows = check(
     await supabase
       .from("modulos")
-      .select("id, ordem, titulo, imagem_url, aulas(id, ordem, titulo, tipo, url, conteudo, aula_materiais(id, titulo, arquivo_url, tamanho_bytes, ordem))")
+      .select("id, ordem, titulo, imagem_url, aulas(id, ordem, titulo, tipo, url, conteudo, duracao_segundos, aula_materiais(id, titulo, arquivo_url, tamanho_bytes, ordem))")
       .eq("treinamento_id", treinamentoId)
       .order("ordem")
       .order("ordem", { referencedTable: "aulas" }),
@@ -647,7 +647,7 @@ export async function fetchTreinamentoParaEdicao(treinamentoId: string): Promise
     imagem: m.imagem_url ?? "",
     materiais: (materiaisModulo[m.id] ?? []).map((mt) => ({ id: mt.id, titulo: mt.titulo, arquivoUrl: mt.arquivo_url, tamanhoBytes: mt.tamanho_bytes })),
     itens: m.aulas.map((a: any) => ({
-      id: a.id, tipo: a.tipo, titulo: a.titulo, url: a.url ?? "", texto: a.conteudo ?? "",
+      id: a.id, tipo: a.tipo, titulo: a.titulo, url: a.url ?? "", texto: a.conteudo ?? "", duracaoSegundos: a.duracao_segundos ?? 0,
       quizId: quizPorAula.get(a.id) ?? "",
       materiais: [...(a.aula_materiais ?? [])].sort((x: any, y: any) => x.ordem - y.ordem).map((mt: any) => ({ id: mt.id, titulo: mt.titulo, arquivoUrl: mt.arquivo_url, tamanhoBytes: mt.tamanho_bytes })),
     })),
@@ -763,6 +763,7 @@ export async function salvarTreinamento(draft: TrainingDraft, categoriaId: strin
         tipo: item.tipo,
         url: item.tipo === "texto" || item.tipo === "quiz" ? null : item.url.trim() || null,
         conteudo: item.tipo === "texto" ? item.texto.trim() : null,
+        duracao_segundos: item.tipo === "video" ? Math.max(0, Math.round(item.duracaoSegundos ?? 0)) : 0,
       };
       let aulaId = item.id;
       if (aulaId) check(await supabase.from("aulas").update(aula).eq("id", aulaId));
