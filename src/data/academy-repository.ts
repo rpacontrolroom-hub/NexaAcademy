@@ -2,7 +2,7 @@
 // Sem tipos gerados do banco (supabase gen types), as linhas chegam como any e são tipadas aqui.
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { supabase, MIDIA_BUCKET } from "@/lib/supabase";
-import { formatDate, formatMinutes, formatSeconds, parseDuration, slugify } from "@/lib/format";
+import { formatDate, formatMinutes, formatSeconds, linkValido, parseDuration, slugify } from "@/lib/format";
 import type { CertificateTemplate, CertificateTemplateDraft, CertificateTraining } from "@/models/certificate";
 import type { CourseDetail, CourseModule } from "@/models/course-detail";
 import type { LearningPath } from "@/models/learning-path";
@@ -659,8 +659,9 @@ const GRADIENTES: [string, string][] = [
   ["#3D6BFF", "#9B6BFF"], ["#2DD4E8", "#3D6BFF"], ["#9B6BFF", "#2DD4E8"],
 ];
 
-/** Remove os materiais retirados, envia os arquivos novos e grava nome e ordem.
- *  Serve para aula_materiais (por aula) e modulo_materiais (por módulo). */
+/** Remove os materiais retirados e grava nome, link (Google Drive) e ordem.
+ *  Serve para aula_materiais (por aula) e modulo_materiais (por módulo).
+ *  O link fica em arquivo_url; materiais antigos enviados ao Storage continuam funcionando. */
 async function sincronizarMateriais(tabela: "aula_materiais" | "modulo_materiais", coluna: "aula_id" | "modulo_id", donoId: string, materiais: TrainingMaterial[]) {
   const consulta = await supabase.from(tabela).select("id").eq(coluna, donoId);
   if (tabela === "modulo_materiais" && tabelaModuloMateriaisAusente(consulta.error)) {
@@ -673,12 +674,13 @@ async function sincronizarMateriais(tabela: "aula_materiais" | "modulo_materiais
   if (remover.length) check(await supabase.from(tabela).delete().in("id", remover));
 
   for (const [ordem, material] of materiais.entries()) {
-    const titulo = material.titulo.trim() || material.arquivo?.name || "Material";
+    const titulo = material.titulo.trim() || "Material de apoio";
+    const arquivoUrl = material.arquivoUrl?.trim() ?? "";
+    if (!linkValido(arquivoUrl)) throw new Error(`O material "${titulo}" precisa de um link válido (https://...).`);
     if (material.id) {
-      check(await supabase.from(tabela).update({ titulo, ordem }).eq("id", material.id));
-    } else if (material.arquivo) {
-      const arquivoUrl = await uploadArquivo(material.arquivo, "materiais");
-      check(await supabase.from(tabela).insert({ [coluna]: donoId, titulo, arquivo_url: arquivoUrl, tamanho_bytes: material.arquivo.size, ordem }));
+      check(await supabase.from(tabela).update({ titulo, arquivo_url: arquivoUrl, ordem }).eq("id", material.id));
+    } else {
+      check(await supabase.from(tabela).insert({ [coluna]: donoId, titulo, arquivo_url: arquivoUrl, ordem }));
     }
   }
 }

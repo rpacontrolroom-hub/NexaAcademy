@@ -1,13 +1,13 @@
 export type TrainingLevel = "Básico" | "Intermediário" | "Avançado";
 export type ContentType = "video" | "texto" | "doc" | "quiz" | "aula";
 
-/** Material de apoio da aula. `arquivo` existe só enquanto o upload não foi feito. */
+/** Material de apoio da aula: nome + link (Google Drive). */
 export interface TrainingMaterial {
   id?: string;
   titulo: string;
   arquivoUrl?: string | null;
+  /** Só em materiais antigos, enviados ao Storage. */
   tamanhoBytes?: number | null;
-  arquivo?: File;
 }
 
 export interface TrainingContent {

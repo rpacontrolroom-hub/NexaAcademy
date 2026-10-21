@@ -45,6 +45,16 @@ export function formatBytes(bytes: number | null | undefined): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+/** Só aceita links http(s) completos (evita javascript: e texto solto). */
+export function linkValido(url: string): boolean {
+  try {
+    const u = new URL(url.trim());
+    return u.protocol === "https:" || u.protocol === "http:";
+  } catch {
+    return false;
+  }
+}
+
 export function formatDate(iso: string | null | undefined): string | null {
   return iso ? new Date(iso).toLocaleDateString("pt-BR") : null;
 }

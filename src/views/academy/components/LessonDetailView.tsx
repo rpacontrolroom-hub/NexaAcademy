@@ -22,7 +22,7 @@ import { PERCENTUAL_MINIMO_VIDEO, useProgressoVideo } from "@/hooks/use-progress
 import LessonComments from "@/views/academy/components/LessonComments";
 import TextLessonContent, { minutosDeLeitura } from "@/views/academy/components/TextLessonContent";
 import * as repo from "@/data/academy-repository";
-import { formatBytes, youtubeId } from "@/lib/format";
+import { formatBytes, linkValido, youtubeId } from "@/lib/format";
 import type { LessonDetail } from "@/models/lesson-detail";
 
 interface LessonDetailViewProps {
@@ -383,9 +383,14 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
                 {aula.materiais.map((material) => (
                   <div className="lesson-material-row" key={material.id}>
                     <FileText size={14} />
-                    {material.arquivo_url ? <a href={material.arquivo_url} target="_blank" rel="noreferrer">{material.titulo}</a> : <span>{material.titulo}</span>}
+                    {material.arquivo_url && linkValido(material.arquivo_url) ? <a href={material.arquivo_url} target="_blank" rel="noreferrer">{material.titulo}</a> : <span>{material.titulo}</span>}
                     <span className="lesson-material-size">{formatBytes(material.tamanho_bytes)}</span>
-                    {material.arquivo_url ? <a href={linkDownload(material.arquivo_url, material.titulo)} aria-label={`Baixar ${material.titulo}`}><Download size={13} /></a> : <Download size={13} style={{ opacity: .3 }} />}
+                    {/* Materiais antigos (Storage) baixam direto; os novos são links do Google Drive e abrem em nova aba. */}
+                    {!material.arquivo_url || !linkValido(material.arquivo_url)
+                      ? <Download size={13} style={{ opacity: .3 }} />
+                      : material.arquivo_url.includes("/storage/v1/object/")
+                        ? <a href={linkDownload(material.arquivo_url, material.titulo)} aria-label={`Baixar ${material.titulo}`}><Download size={13} /></a>
+                        : <a href={material.arquivo_url} target="_blank" rel="noreferrer" aria-label={`Abrir ${material.titulo}`}><ExternalLink size={13} /></a>}
                   </div>
                 ))}
               </div>
