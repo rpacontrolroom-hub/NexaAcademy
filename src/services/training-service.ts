@@ -1,8 +1,9 @@
 import type { TrainingDraft, TrainingModule } from "@/models/training";
+import { horasValidas } from "@/lib/format";
 
 export function validateTrainingDraft(training: TrainingDraft) {
   const validTitle = training.title.trim().length > 2;
-  const validDuration = training.dur.trim().length > 0;
+  const validDuration = horasValidas(training.dur);
   const validModules = training.modulos.length > 0 && training.modulos.every((module) =>
     module.titulo.trim().length > 0 && module.itens.length > 0 && module.itens.every((item) =>
       item.titulo.trim().length > 0 && (item.tipo !== "texto" || item.texto.trim().length > 0),

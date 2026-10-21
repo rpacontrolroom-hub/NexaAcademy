@@ -20,6 +20,26 @@ export function parseDuration(value: string): number | null {
   return null;
 }
 
+/** Máscara do campo de carga horária: só dígitos, no formato HH:MM (ex.: 02:30).
+ *  `anterior` permite apagar os dois pontos com Backspace. */
+export function mascaraHoras(valor: string, anterior = ""): string {
+  const d = valor.replace(/\D/g, "").slice(0, 4);
+  if (d.length < 2) return d;
+  if (d.length === 2) return valor.length < anterior.length ? d : `${d}:`;
+  return `${d.slice(0, 2)}:${d.slice(2)}`;
+}
+
+/** HH:MM completo, com minutos de 00 a 59 e pelo menos 1 minuto no total. */
+export function horasValidas(valor: string): boolean {
+  return /^\d{2}:[0-5]\d$/.test(valor.trim()) && valor.trim() !== "00:00";
+}
+
+/** 150 -> "02:30" */
+export function minutosParaHoras(total: number): string {
+  const minutos = Math.max(0, Math.round(total || 0));
+  return `${String(Math.floor(minutos / 60)).padStart(2, "0")}:${String(minutos % 60).padStart(2, "0")}`;
+}
+
 /** 2205 -> "36:45", 3900 -> "1:05:00" */
 export function formatSeconds(total: number): string {
   const seconds = Math.max(0, Math.round(total || 0));
@@ -43,6 +63,23 @@ export function formatBytes(bytes: number | null | undefined): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+/** Link que baixa direto: arquivo do Drive, ou Slides/Docs/Planilhas exportados (pptx/docx/xlsx).
+ *  `null` quando não há download direto (pasta, site comum...). */
+export function downloadDireto(url: string | null | undefined): string | null {
+  if (!url || !linkValido(url)) return null;
+  const u = new URL(url.trim());
+  const host = u.hostname.replace(/^www\./, "");
+  if (host === "drive.google.com") {
+    const id = u.pathname.match(/^\/file\/d\/([\w-]+)/)?.[1] ?? ((u.pathname === "/open" || u.pathname === "/uc") ? u.searchParams.get("id") : null);
+    return id ? `https://drive.google.com/uc?export=download&id=${id}` : null;
+  }
+  if (host === "docs.google.com") {
+    const m = u.pathname.match(/^\/(presentation|document|spreadsheets)\/d\/([\w-]+)/);
+    if (m) return `https://docs.google.com/${m[1]}/d/${m[2]}/export/${{ presentation: "pptx", document: "docx", spreadsheets: "xlsx" }[m[1]]}`;
+  }
+  return null;
 }
 
 /** Só aceita links http(s) completos (evita javascript: e texto solto). */

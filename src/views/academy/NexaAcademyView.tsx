@@ -5,7 +5,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { Toaster, toast } from "sonner";
 import { supabase } from "@/lib/supabase";
-import { timeAgo, initials } from "@/lib/format";
+import { timeAgo, initials, mascaraHoras, minutosParaHoras } from "@/lib/format";
 import { useAuth } from "@/hooks/use-auth";
 import {
   keys, usePerfil, useCategorias, useTreinamentos, useMatriculas, useFavoritos, useTrilhas,
@@ -835,7 +835,7 @@ export default function NexaAcademy() {
         title: t.title || "",
         cat: categoriasDb.some((c) => c.nome === t.cat) ? t.cat : "",
         level: t.level || "Básico",
-        dur: t.dur || "",
+        dur: minutosParaHoras(t.minutos),
         desc: t.desc || "",
         capa: t.cover || "",
         modulos: modulos.length
@@ -2059,12 +2059,15 @@ export default function NexaAcademy() {
                   {["Básico", "Intermediário", "Avançado"].map((l) => <option key={l} value={l}>{l}</option>)}
                 </select>
               </div>
-              <div style={{ width: 110 }}>
-                <label style={{ fontSize: 11.5, color: palette.textMuted, display: "block", marginBottom: 6 }}>Duração<RequiredMark /></label>
+              <div style={{ width: 140 }}>
+                <label style={{ fontSize: 11.5, color: palette.textMuted, display: "block", marginBottom: 6 }}>Duração (horas)<RequiredMark /></label>
                 <input
                   value={novoTreino.dur}
-                  onChange={(e) => setNovoTreino({ ...novoTreino, dur: e.target.value })}
-                  placeholder="2h30"
+                  onChange={(e) => setNovoTreino((prev) => ({ ...prev, dur: mascaraHoras(e.target.value, prev.dur) }))}
+                  inputMode="numeric"
+                  maxLength={5}
+                  placeholder="02:30"
+                  title="Carga horária no formato HH:MM"
                   style={{
                     width: "100%", background: palette.bgPanel,
                     border: `1px solid ${tentouSalvarTreino && !duracaoTreinoValida ? "#F2596B" : palette.border}`,

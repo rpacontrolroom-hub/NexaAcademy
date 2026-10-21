@@ -695,7 +695,7 @@ async function desvincularQuizzes(aulaIds: string[]) {
  *  existentes (assim o progresso dos alunos não se perde ao editar). */
 export async function salvarTreinamento(draft: TrainingDraft, categoriaId: string | null, treinamentoId?: string | null) {
   const minutos = parseDuration(draft.dur);
-  if (minutos === null) throw new Error('Duração inválida. Use o formato "2h30" ou "45min".');
+  if (minutos === null) throw new Error("Duração inválida. Use o formato HH:MM (ex.: 02:30).");
   const base = {
     titulo: draft.title.trim(),
     descricao: draft.desc.trim() || null,
