@@ -700,6 +700,7 @@ export async function salvarTreinamento(draft: TrainingDraft, categoriaId: strin
     categoria_id: categoriaId,
     nivel: draft.level,
     duracao_minutos: minutos,
+    capa_url: draft.capa?.startsWith("data:") ? await uploadArquivo(draft.capa, "treinamentos", "capa.png") : draft.capa || null,
   };
 
   let id = treinamentoId ?? null;

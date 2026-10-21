@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
+  BookOpen,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
@@ -19,6 +20,7 @@ import { keys, useAula, useCursoDetalhe, useQuizzesDaAula } from "@/hooks/use-ac
 import QuizPlayer from "@/views/academy/components/QuizPlayer";
 import { PERCENTUAL_MINIMO_VIDEO, useProgressoVideo } from "@/hooks/use-progresso-video";
 import LessonComments from "@/views/academy/components/LessonComments";
+import TextLessonContent, { minutosDeLeitura } from "@/views/academy/components/TextLessonContent";
 import * as repo from "@/data/academy-repository";
 import { formatBytes, youtubeId } from "@/lib/format";
 import type { LessonDetail } from "@/models/lesson-detail";
@@ -103,7 +105,9 @@ const extraLessonCss = `
   .lesson-complete-button.ready { color:#fff; background:#2d7147; border-color:#2d7147; cursor:pointer; }
   .lesson-complete-button.ready:hover { background:#255d3a; }
   .lesson-complete-button.done { color:#2d7147; background:#e7f4ec; border-color:#cfe8d8; cursor:default; }
-  .lesson-text { margin:16px; padding:18px; white-space:pre-wrap; color:#333; background:#fafafa; border:1px solid #e4e4e4; border-radius:9px; font-size:12.5px; line-height:1.7; }
+  .lesson-reading-bar { display:flex; align-items:center; gap:12px; padding:14px 18px; color:#777; border-bottom:1px solid #ececec; font-size:11.5px; }
+  .lesson-reading-chip { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; color:#111; background:#f1f1f1; border-radius:999px; font-weight:700; }
+  .lesson-reading-end { display:flex; align-items:center; justify-content:center; gap:8px; margin:0 16px 18px; padding:12px 14px; color:#666; background:#fafafa; border:1px solid #ececec; border-radius:9px; font-size:12px; }
   .lesson-open-link { display:inline-flex; align-items:center; gap:7px; margin-top:14px; padding:9px 14px; color:#fff; background:#111; border-radius:7px; font-size:11.5px; font-weight:600; text-decoration:none; }
   .lesson-material-row a { color:inherit; }
 `;
@@ -159,6 +163,19 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
   );
   const { data: quizzesDaAula = [] } = useQuizzesDaAula(lessonId);
 
+  // Aula de texto: só conclui depois de rolar até o fim da leitura.
+  const [leuAteFim, setLeuAteFim] = useState(false);
+  const [fimTexto, setFimTexto] = useState<HTMLDivElement | null>(null);
+  useEffect(() => setLeuAteFim(false), [lessonId]);
+  useEffect(() => {
+    if (!fimTexto) return;
+    const observer = new IntersectionObserver(([entrada]) => {
+      if (entrada.isIntersecting) setLeuAteFim(true);
+    });
+    observer.observe(fimTexto);
+    return () => observer.disconnect();
+  }, [fimTexto]);
+
   if (!course) {
     return (
       <section className="lesson-detail">
@@ -198,9 +215,12 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
   const videoLiberado = !videoId || completed || percentualAssistido >= PERCENTUAL_MINIMO_VIDEO;
   // Aula com quiz: só conclui depois de ser aprovado em todos os quizzes dela.
   const quizLiberado = completed || quizzesDaAula.every((q) => q.tentativas.some((t) => t.aprovado));
-  const podeConcluir = videoLiberado && quizLiberado;
+  const textoAula = !videoId && aula?.tipo === "texto" ? aula.conteudo?.trim() ?? "" : "";
+  const textoLiberado = !textoAula || completed || leuAteFim;
+  const podeConcluir = videoLiberado && textoLiberado && quizLiberado;
   const motivoBloqueio = !videoLiberado
     ? `Assista pelo menos ${PERCENTUAL_MINIMO_VIDEO}% do vídeo para concluir a aula.`
+    : !textoLiberado ? "Leia o conteúdo até o fim para concluir a aula."
     : !quizLiberado ? "Seja aprovado no quiz desta aula para concluí-la." : undefined;
 
   async function concluirAula() {
@@ -287,8 +307,23 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
                   </div>
                 )}
               </>
-            ) : aula?.tipo === "texto" && aula.conteudo ? (
-              <div className="lesson-text">{aula.conteudo}</div>
+            ) : textoAula ? (
+              <>
+                <div className="lesson-reading-bar">
+                  <span className="lesson-reading-chip"><BookOpen size={13} /> Leitura</span>
+                  <span>{minutosDeLeitura(textoAula)} min de leitura</span>
+                </div>
+                <TextLessonContent conteudo={textoAula} />
+                <div ref={setFimTexto} aria-hidden="true" />
+                {!completed && (
+                  <div className="lesson-reading-end">
+                    <CheckCircle2 size={15} color={textoLiberado ? "#2d7147" : "#aaa"} />
+                    {textoLiberado
+                      ? (quizLiberado ? "Leitura concluída. Clique em Concluir aula para seguir." : "Leitura concluída. Agora responda o quiz abaixo para concluir a aula.")
+                      : "Leia até o fim para liberar a conclusão da aula."}
+                  </div>
+                )}
+              </>
             ) : quizzesDaAula.length > 0 && !aula?.url ? null : (
               <div className="lesson-video">
                 <div className="lesson-video-brand" style={{ fontSize: 18, top: 60 }}>{aula?.url ? "Conteúdo externo" : "Conteúdo em preparação"}</div>

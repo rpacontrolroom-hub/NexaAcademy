@@ -36,5 +36,7 @@ export interface TrainingDraft {
   level: TrainingLevel;
   dur: string;
   desc: string;
+  /** URL da capa atual, data URL de uma imagem nova (enviada ao salvar) ou "" sem capa. */
+  capa?: string;
   modulos: TrainingModule[];
 }

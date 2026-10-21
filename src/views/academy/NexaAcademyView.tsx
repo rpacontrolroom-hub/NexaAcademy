@@ -33,7 +33,7 @@ import {
   CheckCircle2, Lock, Star, X, Send, BookOpen, Code2, Workflow,
   Database, Network, Cpu, ShieldCheck, Users, Layers, Video,
   HelpCircle, ScrollText, Shield, ArrowLeft, TrendingUp,
-  PlusCircle, Folder, LogOut, MoreHorizontal
+  PlusCircle, Folder, LogOut, MoreHorizontal, ImagePlus
 } from "lucide-react";
 
 const css = `
@@ -744,7 +744,7 @@ export default function NexaAcademy() {
   const [salvandoTreino, setSalvandoTreino] = useState(false);
   const novoItem = () => ({ tipo: "video", titulo: "", url: "", texto: "", materiais: [], quizId: "" });
   const treinoInicial = {
-    title: "", cat: "", level: "Básico", dur: "", desc: "",
+    title: "", cat: "", level: "Básico", dur: "", desc: "", capa: "",
     modulos: [{ titulo: "Módulo 1", imagem: "", itens: [novoItem()] }],
   };
   const [novoTreino, setNovoTreino] = useState(treinoInicial);
@@ -836,6 +836,7 @@ export default function NexaAcademy() {
         level: t.level || "Básico",
         dur: t.dur || "",
         desc: t.desc || "",
+        capa: t.cover || "",
         modulos: modulos.length
           ? modulos.map((m) => ({ ...m, itens: m.itens.length ? m.itens : [novoItem()] }))
           : [{ titulo: "Módulo 1", imagem: "", itens: [novoItem()] }],
@@ -2085,6 +2086,59 @@ export default function NexaAcademy() {
               }}
             />
 
+            <label style={{ fontSize: 11.5, color: palette.textMuted, display: "block", margin: "10px 0 6px" }}>Capa (opcional)</label>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div
+                style={{
+                  width: 128, aspectRatio: "16/9", borderRadius: 9, flexShrink: 0, overflow: "hidden",
+                  border: `1px dashed ${palette.border}`, background: "rgba(148,163,205,0.08)",
+                  display: "flex", alignItems: "center", justifyContent: "center", color: palette.textFaint,
+                }}
+              >
+                {novoTreino.capa ? <img src={novoTreino.capa} alt="Capa do treinamento" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImagePlus size={18} />}
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}>
+                <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                  <label
+                    style={{
+                      display: "inline-flex", alignItems: "center", gap: 5,
+                      background: "transparent", border: `1px solid ${palette.border}`,
+                      color: palette.textPrimary, padding: "5px 10px", borderRadius: 7,
+                      fontSize: 11.5, cursor: "pointer",
+                    }}
+                  >
+                    <PlusCircle size={12} color={palette.cyan} />
+                    {novoTreino.capa ? "Trocar capa" : "Enviar capa"}
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
+                      style={{ display: "none" }}
+                      onChange={(e) => {
+                        const file = e.target.files && e.target.files[0];
+                        e.target.value = "";
+                        if (!file) return;
+                        if (!file.type.startsWith("image/")) return toast.error("A capa precisa ser uma imagem (PNG, JPG ou WEBP).");
+                        if (file.size > 5 * 1024 * 1024) return toast.error("A capa pode ter no máximo 5 MB.");
+                        const reader = new FileReader();
+                        reader.onload = () => setNovoTreino((prev) => ({ ...prev, capa: String(reader.result || "") }));
+                        reader.readAsDataURL(file);
+                      }}
+                    />
+                  </label>
+                  {novoTreino.capa && (
+                    <button
+                      type="button"
+                      onClick={() => setNovoTreino((prev) => ({ ...prev, capa: "" }))}
+                      style={{ background: "transparent", border: "none", color: palette.textFaint, fontSize: 11.5, cursor: "pointer", padding: "5px 6px" }}
+                    >
+                      Remover
+                    </button>
+                  )}
+                </div>
+                <span style={{ fontSize: 10.5, color: palette.textFaint }}>PNG, JPG ou WEBP · até 5 MB · formato 16:9. Sem capa, o card usa o degradê.</span>
+              </div>
+            </div>
+
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", margin: "18px 0 10px" }}>
               <span className="nexa-section-title">Conteúdo do treinamento</span>
               <button
@@ -2251,18 +2305,23 @@ export default function NexaAcademy() {
                               />
                             </div>
                             {it.tipo === "texto" ? (
-                              <textarea
-                                value={it.texto}
-                                onChange={(e) => updateItem(mIdx, iIdx, { texto: e.target.value })}
-                                placeholder="Escreva o conteúdo (markdown suportado)..."
-                                rows={4}
-                                style={{
-                                  width: "100%", background: palette.bgPanel,
-                                  border: `1px solid ${textoInvalido ? "#F2596B" : palette.border}`,
-                                  borderRadius: 7, padding: "8px 10px", color: palette.textPrimary, fontSize: 12,
-                                  outline: "none", resize: "vertical", fontFamily: "inherit", lineHeight: 1.5,
-                                }}
-                              />
+                              <>
+                                <textarea
+                                  value={it.texto}
+                                  onChange={(e) => updateItem(mIdx, iIdx, { texto: e.target.value })}
+                                  placeholder={"## Título da seção\n\nTexto do conteúdo. Use **negrito**, *itálico* e [links](https://...).\n\n- item de lista\n- outro item"}
+                                  rows={10}
+                                  style={{
+                                    width: "100%", background: palette.bgPanel,
+                                    border: `1px solid ${textoInvalido ? "#F2596B" : palette.border}`,
+                                    borderRadius: 7, padding: "8px 10px", color: palette.textPrimary, fontSize: 12,
+                                    outline: "none", resize: "vertical", fontFamily: "inherit", lineHeight: 1.5,
+                                  }}
+                                />
+                                <div style={{ marginTop: 4, color: palette.textFaint, fontSize: 10.5 }}>
+                                  O aluno vê numa tela de leitura. Formatação: # título, ## subtítulo, **negrito**, *itálico*, - lista, 1. lista numerada, &gt; destaque, ``` código, [link](url), ![imagem](url).
+                                </div>
+                              </>
                             ) : it.tipo === "quiz" ? (
                               quizzesDoTreino.length ? (
                                 <select
