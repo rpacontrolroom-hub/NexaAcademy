@@ -20,6 +20,8 @@ export const keys = {
   quizzesAdmin: ["quizzes", "admin"] as const,
   quizzesAluno: (tipo: "aula" | "treinamento", id?: string | null) => ["quizzes", tipo, id] as const,
   aulasDoTreinamento: (treinamentoId?: string | null) => ["aulas-do-treinamento", treinamentoId] as const,
+  concluintes: (treinamentoId?: string | null) => ["concluintes", treinamentoId] as const,
+  avaliacoesTreinamento: (treinamentoId?: string | null, userId?: string) => ["avaliacoes-treinamento", treinamentoId, userId] as const,
   modelos: ["modelos-certificado"] as const,
   meusCertificados: (userId?: string) => ["meus-certificados", userId] as const,
   usuarios: ["usuarios"] as const,
@@ -130,6 +132,14 @@ export function useQuizzesAdmin(enabled = true) {
 
 export function useQuizzesDaAula(aulaId?: string | null) {
   return useQuery({ queryKey: keys.quizzesAluno("aula", aulaId), queryFn: () => repo.fetchQuizzesAluno({ aulaId: aulaId! }), enabled: !!aulaId });
+}
+
+export function useConcluintes(treinamentoId?: string | null, enabled = true) {
+  return useQuery({ queryKey: keys.concluintes(treinamentoId), queryFn: () => repo.fetchConcluintesRecentes(treinamentoId!), enabled: !!treinamentoId && enabled });
+}
+
+export function useAvaliacoesTreinamento(treinamentoId?: string | null, userId?: string, enabled = true) {
+  return useQuery({ queryKey: keys.avaliacoesTreinamento(treinamentoId, userId), queryFn: () => repo.fetchAvaliacoesTreinamento(treinamentoId!, userId), enabled: !!treinamentoId && enabled });
 }
 
 export function useAvaliacaoDoTreinamento(treinamentoId?: string | null) {

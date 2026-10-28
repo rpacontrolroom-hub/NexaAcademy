@@ -384,6 +384,44 @@ export async function fetchComentarios(aulaId: string): Promise<Comentario[]> {
   });
 }
 
+/* ---------------- Conclusão do treinamento ---------------- */
+export interface Concluinte { user_id: string; nome: string; avatar_url: string | null; concluido_em: string }
+export interface AvaliacaoTreinamento { nota: number; comentario: string | null }
+
+/** Últimas pessoas que concluíram o treinamento (concluintes_recentes) e o total delas. */
+export async function fetchConcluintesRecentes(treinamentoId: string, limite = 8): Promise<{ pessoas: Concluinte[]; total: number }> {
+  const { data, error } = await supabase.rpc("concluintes_recentes", { p_treinamento_id: treinamentoId, p_limite: limite });
+  if (funcaoAusente(error)) return { pessoas: [], total: 0 };
+  if (error) throw new Error(error.message);
+  const rows = (data ?? []) as any[];
+  return {
+    pessoas: rows.map((r) => ({ user_id: r.user_id, nome: r.nome ?? "Usuário", avatar_url: r.avatar_url, concluido_em: r.concluido_em })),
+    total: Number(rows[0]?.total ?? 0),
+  };
+}
+
+/** Média das avaliações do treinamento e a avaliação do usuário logado (se houver). */
+export async function fetchAvaliacoesTreinamento(treinamentoId: string, userId?: string): Promise<{ media: number | null; total: number; minha: AvaliacaoTreinamento | null }> {
+  const { data, error } = await supabase.from("treinamento_avaliacoes").select("user_id, nota, comentario").eq("treinamento_id", treinamentoId);
+  // Sem a migration aplicada a tabela não existe: a tela segue sem a avaliação.
+  if (error) return { media: null, total: 0, minha: null };
+  const rows = (data ?? []) as { user_id: string; nota: number; comentario: string | null }[];
+  const minha = rows.find((r) => r.user_id === userId);
+  return {
+    media: rows.length ? rows.reduce((s, r) => s + r.nota, 0) / rows.length : null,
+    total: rows.length,
+    minha: minha ? { nota: minha.nota, comentario: minha.comentario } : null,
+  };
+}
+
+export async function avaliarTreinamento(treinamentoId: string, nota: number, comentario: string) {
+  const userId = await currentUserId();
+  check(await supabase.from("treinamento_avaliacoes").upsert(
+    { user_id: userId, treinamento_id: treinamentoId, nota, comentario: comentario.trim() || null },
+    { onConflict: "user_id,treinamento_id" },
+  ));
+}
+
 export async function adicionarComentario(aulaId: string, conteudo: string) {
   const userId = await currentUserId();
   check(await supabase.from("aula_comentarios").insert({ aula_id: aulaId, user_id: userId, conteudo: conteudo.trim() }));
@@ -936,11 +974,13 @@ export async function fetchQuizzesAluno(filtro: { aulaId: string } | { treinamen
   if (!quizzes.length) return [];
 
   const perguntaIds = quizzes.flatMap((q) => (q.perguntas ?? []).map((p: any) => p.id));
+  // Admin lê as tentativas de todos pelo RLS: sem filtrar, mostraria a nota de outra pessoa.
+  const userId = await currentUserId();
   const [alternativas, tentativas] = await Promise.all([
     perguntaIds.length
       ? supabase.from("vw_quiz_alternativas_publicas").select("id, pergunta_id, ordem, texto").in("pergunta_id", perguntaIds).order("ordem")
       : Promise.resolve({ data: [], error: null }),
-    supabase.from("quiz_tentativas").select("id, quiz_id, nota, aprovado, realizado_em").in("quiz_id", quizzes.map((q) => q.id)).order("realizado_em", { ascending: false }),
+    supabase.from("quiz_tentativas").select("id, quiz_id, nota, aprovado, realizado_em").eq("user_id", userId).in("quiz_id", quizzes.map((q) => q.id)).order("realizado_em", { ascending: false }),
   ]);
   const alts = check(alternativas as any) as any[];
   const tents = check(tentativas as any) as any[];

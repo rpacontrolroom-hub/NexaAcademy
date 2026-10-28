@@ -580,6 +580,8 @@ export default function NexaAcademy() {
   const [active, setActive] = useState("dashboard");
   const [selectedCourseId, setSelectedCourseId] = useState(null);
   const [selectedLessonId, setSelectedLessonId] = useState(null);
+  // Curso cuja tela de conclusão deve abrir direto (ao terminar a última aula).
+  const [conclusaoDoCurso, setConclusaoDoCurso] = useState(null);
   const [adminActive, setAdminActive] = useState("admin-dashboard");
   const [submenuAberto, setSubmenuAberto] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
@@ -1193,7 +1195,9 @@ export default function NexaAcademy() {
               isFavorite={favoritosIds.includes(selectedCourseId)}
               onToggleFavorite={() => alternarFavorito(selectedCourseId)}
               onBack={() => setActive("treinamentos")}
-              onOpenLesson={(lessonId) => setSelectedLessonId(lessonId)}
+              onOpenLesson={(lessonId) => { setConclusaoDoCurso(null); setSelectedLessonId(lessonId); }}
+              openConclusion={conclusaoDoCurso === selectedCourseId}
+              onOpenCertificates={() => setActive("certificados")}
             />
           )}
           {mode === "app" && active === "curso" && selectedLessonId && (
@@ -1204,6 +1208,7 @@ export default function NexaAcademy() {
               lessonId={selectedLessonId}
               onBack={() => setSelectedLessonId(null)}
               onNavigate={(lessonId) => setSelectedLessonId(lessonId)}
+              onFinish={() => { setConclusaoDoCurso(selectedCourseId); setSelectedLessonId(null); }}
             />
           )}
 

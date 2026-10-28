@@ -13,6 +13,7 @@ import {
   Maximize2,
   Minimize2,
   Play,
+  Trophy,
 } from "lucide-react";
 
 import { courseController } from "@/controllers/course-controller";
@@ -32,6 +33,8 @@ interface LessonDetailViewProps {
   lessonId: string;
   onBack: () => void;
   onNavigate: (lessonId: string) => void;
+  /** Abre a tela de conclusão do treinamento (depois da última aula). */
+  onFinish?: () => void;
 }
 
 const lessonDetailCss = `
@@ -125,7 +128,7 @@ function linkDownload(url: string, titulo: string) {
   return `${url}${url.includes("?") ? "&" : "?"}download=${encodeURIComponent(nome)}`;
 }
 
-export default function LessonDetailView({ userId, course: treinamento, matricula, lessonId, onBack, onNavigate }: LessonDetailViewProps) {
+export default function LessonDetailView({ userId, course: treinamento, matricula, lessonId, onBack, onNavigate, onFinish }: LessonDetailViewProps) {
   const queryClient = useQueryClient();
   const [salvando, setSalvando] = useState(false);
   const playerRef = useRef<HTMLDivElement>(null);
@@ -217,6 +220,9 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
 
   const { lesson, module, previousLesson, nextLesson, detail } = context;
   const completed = lesson.completed;
+  // Última aula: com todas as outras concluídas, concluir esta encerra o treinamento.
+  const outrasConcluidas = course.modules.every((m) => m.lessons.every((l) => l.completed || l.id === lessonId));
+  const ultimaAula = !nextLesson && outrasConcluidas;
   const videoId = videoIdAula;
   const videoLiberado = !videoId || completed || percentualAssistido >= PERCENTUAL_MINIMO_VIDEO;
   // Aula com quiz: só conclui depois de ser aprovado em todos os quizzes dela.
@@ -240,7 +246,12 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
     try {
       await repo.concluirAula(userId, lessonId);
       invalidarProgresso();
-      toast.success(nextLesson ? "Aula concluída! Siga para a próxima." : "Aula concluída!");
+      if (ultimaAula && onFinish) {
+        toast.success("Treinamento concluído! 🎉");
+        onFinish();
+      } else {
+        toast.success(nextLesson ? "Aula concluída! Siga para a próxima." : "Aula concluída!");
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : String(err));
     } finally {
@@ -375,7 +386,9 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
               )}
               {completed && (nextLesson
                 ? <button className="lesson-nav-button next" onClick={() => onNavigate(nextLesson.id)}>Próxima aula<ChevronRight size={15} /></button>
-                : <button className="lesson-nav-button next" onClick={onBack}>Voltar ao treinamento<ChevronRight size={15} /></button>)}
+                : ultimaAula && onFinish
+                  ? <button className="lesson-nav-button next" onClick={onFinish}><Trophy size={14} />Ver conclusão</button>
+                  : <button className="lesson-nav-button next" onClick={onBack}>Voltar ao treinamento<ChevronRight size={15} /></button>)}
             </div>
           </div>
 

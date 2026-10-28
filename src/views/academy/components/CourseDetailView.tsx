@@ -10,12 +10,14 @@ import {
   Lock,
   Play,
   Star,
+  Trophy,
   Video,
 } from "lucide-react";
 
 import { courseController } from "@/controllers/course-controller";
 import { useAvaliacaoDoTreinamento, useCursoDetalhe } from "@/hooks/use-academy";
 import QuizPlayer from "@/views/academy/components/QuizPlayer";
+import CourseConclusion from "@/views/academy/components/CourseConclusion";
 import type { Matricula, Treinamento } from "@/data/academy-repository";
 
 interface CourseDetailViewProps {
@@ -26,6 +28,9 @@ interface CourseDetailViewProps {
   onToggleFavorite: () => void;
   onBack: () => void;
   onOpenLesson: (lessonId: string) => void;
+  /** Abre direto no item "Conclusão" (vindo da última aula). */
+  openConclusion?: boolean;
+  onOpenCertificates?: () => void;
 }
 
 const courseDetailCss = `
@@ -57,6 +62,8 @@ const courseDetailCss = `
   .course-detail-module-state { width:20px; height:20px; display:flex; align-items:center; justify-content:center; flex:0 0 20px; border:1px solid #999; border-radius:50%; font-size:10px; font-weight:700; }
   .course-detail-module-state.completed { color:#fff; background:#2d7147; border-color:#2d7147; }
   .course-detail-module-state.current { color:#fff; background:#111; border-color:#111; }
+  .course-detail-module-state.conclusion { color:#fff; background:#e3a008; border-color:#e3a008; }
+  .course-detail-modules-divider { height:1px; margin:5px 12px; background:#e3e3e3; }
   .course-detail-content { min-width:0; padding:4px 0 0; }
   .course-detail-module-header { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; padding:0 6px 18px; }
   .course-detail-module-title { display:flex; align-items:center; gap:10px; margin-bottom:5px; font-size:15px; font-weight:700; }
@@ -93,9 +100,10 @@ const courseDetailCss = `
   }
 `;
 
-export default function CourseDetailView({ userId, course: treinamento, matricula, isFavorite, onToggleFavorite, onBack, onOpenLesson }: CourseDetailViewProps) {
+export default function CourseDetailView({ userId, course: treinamento, matricula, isFavorite, onToggleFavorite, onBack, onOpenLesson, openConclusion, onOpenCertificates }: CourseDetailViewProps) {
   const [activeTab, setActiveTab] = useState<"content" | "about" | "materials">("content");
   const [selectedModuleIndex, setSelectedModuleIndex] = useState<number | null>(null);
+  const [conclusaoAberta, setConclusaoAberta] = useState(!!openConclusion);
   const { course, isLoading } = useCursoDetalhe(userId, treinamento, matricula?.progresso ?? 0);
   const { data: avaliacoes = [] } = useAvaliacaoDoTreinamento(treinamento?.id);
 
@@ -127,9 +135,17 @@ export default function CourseDetailView({ userId, course: treinamento, matricul
     ? matricula.ultima_aula_id
     : allLessons.find((l) => !l.completed)?.id) ?? allLessons[0]?.id;
 
+  const allCourseLessons = course.modules.flatMap((m) => m.lessons);
+  const cursoConcluido = course.progress >= 100 || (allCourseLessons.length > 0 && allCourseLessons.every((l) => l.completed));
+  const avaliacaoPendente = avaliacoes.length > 0 && !avaliacoes.every((q) => q.tentativas.some((t) => t.aprovado));
+  const ultimoModulo = moduleIndex >= course.modules.length - 1;
+
   const selectModule = (index: number) => {
     const module = course.modules[index];
-    if (module && courseController.canSelectModule(module)) setSelectedModuleIndex(index);
+    if (module && courseController.canSelectModule(module)) {
+      setSelectedModuleIndex(index);
+      setConclusaoAberta(false);
+    }
   };
 
   return (
@@ -189,7 +205,7 @@ export default function CourseDetailView({ userId, course: treinamento, matricul
               {course.modules.map((module, index) => (
                 <button
                   key={module.id}
-                  className={`course-detail-module ${moduleIndex === index ? "active" : ""}`}
+                  className={`course-detail-module ${!conclusaoAberta && moduleIndex === index ? "active" : ""}`}
                   disabled={module.status === "locked"}
                   onClick={() => selectModule(index)}
                 >
@@ -199,8 +215,33 @@ export default function CourseDetailView({ userId, course: treinamento, matricul
                   <span>{module.order}. {module.title}</span>
                 </button>
               ))}
+              <div className="course-detail-modules-divider" />
+              <button
+                className={`course-detail-module ${conclusaoAberta ? "active" : ""}`}
+                disabled={!cursoConcluido}
+                title={cursoConcluido ? undefined : "Conclua todas as aulas para liberar"}
+                onClick={() => setConclusaoAberta(true)}
+              >
+                <span className={`course-detail-module-state ${cursoConcluido ? "conclusion" : ""}`}>
+                  {cursoConcluido ? <Trophy size={11} /> : <Lock size={11} />}
+                </span>
+                <span>Conclusão</span>
+              </button>
             </aside>
 
+            {conclusaoAberta ? (
+              <div className="course-detail-content">
+                <CourseConclusion
+                  userId={userId}
+                  treinamentoId={treinamento.id}
+                  course={course}
+                  matricula={matricula}
+                  avaliacaoPendente={avaliacaoPendente}
+                  onOpenCertificates={onOpenCertificates}
+                  onReviewLessons={() => { setConclusaoAberta(false); setSelectedModuleIndex(0); }}
+                />
+              </div>
+            ) : (
             <div className="course-detail-content">
               <div className="course-detail-module-header">
                 <div>
@@ -236,15 +277,22 @@ export default function CourseDetailView({ userId, course: treinamento, matricul
                 <button className="course-detail-nav-button" disabled={moduleIndex === 0} onClick={() => selectModule(moduleIndex - 1)}>
                   <ChevronLeft size={15} /> Anterior
                 </button>
-                <button
-                  className="course-detail-nav-button next"
-                  disabled={moduleIndex >= completedModules || moduleIndex >= course.modules.length - 1}
-                  onClick={() => selectModule(moduleIndex + 1)}
-                >
-                  Próximo <ChevronRight size={15} />
-                </button>
+                {ultimoModulo ? (
+                  <button className="course-detail-nav-button next" disabled={!cursoConcluido} onClick={() => setConclusaoAberta(true)}>
+                    Conclusão <Trophy size={14} />
+                  </button>
+                ) : (
+                  <button
+                    className="course-detail-nav-button next"
+                    disabled={moduleIndex >= completedModules}
+                    onClick={() => selectModule(moduleIndex + 1)}
+                  >
+                    Próximo <ChevronRight size={15} />
+                  </button>
+                )}
               </div>
             </div>
+            )}
           </div>
         )}
 
