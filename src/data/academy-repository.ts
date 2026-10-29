@@ -599,28 +599,31 @@ export async function fetchModelosCertificado(): Promise<CertificateTemplate[]> 
   return rows.map(mapModelo);
 }
 
-export async function criarModeloCertificado(draft: CertificateTemplateDraft, treinamentoId: string, arquivo?: File | null) {
+async function camposModelo(draft: CertificateTemplateDraft, treinamentoId: string, arquivo?: File | null) {
   const arquivoUrl = arquivo ? await uploadArquivo(arquivo, "certificados") : draft.sourceFileUrl ?? null;
-  const row = check(
-    await supabase
-      .from("certificado_modelos")
-      .insert({
-        treinamento_id: treinamentoId,
-        nome: draft.name.trim(),
-        tipo_label: draft.typeLabel.trim().toLocaleUpperCase("pt-BR"),
-        cor_destaque: draft.accentColor,
-        nota_minima: draft.minimumScore,
-        assinante_nome: draft.signerName.trim(),
-        assinante_cargo: draft.signerRole.trim(),
-        conteudo_programatico: draft.programContent.map((i) => i.trim()).filter(Boolean),
-        arquivo_nome: draft.sourceFileName.trim() || null,
-        arquivo_url: arquivoUrl,
-        status: draft.status,
-      })
-      .select("id")
-      .single(),
-  );
+  return {
+    treinamento_id: treinamentoId,
+    nome: draft.name.trim(),
+    tipo_label: draft.typeLabel.trim().toLocaleUpperCase("pt-BR"),
+    cor_destaque: draft.accentColor,
+    nota_minima: draft.minimumScore,
+    assinante_nome: draft.signerName.trim(),
+    assinante_cargo: draft.signerRole.trim(),
+    conteudo_programatico: draft.programContent.map((i) => i.trim()).filter(Boolean),
+    arquivo_nome: draft.sourceFileName.trim() || null,
+    arquivo_url: arquivoUrl,
+    status: draft.status,
+  };
+}
+
+export async function criarModeloCertificado(draft: CertificateTemplateDraft, treinamentoId: string, arquivo?: File | null) {
+  const row = check(await supabase.from("certificado_modelos").insert(await camposModelo(draft, treinamentoId, arquivo)).select("id").single());
   await logAtividade(`Modelo de certificado criado: ${draft.name.trim()}`, "certificado_modelos", row.id);
+}
+
+export async function atualizarModeloCertificado(id: string, draft: CertificateTemplateDraft, treinamentoId: string, arquivo?: File | null) {
+  check(await supabase.from("certificado_modelos").update(await camposModelo(draft, treinamentoId, arquivo)).eq("id", id));
+  await logAtividade(`Modelo de certificado atualizado: ${draft.name.trim()}`, "certificado_modelos", id);
 }
 
 export async function definirStatusModelo(id: string, status: "active" | "draft") {

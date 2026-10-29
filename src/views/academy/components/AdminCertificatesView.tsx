@@ -4,12 +4,13 @@ import RequiredMark from "@/components/RequiredMark";
 import type { CertificateTemplate, CertificateTemplateDraft } from "@/models/certificate";
 import { academyController } from "@/controllers/academy-controller";
 import { theme as palette } from "@/styles/theme";
-import { Award, Download, Eye, FileUp, PlusCircle, Power, Trash2, X } from "lucide-react";
+import { Award, Download, Eye, FileUp, Pencil, PlusCircle, Power, Trash2, X } from "lucide-react";
 
 interface AdminCertificatesViewProps {
   courseTitles: string[];
   templates: CertificateTemplate[];
   onCreate: (draft: CertificateTemplateDraft, file: File | null) => boolean | Promise<boolean>;
+  onUpdate: (templateId: string, draft: CertificateTemplateDraft, file: File | null) => boolean | Promise<boolean>;
   onPreview: (template: CertificateTemplate) => void;
   onRemove: (templateId: string) => void;
   onToggleStatus: (templateId: string) => void;
@@ -35,6 +36,7 @@ export default function AdminCertificatesView({
   courseTitles,
   templates,
   onCreate,
+  onUpdate,
   onPreview,
   onRemove,
   onToggleStatus,
@@ -43,13 +45,35 @@ export default function AdminCertificatesView({
   const [attempted, setAttempted] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const firstCourse = courseTitles[0] ?? "";
   const [draft, setDraft] = useState<CertificateTemplateDraft>(() => initialDraft(firstCourse));
   const validation = academyController.validateCertificateTemplateDraft(draft);
   const activeCount = templates.filter((template) => template.status === "active").length;
   const coveredCourses = useMemo(() => new Set(templates.map((template) => template.courseTitle)).size, [templates]);
 
+  function openEdit(template: CertificateTemplate) {
+    setEditingId(template.id);
+    setDraft({
+      name: template.name,
+      courseTitle: template.courseTitle,
+      typeLabel: template.typeLabel,
+      accentColor: template.accentColor,
+      minimumScore: template.minimumScore,
+      signerName: template.signerName,
+      signerRole: template.signerRole,
+      programContent: template.programContent,
+      sourceFileName: template.sourceFileName,
+      sourceFileUrl: template.sourceFileUrl,
+      status: template.status,
+    });
+    setFile(null);
+    setAttempted(false);
+    setShowModal(true);
+  }
+
   function openModal() {
+    setEditingId(null);
     setDraft(initialDraft(firstCourse));
     setFile(null);
     setAttempted(false);
@@ -65,7 +89,7 @@ export default function AdminCertificatesView({
     setAttempted(true);
     if (!validation.valid || saving) return;
     setSaving(true);
-    const ok = await onCreate(draft, file);
+    const ok = editingId ? await onUpdate(editingId, draft, file) : await onCreate(draft, file);
     setSaving(false);
     if (ok) closeModal();
   }
@@ -112,6 +136,7 @@ export default function AdminCertificatesView({
                   <td><span className="nexa-status-dot" style={{ background: template.status === "active" ? palette.green : palette.textFaint }} />{template.status === "active" ? "Ativo" : "Rascunho"}</td>
                   <td>
                     <div style={{ display: "flex", justifyContent: "flex-end", gap: 5 }}>
+                      <button className="nexa-btn-ghost" type="button" onClick={() => openEdit(template)} title="Editar"><Pencil size={14} /></button>
                       <button className="nexa-btn-ghost" type="button" onClick={() => onPreview(template)} title="Visualizar"><Eye size={14} /></button>
                       <button className="nexa-btn-ghost" type="button" onClick={() => onToggleStatus(template.id)} title="Alterar status"><Power size={14} /></button>
                       <button className="nexa-btn-ghost" type="button" onClick={() => onRemove(template.id)} title="Excluir"><Trash2 size={14} /></button>
@@ -128,7 +153,7 @@ export default function AdminCertificatesView({
         <div className="nexa-certificate-overlay" style={{ display: "flex", alignItems: "center", justifyContent: "center", zIndex: 75 }} {...fecharAoClicarFora(closeModal)}>
           <div className="nexa-card nexa-scroll" style={{ width: "min(680px, calc(100vw - 32px))", maxHeight: "calc(100vh - 48px)", overflowY: "auto", padding: 22 }} onClick={(event) => event.stopPropagation()}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
-              <div><div className="nexa-section-title">Novo modelo de certificado</div><div style={{ marginTop: 4, color: palette.textFaint, fontSize: 11.5 }}>Vincule um modelo a um curso da plataforma.</div></div>
+              <div><div className="nexa-section-title">{editingId ? "Editar modelo de certificado" : "Novo modelo de certificado"}</div><div style={{ marginTop: 4, color: palette.textFaint, fontSize: 11.5 }}>Vincule um modelo a um curso da plataforma.</div></div>
               <button className="nexa-btn-ghost" type="button" onClick={closeModal}><X size={15} /></button>
             </div>
 
@@ -138,7 +163,7 @@ export default function AdminCertificatesView({
               <label><span className="nexa-label">Tipo exibido<RequiredMark /></span><input className="nexa-input" value={draft.typeLabel} onChange={(event) => setDraft({ ...draft, typeLabel: event.target.value })} placeholder="DE CONCLUSÃO" />{attempted && validation.errors.typeLabel && <small style={{ color: "#c2414f" }}>{validation.errors.typeLabel}</small>}</label>
               <label><span className="nexa-label">Nota mínima<RequiredMark /></span><input className="nexa-input" type="number" min={0} max={100} value={draft.minimumScore} onChange={(event) => setDraft({ ...draft, minimumScore: Number(event.target.value) })} />{attempted && validation.errors.minimumScore && <small style={{ color: "#c2414f" }}>{validation.errors.minimumScore}</small>}</label>
               <label><span className="nexa-label">Cor do curso</span><div style={{ display: "flex", gap: 8 }}><input type="color" value={draft.accentColor} onChange={(event) => setDraft({ ...draft, accentColor: event.target.value.toUpperCase() })} style={{ width: 46, height: 38, border: "1px solid #ddd", borderRadius: 7, padding: 3, background: "#fff" }} /><input className="nexa-input" value={draft.accentColor} onChange={(event) => setDraft({ ...draft, accentColor: event.target.value })} /></div></label>
-              <label><span className="nexa-label">Status inicial</span><select className="nexa-input" value={draft.status} onChange={(event) => setDraft({ ...draft, status: event.target.value as CertificateTemplateDraft["status"] })}><option value="active">Ativo</option><option value="draft">Rascunho</option></select></label>
+              <label><span className="nexa-label">{editingId ? "Status" : "Status inicial"}</span><select className="nexa-input" value={draft.status} onChange={(event) => setDraft({ ...draft, status: event.target.value as CertificateTemplateDraft["status"] })}><option value="active">Ativo</option><option value="draft">Rascunho</option></select></label>
               <label style={{ gridColumn: "1 / -1" }}><span className="nexa-label">Cargo do responsável<RequiredMark /></span><input className="nexa-input" value={draft.signerRole} onChange={(event) => setDraft({ ...draft, signerRole: event.target.value })} />{attempted && validation.errors.signerRole && <small style={{ color: "#c2414f" }}>{validation.errors.signerRole}</small>}</label>
               <label style={{ gridColumn: "1 / -1" }}><span className="nexa-label">Conteúdo programático — um item por linha<RequiredMark /></span><textarea className="nexa-input" style={{ minHeight: 100, resize: "vertical" }} value={draft.programContent.join("\n")} onChange={(event) => setDraft({ ...draft, programContent: event.target.value.split("\n") })} />{attempted && validation.errors.programContent && <small style={{ color: "#c2414f" }}>{validation.errors.programContent}</small>}</label>
               <label style={{ gridColumn: "1 / -1" }}><span className="nexa-label">Arquivo do modelo</span><div style={{ border: "1px dashed #cfcfcf", borderRadius: 9, padding: 16, background: "#fafafa" }}><input id="certificate-template-file" type="file" accept=".ppt,.pptx,.pdf,.png,.jpg,.jpeg" style={{ display: "none" }} onChange={(event) => { const selected = event.target.files?.[0]; if (selected) { setFile(selected); setDraft({ ...draft, sourceFileName: selected.name, sourceFileUrl: undefined }); } }} /><label htmlFor="certificate-template-file" style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}><FileUp size={20} /><span><strong style={{ display: "block", fontSize: 12.5 }}>Selecionar PPTX, PDF ou imagem</strong><small style={{ color: palette.textFaint }}>{draft.sourceFileName}</small></span></label></div></label>
@@ -146,7 +171,7 @@ export default function AdminCertificatesView({
 
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 9, marginTop: 20 }}>
               <button className="nexa-btn-ghost" type="button" onClick={closeModal}>Cancelar</button>
-              <button className="nexa-btn-primary" type="button" onClick={submit} disabled={saving}><FileUp size={14} /> {saving ? "Salvando..." : "Adicionar certificado"}</button>
+              <button className="nexa-btn-primary" type="button" onClick={submit} disabled={saving}><FileUp size={14} /> {saving ? "Salvando..." : editingId ? "Salvar alterações" : "Adicionar certificado"}</button>
             </div>
           </div>
         </div>

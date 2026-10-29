@@ -1003,6 +1003,17 @@ export default function NexaAcademy() {
     return ok;
   }
 
+  async function editarModeloCertificado(templateId, draft, arquivo) {
+    const treinamento = adminTrainings.find((t) => t.title === draft.courseTitle);
+    if (!treinamento) {
+      toast.error("Selecione um treinamento cadastrado.");
+      return false;
+    }
+    const ok = await executar(() => repo.atualizarModeloCertificado(templateId, draft, treinamento.id, arquivo), "Modelo de certificado atualizado");
+    if (ok) invalidar(keys.modelos, keys.logs);
+    return ok;
+  }
+
   async function alternarStatusModeloCertificado(templateId) {
     const template = certificateTemplates.find((t) => t.id === templateId);
     if (!template) return;
@@ -1904,6 +1915,7 @@ export default function NexaAcademy() {
               courseTitles={certificateCourseTitles}
               templates={certificateTemplates}
               onCreate={adicionarModeloCertificado}
+              onUpdate={editarModeloCertificado}
               onPreview={visualizarModeloCertificado}
               onRemove={removerModeloCertificado}
               onToggleStatus={alternarStatusModeloCertificado}
