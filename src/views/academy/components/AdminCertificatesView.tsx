@@ -1,3 +1,4 @@
+import { fecharAoClicarFora } from "@/lib/overlay";
 import { useMemo, useState } from "react";
 import RequiredMark from "@/components/RequiredMark";
 import type { CertificateTemplate, CertificateTemplateDraft } from "@/models/certificate";
@@ -124,7 +125,7 @@ export default function AdminCertificatesView({
       </div>
 
       {showModal && (
-        <div className="nexa-certificate-overlay" style={{ display: "flex", alignItems: "center", justifyContent: "center", zIndex: 75 }} onClick={closeModal}>
+        <div className="nexa-certificate-overlay" style={{ display: "flex", alignItems: "center", justifyContent: "center", zIndex: 75 }} {...fecharAoClicarFora(closeModal)}>
           <div className="nexa-card nexa-scroll" style={{ width: "min(680px, calc(100vw - 32px))", maxHeight: "calc(100vh - 48px)", overflowY: "auto", padding: 22 }} onClick={(event) => event.stopPropagation()}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
               <div><div className="nexa-section-title">Novo modelo de certificado</div><div style={{ marginTop: 4, color: palette.textFaint, fontSize: 11.5 }}>Vincule um modelo a um curso da plataforma.</div></div>

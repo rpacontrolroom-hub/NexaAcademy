@@ -1,5 +1,6 @@
 // Legacy JSX markup is intentionally retained verbatim while domain rules are typed in MVC services.
 // @ts-nocheck
+import { fecharAoClicarFora } from "@/lib/overlay";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
@@ -1951,7 +1952,7 @@ export default function NexaAcademy() {
             backdropFilter: "blur(3px)", zIndex: 60,
             display: "flex", alignItems: "center", justifyContent: "center",
           }}
-          onClick={resetCadastro}
+          {...fecharAoClicarFora(resetCadastro)}
         >
           <div
             className="nexa-card"
@@ -2026,7 +2027,7 @@ export default function NexaAcademy() {
             backdropFilter: "blur(3px)", zIndex: 60,
             display: "flex", alignItems: "center", justifyContent: "center",
           }}
-          onClick={resetTreinoModal}
+          {...fecharAoClicarFora(resetTreinoModal)}
         >
           <div
             className="nexa-card nexa-scroll"

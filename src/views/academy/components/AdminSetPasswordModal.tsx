@@ -1,3 +1,4 @@
+import { fecharAoClicarFora } from "@/lib/overlay";
 import { useState } from "react";
 import RequiredMark from "@/components/RequiredMark";
 import { toast } from "sonner";
@@ -66,7 +67,7 @@ export default function AdminSetPasswordModal({ usuario, onClose }: AdminSetPass
   }
 
   return (
-    <div className="nexa-certificate-overlay" style={{ display: "flex", alignItems: "center", justifyContent: "center", zIndex: 75 }} onClick={onClose}>
+    <div className="nexa-certificate-overlay" style={{ display: "flex", alignItems: "center", justifyContent: "center", zIndex: 75 }} {...fecharAoClicarFora(onClose)}>
       <div className="nexa-card" style={{ width: "min(460px, calc(100vw - 32px))", padding: 22 }} onClick={(e) => e.stopPropagation()}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
           <div>

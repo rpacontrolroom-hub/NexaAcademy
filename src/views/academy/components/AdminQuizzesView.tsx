@@ -1,3 +1,4 @@
+import { fecharAoClicarFora } from "@/lib/overlay";
 import { useState } from "react";
 import RequiredMark from "@/components/RequiredMark";
 import { useQueryClient } from "@tanstack/react-query";
@@ -194,7 +195,7 @@ export default function AdminQuizzesView({ trainings }: AdminQuizzesViewProps) {
       </div>
 
       {showModal && (
-        <div className="nexa-certificate-overlay" style={{ display: "flex", alignItems: "center", justifyContent: "center", zIndex: 75 }} onClick={() => setShowModal(false)}>
+        <div className="nexa-certificate-overlay" style={{ display: "flex", alignItems: "center", justifyContent: "center", zIndex: 75 }} {...fecharAoClicarFora(() => setShowModal(false))}>
           <div className="nexa-card nexa-scroll" style={{ width: "min(780px, calc(100vw - 32px))", maxHeight: "calc(100vh - 48px)", overflowY: "auto", padding: 22 }} onClick={(e) => e.stopPropagation()}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
               <div>
