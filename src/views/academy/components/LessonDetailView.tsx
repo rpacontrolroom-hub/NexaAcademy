@@ -23,7 +23,9 @@ import { PERCENTUAL_MINIMO_VIDEO, useProgressoVideo } from "@/hooks/use-progress
 import LessonComments from "@/views/academy/components/LessonComments";
 import TextLessonContent, { minutosDeLeitura } from "@/views/academy/components/TextLessonContent";
 import * as repo from "@/data/academy-repository";
-import { downloadDireto, embedDocumento, formatBytes, linkValido, youtubeId } from "@/lib/format";
+import { downloadDireto, driveFileId, embedDocumento, formatBytes, linkValido, youtubeId } from "@/lib/format";
+import { baixarArquivoDrive } from "@/lib/drive-client";
+import DriveViewer from "./DriveViewer";
 import type { LessonDetail } from "@/models/lesson-detail";
 
 interface LessonDetailViewProps {
@@ -347,7 +349,9 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
             ) : embedAula && aula?.url ? (
               <>
                 <div className={`lesson-doc-frame ${embedAula.tipo}`}>
-                  <iframe src={embedAula.src} title={detail.title} allow="fullscreen" allowFullScreen loading="lazy" />
+                  {driveFileId(aula.url)
+                    ? <DriveViewer id={driveFileId(aula.url)!} title={detail.title} fallbackSrc={embedAula.src} />
+                    : <iframe src={embedAula.src} title={detail.title} allow="fullscreen" allowFullScreen loading="lazy" />}
                 </div>
                 <div className="lesson-doc-bar">
                   <span>Não carregou? Confira se o arquivo está compartilhado no Drive.</span>
@@ -423,7 +427,16 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
                       : material.arquivo_url.includes("/storage/v1/object/")
                         ? <a href={linkDownload(material.arquivo_url, material.titulo)} aria-label={`Baixar ${material.titulo}`}><Download size={13} /></a>
                         : downloadDireto(material.arquivo_url)
-                          ? <a href={downloadDireto(material.arquivo_url)!} aria-label={`Baixar ${material.titulo}`} title="Baixar"><Download size={13} /></a>
+                          ? <a
+                              href={downloadDireto(material.arquivo_url)!}
+                              onClick={(e) => {
+                                // Baixa pelo servidor (conta de serviço, sem login do Google); se falhar, segue o link do Drive.
+                                const id = driveFileId(material.arquivo_url);
+                                if (!id) return;
+                                e.preventDefault();
+                                baixarArquivoDrive(id).catch(() => window.open(downloadDireto(material.arquivo_url)!, "_blank"));
+                              }}
+                              aria-label={`Baixar ${material.titulo}`} title="Baixar"><Download size={13} /></a>
                           : <a href={material.arquivo_url} target="_blank" rel="noreferrer" aria-label={`Abrir ${material.titulo}`}><ExternalLink size={13} /></a>}
                   </div>
                 ))}

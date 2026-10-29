@@ -82,6 +82,19 @@ export function downloadDireto(url: string | null | undefined): string | null {
   return null;
 }
 
+/** ID do arquivo do Drive/Docs/Slides/Planilhas num link (`null` para pastas e outros sites).
+ *  É por esse ID que o servidor busca o arquivo com a conta de serviço. */
+export function driveFileId(url: string | null | undefined): string | null {
+  if (!url || !linkValido(url)) return null;
+  const u = new URL(url.trim());
+  const host = u.hostname.replace(/^www\./, "");
+  if (host === "docs.google.com") return u.pathname.match(/^\/(?:presentation|document|spreadsheets)\/d\/([\w-]+)/)?.[1] ?? null;
+  if (host === "drive.google.com") {
+    return u.pathname.match(/^\/file\/d\/([\w-]+)/)?.[1] ?? ((u.pathname === "/open" || u.pathname === "/uc") ? u.searchParams.get("id") : null);
+  }
+  return null;
+}
+
 /** Só aceita links http(s) completos (evita javascript: e texto solto). */
 export function linkValido(url: string): boolean {
   try {

@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AcademyRouteImport } from './routes/academy'
+import { Route as ApiDriveIdRouteImport } from './routes/api.drive.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,31 +23,40 @@ const AcademyRoute = AcademyRouteImport.update({
   path: '/academy',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDriveIdRoute = ApiDriveIdRouteImport.update({
+  id: '/api/drive/$id',
+  path: '/api/drive/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/academy': typeof AcademyRoute
+  '/api/drive/$id': typeof ApiDriveIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/academy': typeof AcademyRoute
+  '/api/drive/$id': typeof ApiDriveIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/academy': typeof AcademyRoute
+  '/api/drive/$id': typeof ApiDriveIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/academy'
+  fullPaths: '/' | '/academy' | '/api/drive/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/academy'
-  id: '__root__' | '/' | '/academy'
+  to: '/' | '/academy' | '/api/drive/$id'
+  id: '__root__' | '/' | '/academy' | '/api/drive/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AcademyRoute: typeof AcademyRoute
+  ApiDriveIdRoute: typeof ApiDriveIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -65,12 +75,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AcademyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/drive/$id': {
+      id: '/api/drive/$id'
+      path: '/api/drive/$id'
+      fullPath: '/api/drive/$id'
+      preLoaderRoute: typeof ApiDriveIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AcademyRoute: AcademyRoute,
+  ApiDriveIdRoute: ApiDriveIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
