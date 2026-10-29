@@ -14,7 +14,7 @@ export default function DriveViewer({ id, title, fallbackSrc }: { id: string; ti
     setFalhou(false);
     buscarArquivoDrive(id, "ver")
       .then(({ blob }) => { if (!cancelado) { url = URL.createObjectURL(blob); setSrc(url); } })
-      .catch(() => { if (!cancelado) setFalhou(true); });
+      .catch((e) => { console.warn("Drive via servidor falhou:", e instanceof Error ? e.message : e); if (!cancelado) setFalhou(true); });
     return () => { cancelado = true; if (url) URL.revokeObjectURL(url); };
   }, [id]);
 
