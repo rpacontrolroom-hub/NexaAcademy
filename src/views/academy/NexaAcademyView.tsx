@@ -636,8 +636,10 @@ export default function NexaAcademy() {
     [treinamentosDb, progressoPorTreinamento],
   );
   const courses = useMemo(() => adminTrainings.filter((t) => t.status === "ativo"), [adminTrainings]);
-  // Só aparecem no filtro as categorias que têm algum treinamento ativo.
-  const categories = useMemo(() => ["Todos", ...categoriasDb.map((c) => c.nome).filter((nome) => courses.some((t) => t.cat === nome))], [categoriasDb, courses]);
+  // Catálogo dos alunos: `courses` (ativos) menos os marcados como não listados, que seguem acessíveis por matrícula/trilha.
+  const catalogo = useMemo(() => courses.filter((t) => !t.naoListado), [courses]);
+  // Só aparecem no filtro as categorias que têm algum treinamento no catálogo.
+  const categories = useMemo(() => ["Todos", ...categoriasDb.map((c) => c.nome).filter((nome) => catalogo.some((t) => t.cat === nome))], [categoriasDb, catalogo]);
   const trilhas = useMemo(() => repo.montarTrilhas(trilhasDb, matriculas, (cor) => palette[cor] ?? cor ?? palette.cyan), [trilhasDb, matriculas]);
   const trilhaAtual = trilhas[Math.min(selectedTrilha, trilhas.length - 1)];
   // Dashboard: trilha iniciada (algum treinamento dela com matrícula) e ainda não concluída,
@@ -685,7 +687,7 @@ export default function NexaAcademy() {
   const continuar = emAndamento[0] ?? null;
   const ultimosTreinamentos = (matriculas.length
     ? matriculas.map((m) => courses.find((c) => c.id === m.treinamento_id)).filter(Boolean)
-    : courses
+    : catalogo
   ).slice(0, 3);
 
   function invalidar(...chaves) {
@@ -748,7 +750,7 @@ export default function NexaAcademy() {
   const [salvandoTreino, setSalvandoTreino] = useState(false);
   const novoItem = () => ({ tipo: "video", titulo: "", url: "", texto: "", materiais: [], quizId: "" });
   const treinoInicial = {
-    title: "", cat: "", level: "Básico", dur: "", desc: "", capa: "",
+    title: "", cat: "", level: "Básico", dur: "", desc: "", capa: "", naoListado: false,
     modulos: [{ titulo: "Módulo 1", imagem: "", itens: [novoItem()] }],
   };
   const [novoTreino, setNovoTreino] = useState(treinoInicial);
@@ -871,6 +873,7 @@ export default function NexaAcademy() {
         level: t.level || "Básico",
         dur: minutosParaHoras(t.minutos),
         desc: t.desc || "",
+        naoListado: t.naoListado,
         capa: t.cover || "",
         modulos: modulos.length
           ? modulos.map((m) => ({ ...m, itens: m.itens.length ? m.itens : [novoItem()] }))
@@ -1027,14 +1030,14 @@ export default function NexaAcademy() {
   }
 
   const FILTRO_FAVORITOS = "__favoritos__";
-  const filtered = catFilter === "Todos" ? courses
+  const filtered = catFilter === "Todos" ? catalogo
     : catFilter === FILTRO_FAVORITOS ? favoritos
-    : courses.filter((c) => c.cat === catFilter);
+    : catalogo.filter((c) => c.cat === catFilter);
   const navItems = mode === "admin" ? adminNavItems : userNavItems;
   const certificateCourseTitles = adminTrainings.map((training) => training.title).sort((a, b) => a.localeCompare(b, "pt-BR"));
 
   function abrirCurso(courseId, lessonId = null) {
-    const id = courseId ?? continuar?.curso?.id ?? courses[0]?.id;
+    const id = courseId ?? continuar?.curso?.id ?? catalogo[0]?.id;
     if (!id) return;
     setSelectedCourseId(id);
     setSelectedLessonId(lessonId);
@@ -1245,14 +1248,14 @@ export default function NexaAcademy() {
                     <div style={{ position: "relative", zIndex: 2 }}>
                       <span className="nexa-badge">Nenhum treinamento em andamento</span>
                       <h2 className="nexa-heading" style={{ fontSize: 24, margin: "24px 0 8px" }}>
-                        {courses.length ? "Que tal começar um treinamento hoje?" : "Nenhum treinamento disponível ainda"}
+                        {catalogo.length ? "Que tal começar um treinamento hoje?" : "Nenhum treinamento disponível ainda"}
                       </h2>
                       <p style={{ fontSize: 12.5, color: palette.textMuted, marginBottom: 16, maxWidth: 420 }}>
-                        {courses.length
-                          ? `Você não tem nenhum treinamento em andamento no momento. Explore os ${courses.length} disponíveis e escolha o próximo passo.`
+                        {catalogo.length
+                          ? `Você não tem nenhum treinamento em andamento no momento. Explore os ${catalogo.length} disponíveis e escolha o próximo passo.`
                           : "Assim que novos treinamentos forem publicados, eles aparecem por aqui."}
                       </p>
-                      {courses.length > 0 && (
+                      {catalogo.length > 0 && (
                         <button className="nexa-btn-primary" onClick={() => setActive("treinamentos")}>
                           <GraduationCap size={15} /> Ver treinamentos
                         </button>
@@ -1834,7 +1837,7 @@ export default function NexaAcademy() {
                           <td>{t.level}</td>
                           <td style={{ color: palette.textMuted }}>{t.dur}</td>
                           <td>{t.alunos}</td>
-                          <td><span className="nexa-status-dot" style={{ background: t.status === "ativo" ? palette.green : palette.textFaint }} />{t.status === "ativo" ? "Ativo" : "Inativo"}</td>
+                          <td><span className="nexa-status-dot" style={{ background: t.status === "ativo" ? palette.green : palette.textFaint }} />{t.status === "ativo" ? "Ativo" : "Inativo"}{t.naoListado && <span style={{ marginLeft: 8, fontSize: 10.5, color: palette.textFaint }}>· Não listado</span>}</td>
                           <td style={{ position: "relative", textAlign: "right" }}>
                             <button
                               type="button"
@@ -2133,6 +2136,19 @@ export default function NexaAcademy() {
                 outline: "none", marginBottom: 6, resize: "vertical", fontFamily: "inherit",
               }}
             />
+
+            <label style={{ display: "flex", alignItems: "flex-start", gap: 8, margin: "6px 0 4px", fontSize: 12.5, color: palette.textPrimary, cursor: "pointer" }}>
+              <input
+                type="checkbox"
+                checked={!!novoTreino.naoListado}
+                onChange={(e) => setNovoTreino({ ...novoTreino, naoListado: e.target.checked })}
+                style={{ marginTop: 2 }}
+              />
+              <span>
+                Treinamento não listado
+                <span style={{ display: "block", fontSize: 11, color: palette.textMuted }}>Não aparece no catálogo dos alunos; segue acessível por matrícula ou trilha.</span>
+              </span>
+            </label>
 
             <label style={{ fontSize: 11.5, color: palette.textMuted, display: "block", margin: "10px 0 6px" }}>Capa (opcional)</label>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>

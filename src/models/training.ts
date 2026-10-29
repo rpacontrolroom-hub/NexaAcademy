@@ -38,6 +38,8 @@ export interface TrainingDraft {
   level: TrainingLevel;
   dur: string;
   desc: string;
+  /** Não aparece no catálogo dos alunos (segue acessível por matrícula/trilha). */
+  naoListado?: boolean;
   /** URL da capa atual, data URL de uma imagem nova (enviada ao salvar) ou "" sem capa. */
   capa?: string;
   modulos: TrainingModule[];

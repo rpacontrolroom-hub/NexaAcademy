@@ -147,6 +147,8 @@ export interface Treinamento {
   grad: [string, string];
   desc: string;
   status: "ativo" | "inativo";
+  /** Ativo, mas fora do catálogo dos alunos. */
+  naoListado: boolean;
   alunos: number;
 }
 
@@ -154,7 +156,7 @@ export async function fetchTreinamentos(): Promise<Treinamento[]> {
   const rows = check(
     await supabase
       .from("treinamentos")
-      .select("id, slug, titulo, descricao, nivel, duracao_minutos, capa_url, icone, gradiente_inicio, gradiente_fim, status, categoria_id, categorias(nome), matriculas(count)")
+      .select("id, slug, titulo, descricao, nivel, duracao_minutos, capa_url, icone, gradiente_inicio, gradiente_fim, status, nao_listado, categoria_id, categorias(nome), matriculas(count)")
       .order("created_at", { ascending: false }),
   );
   return rows.map((t: any) => ({
@@ -171,6 +173,7 @@ export async function fetchTreinamentos(): Promise<Treinamento[]> {
     grad: [t.gradiente_inicio ?? "#3D6BFF", t.gradiente_fim ?? "#2DD4E8"],
     desc: t.descricao ?? "",
     status: t.status,
+    naoListado: !!t.nao_listado,
     alunos: t.matriculas?.[0]?.count ?? 0,
   }));
 }
@@ -740,6 +743,7 @@ export async function salvarTreinamento(draft: TrainingDraft, categoriaId: strin
     categoria_id: categoriaId,
     nivel: draft.level,
     duracao_minutos: minutos,
+    nao_listado: !!draft.naoListado,
     capa_url: draft.capa?.startsWith("data:") ? await uploadArquivo(draft.capa, "treinamentos", "capa.png") : draft.capa || null,
   };
 
