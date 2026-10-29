@@ -93,11 +93,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:image", content: "/favicon-512.png" },
       { name: "twitter:image", content: "/favicon-512.png" },
     ],
+    // Aplica o tema salvo antes da primeira pintura (evita piscar o tema claro).
+    scripts: [
+      { children: 'try{if(localStorage.getItem("nexa-tema")==="oceano")document.documentElement.dataset.tema="oceano"}catch(e){}' },
+    ],
     links: [
       {
         rel: "stylesheet",
         href: appCss,
       },
+      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500&display=swap" },
       { rel: "icon", href: "/favicon.ico?v=2", sizes: "any" },
       { rel: "icon", href: "/favicon-32.png?v=2", type: "image/png", sizes: "32x32" },
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png?v=2" },
@@ -111,7 +116,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>

@@ -1,0 +1,239 @@
+/* Tema "Oceano" (Nexa cardume): escuro, azul-marinho, vidro fosco. Ativo com <html data-tema="oceano">.
+ * O tema claro (padrão) não muda. Os seletores usam html[data-tema] para vencer os <style> embutidos nos componentes. */
+
+html[data-tema="oceano"] {
+  color-scheme: dark;
+  --nexa-bg-base: #04162b;
+  --nexa-bg-panel: rgba(7, 30, 58, 0.78);
+  --nexa-bg-card: rgba(255, 255, 255, 0.05);
+  --nexa-bg-card-hover: rgba(255, 255, 255, 0.09);
+  --nexa-border: rgba(140, 190, 255, 0.16);
+  --nexa-border-strong: rgba(140, 190, 255, 0.3);
+  --nexa-text-primary: #e8f1fa;
+  --nexa-text-muted: #a9c1da;
+  --nexa-text-faint: #7390ad;
+  --nexa-accent: #3b9bff;
+  --nexa-accent-strong: #1d6fe0;
+  --nexa-success: #3ecf8e;
+  --nexa-warning: #f2c744;
+  --nexa-error: #ff6b7a;
+  --background: #04162b;
+  --foreground: #e8f1fa;
+  --card: #0a2441;
+  --card-foreground: #e8f1fa;
+  --muted: #0f2f50;
+  --muted-foreground: #a9c1da;
+  --border: rgba(140, 190, 255, 0.16);
+  --input: rgba(140, 190, 255, 0.2);
+}
+
+html[data-tema="oceano"],
+html[data-tema="oceano"] body { background: #04162b; color: #e8f1fa; }
+
+/* Fundo: foto do cardume bem escurecida */
+html[data-tema="oceano"] .nexa-root {
+  background:
+    linear-gradient(180deg, rgba(4, 22, 43, 0.82), rgba(4, 22, 43, 0.96)),
+    url(/tema/padrao-peixes.jpg) center / cover fixed,
+    #04162b;
+  color: #e8f1fa;
+}
+html[data-tema="oceano"] .nexa-heading { font-family: 'Playfair Display', 'Space Grotesk', serif; font-weight: 600; letter-spacing: 0; }
+html[data-tema="oceano"] .nexa-heading em, html[data-tema="oceano"] .nexa-heading i { color: #7db8ff; }
+html[data-tema="oceano"] ::selection { background: rgba(59, 155, 255, 0.4); }
+
+/* Menu lateral */
+html[data-tema="oceano"] .nexa-sidebar {
+  background: linear-gradient(180deg, rgba(7, 30, 58, 0.85), rgba(4, 22, 43, 0.9));
+  border-right-color: rgba(140, 190, 255, 0.14);
+  backdrop-filter: blur(14px);
+}
+html[data-tema="oceano"] .nexa-sidebar .nexa-logo-mark { background: transparent; }
+html[data-tema="oceano"] .nexa-sidebar .nexa-logo-mark img { display: none; }
+html[data-tema="oceano"] .nexa-sidebar .nexa-logo-mark::before {
+  content: ""; width: 100%; height: 100%; background: url(/tema/x-branco.png) center / contain no-repeat;
+}
+html[data-tema="oceano"] .nexa-logo-text { text-transform: none; letter-spacing: 0; font: 600 20px 'Playfair Display', serif; color: #fff; }
+html[data-tema="oceano"] .nexa-logo-academy { color: #7db8ff; font: italic 500 20px 'Playfair Display', serif; letter-spacing: 0; text-transform: none; margin-top: 0; }
+html[data-tema="oceano"] .nexa-logo-sub { color: #7390ad; }
+html[data-tema="oceano"] .nexa-navlabel { color: #7390ad; }
+html[data-tema="oceano"] .nexa-navitem { color: #a9c1da; }
+html[data-tema="oceano"] .nexa-navitem:hover { background: rgba(255, 255, 255, 0.06); color: #fff; }
+html[data-tema="oceano"] .nexa-navitem.active,
+html[data-tema="oceano"] .nexa-navitem.adminactive {
+  color: #fff; background: linear-gradient(90deg, #1d6fe0, #0b4aa0); border-color: transparent; font-weight: 600;
+  box-shadow: 0 6px 22px rgba(29, 111, 224, 0.4);
+}
+html[data-tema="oceano"] .nexa-navitem.active svg,
+html[data-tema="oceano"] .nexa-navitem.adminactive svg { color: #fff; }
+html[data-tema="oceano"] .nexa-sidebar-footer { border-color: rgba(140, 190, 255, 0.14); }
+html[data-tema="oceano"] .nexa-mode-switch { color: #e8f1fa !important; background: rgba(255, 255, 255, 0.06) !important; border-color: rgba(140, 190, 255, 0.25) !important; }
+html[data-tema="oceano"] .nexa-avatar { color: #fff; background: linear-gradient(135deg, #3b9bff, #1d6fe0); border-color: transparent; }
+
+/* Topo e conteúdo */
+html[data-tema="oceano"] .nexa-topbar { background: rgba(4, 22, 43, 0.55); border-bottom-color: rgba(140, 190, 255, 0.14); backdrop-filter: blur(10px); }
+html[data-tema="oceano"] .nexa-search { background: rgba(255, 255, 255, 0.06); border-color: rgba(140, 190, 255, 0.22); color: #a9c1da; backdrop-filter: blur(8px); }
+html[data-tema="oceano"] .nexa-profile-menu { background: #0a2441; border-color: rgba(140, 190, 255, 0.22); }
+html[data-tema="oceano"] .nexa-profile-menu button { color: #e8f1fa; }
+html[data-tema="oceano"] .nexa-profile-menu button:hover { background: rgba(255, 255, 255, 0.08); }
+html[data-tema="oceano"] .nexa-profile-menu button:last-child { color: #ff8a97; }
+
+/* Cartões, herói, selos, botões, tabelas, formulários */
+html[data-tema="oceano"] .nexa-card {
+  background: rgba(255, 255, 255, 0.05); border-color: rgba(140, 190, 255, 0.16);
+  box-shadow: 0 10px 34px rgba(0, 10, 30, 0.35); backdrop-filter: blur(12px);
+}
+html[data-tema="oceano"] .nexa-card:hover { border-color: rgba(59, 155, 255, 0.55); }
+html[data-tema="oceano"] .nexa-hero {
+  color: #fff; border-color: rgba(140, 190, 255, 0.22);
+  background: linear-gradient(90deg, rgba(4, 22, 43, 0.88) 0%, rgba(4, 22, 43, 0.55) 55%, rgba(4, 22, 43, 0.2)), url(/tema/cardume.jpg) center / cover;
+  box-shadow: 0 16px 50px rgba(0, 10, 30, 0.5);
+}
+html[data-tema="oceano"] .nexa-hero, html[data-tema="oceano"] .nexa-hero * { text-shadow: 0 1px 10px rgba(0, 10, 30, 0.6); }
+html[data-tema="oceano"] .nexa-hero .nexa-btn-primary { text-shadow: none; }
+html[data-tema="oceano"] .nexa-badge { border-color: rgba(140, 190, 255, 0.35); color: #e8f1fa !important; background: rgba(4, 22, 43, 0.6) !important; }
+html[data-tema="oceano"] .nexa-progress-track { background: rgba(255, 255, 255, 0.12); }
+html[data-tema="oceano"] .nexa-progress-fill { background: linear-gradient(90deg, #1d6fe0, #3b9bff); box-shadow: 0 0 10px rgba(59, 155, 255, 0.7); }
+html[data-tema="oceano"] .nexa-btn-primary { background: linear-gradient(135deg, #3b9bff, #1d6fe0); color: #fff; box-shadow: 0 8px 26px rgba(59, 155, 255, 0.35); }
+html[data-tema="oceano"] .nexa-btn-ghost { color: #cfe3f7; background: transparent; border-color: rgba(140, 190, 255, 0.28); }
+html[data-tema="oceano"] .nexa-btn-ghost:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
+html[data-tema="oceano"] .nexa-see-all { color: #7db8ff; }
+html[data-tema="oceano"] .nexa-dashboard-stats .nexa-stat-icon { background: rgba(59, 155, 255, 0.16) !important; color: #7db8ff !important; border-color: rgba(59, 155, 255, 0.3); }
+html[data-tema="oceano"] .nexa-dashboard-course-link { border-color: rgba(140, 190, 255, 0.35); color: #cfe3f7; }
+html[data-tema="oceano"] .nexa-notification-icon { background: rgba(255, 255, 255, 0.08); }
+html[data-tema="oceano"] .nexa-table td { border-bottom-color: rgba(140, 190, 255, 0.1); }
+html[data-tema="oceano"] .nexa-label { color: #a9c1da; }
+html[data-tema="oceano"] .nexa-input,
+html[data-tema="oceano"] input:not([type="checkbox"]):not([type="radio"]):not([type="color"]),
+html[data-tema="oceano"] textarea,
+html[data-tema="oceano"] select { background: rgba(255, 255, 255, 0.06); color: #e8f1fa; border-color: rgba(140, 190, 255, 0.25); }
+html[data-tema="oceano"] .nexa-input:focus { border-color: #3b9bff; box-shadow: 0 0 0 2px rgba(59, 155, 255, 0.25); }
+html[data-tema="oceano"] option { background: #0a2441; color: #e8f1fa; }
+html[data-tema="oceano"] .nexa-certificate-overlay { background: rgba(2, 10, 22, 0.7) !important; }
+html[data-tema="oceano"] .nexa-root .nexa-card.nexa-scroll { background: #0a2441; }
+
+/* Sino de notificações */
+html[data-tema="oceano"] .nexa-bell-button { color: #cfe3f7; }
+html[data-tema="oceano"] .nexa-bell-button:hover, html[data-tema="oceano"] .nexa-bell-button[aria-expanded="true"] { background: rgba(255, 255, 255, 0.1); }
+html[data-tema="oceano"] .nexa-bell-panel { background: #0a2441; border-color: rgba(140, 190, 255, 0.22); box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5); }
+html[data-tema="oceano"] .nexa-bell-head { border-bottom-color: rgba(140, 190, 255, 0.14); color: #e8f1fa; }
+html[data-tema="oceano"] .nexa-bell-head button { color: #a9c1da; }
+html[data-tema="oceano"] .nexa-bell-head button:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
+html[data-tema="oceano"] .nexa-bell-item { background: transparent; border-bottom-color: rgba(140, 190, 255, 0.1); }
+html[data-tema="oceano"] .nexa-bell-item.link:hover { background: rgba(255, 255, 255, 0.06); }
+html[data-tema="oceano"] .nexa-bell-dot { background: #3b9bff; }
+html[data-tema="oceano"] .nexa-bell-title { color: #e8f1fa; }
+html[data-tema="oceano"] .nexa-bell-msg { color: #a9c1da; }
+html[data-tema="oceano"] .nexa-bell-time, html[data-tema="oceano"] .nexa-bell-empty { color: #7390ad; }
+
+/* Detalhe do curso */
+html[data-tema="oceano"] .course-detail, html[data-tema="oceano"] .lesson-detail { color: #e8f1fa; }
+html[data-tema="oceano"] .course-detail-breadcrumb, html[data-tema="oceano"] .lesson-detail-breadcrumb,
+html[data-tema="oceano"] .course-detail-description, html[data-tema="oceano"] .lesson-detail-description { color: #a9c1da; }
+html[data-tema="oceano"] .course-detail-breadcrumb button, html[data-tema="oceano"] .lesson-detail-breadcrumb button { color: #a9c1da; }
+html[data-tema="oceano"] .course-detail-breadcrumb button:hover, html[data-tema="oceano"] .lesson-detail-breadcrumb button:hover { color: #fff; }
+html[data-tema="oceano"] .course-detail-chip, html[data-tema="oceano"] .course-detail-secondary,
+html[data-tema="oceano"] .course-detail-nav-button, html[data-tema="oceano"] .lesson-nav-button,
+html[data-tema="oceano"] .course-detail-status { color: #e8f1fa; background: rgba(255, 255, 255, 0.06); border-color: rgba(140, 190, 255, 0.25); }
+html[data-tema="oceano"] .course-detail-primary, html[data-tema="oceano"] .course-detail-nav-button.next,
+html[data-tema="oceano"] .lesson-nav-button.next, html[data-tema="oceano"] .lesson-open-link { color: #fff; background: linear-gradient(135deg, #3b9bff, #1d6fe0); border-color: transparent; }
+html[data-tema="oceano"] .course-detail-panel, html[data-tema="oceano"] .lesson-detail-main,
+html[data-tema="oceano"] .lesson-detail-side-card, html[data-tema="oceano"] .lesson-comments {
+  background: rgba(255, 255, 255, 0.05); border-color: rgba(140, 190, 255, 0.16); box-shadow: 0 10px 34px rgba(0, 10, 30, 0.35); backdrop-filter: blur(12px);
+}
+html[data-tema="oceano"] .course-detail-tabs { border-bottom-color: rgba(140, 190, 255, 0.16); }
+html[data-tema="oceano"] .course-detail-tab { color: #7390ad; }
+html[data-tema="oceano"] .course-detail-tab.active { color: #fff; }
+html[data-tema="oceano"] .course-detail-tab.active::after { background: #3b9bff; }
+html[data-tema="oceano"] .course-detail-modules, html[data-tema="oceano"] .course-detail-lessons,
+html[data-tema="oceano"] .lesson-content-list, html[data-tema="oceano"] .lesson-material-list { background: rgba(255, 255, 255, 0.03); border-color: rgba(140, 190, 255, 0.16); }
+html[data-tema="oceano"] .course-detail-module { color: #cfe3f7; }
+html[data-tema="oceano"] .course-detail-module:hover:not(:disabled), html[data-tema="oceano"] .course-detail-lesson:hover,
+html[data-tema="oceano"] .lesson-content-row:hover { background: rgba(255, 255, 255, 0.07); color: #fff; }
+html[data-tema="oceano"] .course-detail-module.active, html[data-tema="oceano"] .lesson-content-row.active { color: #fff; background: rgba(59, 155, 255, 0.2); }
+html[data-tema="oceano"] .course-detail-module:disabled { color: #7390ad; }
+html[data-tema="oceano"] .course-detail-module-state { border-color: rgba(140, 190, 255, 0.4); color: #cfe3f7; }
+html[data-tema="oceano"] .course-detail-module-state.current { background: #3b9bff; border-color: #3b9bff; }
+html[data-tema="oceano"] .course-detail-modules-divider { background: rgba(140, 190, 255, 0.16); }
+html[data-tema="oceano"] .course-detail-module-description, html[data-tema="oceano"] .course-detail-lesson-duration,
+html[data-tema="oceano"] .lesson-material-size, html[data-tema="oceano"] .lesson-no-material { color: #7390ad; }
+html[data-tema="oceano"] .course-detail-lesson { color: #cfe3f7; }
+html[data-tema="oceano"] .course-detail-empty, html[data-tema="oceano"] .course-conclusion-locked { color: #a9c1da; background: rgba(255, 255, 255, 0.04); border-color: rgba(140, 190, 255, 0.25); }
+html[data-tema="oceano"] .course-detail-about { color: #cfe3f7; }
+html[data-tema="oceano"] .course-detail-about h3 { color: #fff; }
+
+/* Aula */
+html[data-tema="oceano"] .lesson-video, html[data-tema="oceano"] .lesson-doc-frame { background: #0a2441; border-color: rgba(140, 190, 255, 0.18); }
+html[data-tema="oceano"] .lesson-video-brand { color: #cfe3f7; }
+html[data-tema="oceano"] .lesson-doc-bar, html[data-tema="oceano"] .lesson-done-hint, html[data-tema="oceano"] .lesson-reading-bar { color: #a9c1da; border-color: rgba(140, 190, 255, 0.14); }
+html[data-tema="oceano"] .lesson-reading-chip { color: #e8f1fa; background: rgba(255, 255, 255, 0.1); }
+html[data-tema="oceano"] .lesson-reading-end { color: #cfe3f7; background: rgba(255, 255, 255, 0.05); border-color: rgba(140, 190, 255, 0.2); }
+html[data-tema="oceano"] .lesson-watch-track { background: rgba(255, 255, 255, 0.14); }
+html[data-tema="oceano"] .lesson-complete-button { color: #7390ad; background: rgba(255, 255, 255, 0.08); border-color: rgba(140, 190, 255, 0.2); }
+html[data-tema="oceano"] .lesson-complete-button.done { color: #7ee2b0; background: rgba(62, 207, 142, 0.14); border-color: rgba(62, 207, 142, 0.35); }
+html[data-tema="oceano"] .lesson-skip-warning, html[data-tema="oceano"] .course-conclusion-pending { color: #f2d98a; background: rgba(242, 199, 68, 0.1); border-color: rgba(242, 199, 68, 0.35); }
+
+/* Comentários, quiz, conclusão, texto da aula */
+html[data-tema="oceano"] .lesson-comments-title, html[data-tema="oceano"] .lesson-comment-author,
+html[data-tema="oceano"] .quiz-player-title, html[data-tema="oceano"] .quiz-question-title,
+html[data-tema="oceano"] .course-conclusion-card h3, html[data-tema="oceano"] .course-conclusion-person-name { color: #e8f1fa; }
+html[data-tema="oceano"] .lesson-comment-text { color: #cfe3f7; }
+html[data-tema="oceano"] .lesson-comments-count, html[data-tema="oceano"] .lesson-comment-time, html[data-tema="oceano"] .lesson-comment-form-footer small,
+html[data-tema="oceano"] .lesson-comments-empty, html[data-tema="oceano"] .quiz-player-meta, html[data-tema="oceano"] .quiz-actions small,
+html[data-tema="oceano"] .course-conclusion-card small, html[data-tema="oceano"] .course-conclusion-when, html[data-tema="oceano"] .course-conclusion-empty { color: #7390ad; }
+html[data-tema="oceano"] .lesson-comment-item, html[data-tema="oceano"] .lesson-comments-empty, html[data-tema="oceano"] .quiz-question,
+html[data-tema="oceano"] .course-conclusion-person { border-top-color: rgba(140, 190, 255, 0.14); }
+html[data-tema="oceano"] .lesson-comment-send, html[data-tema="oceano"] .quiz-submit, html[data-tema="oceano"] .course-conclusion-send { background: linear-gradient(135deg, #3b9bff, #1d6fe0); color: #fff; }
+html[data-tema="oceano"] .lesson-comment-you { background: rgba(255, 255, 255, 0.1); color: #cfe3f7; }
+html[data-tema="oceano"] .quiz-option { background: rgba(255, 255, 255, 0.04); border-color: rgba(140, 190, 255, 0.22); color: #e8f1fa; }
+html[data-tema="oceano"] .quiz-option:hover { border-color: #3b9bff; }
+html[data-tema="oceano"] .quiz-option.selected { border-color: #3b9bff; background: rgba(59, 155, 255, 0.16); }
+html[data-tema="oceano"] .quiz-retry { background: transparent; color: #cfe3f7; border-color: rgba(140, 190, 255, 0.3); }
+html[data-tema="oceano"] .quiz-result.ok { background: rgba(62, 207, 142, 0.14); color: #7ee2b0; border-color: rgba(62, 207, 142, 0.35); }
+html[data-tema="oceano"] .quiz-result.fail { background: rgba(255, 107, 122, 0.12); color: #ff9aa5; border-color: rgba(255, 107, 122, 0.35); }
+html[data-tema="oceano"] .quiz-actions { border-top-color: rgba(140, 190, 255, 0.14); }
+html[data-tema="oceano"] .course-conclusion-card { background: rgba(255, 255, 255, 0.05); border-color: rgba(140, 190, 255, 0.16); }
+html[data-tema="oceano"] .course-conclusion-card textarea, html[data-tema="oceano"] .lesson-comment-form textarea { background: rgba(255, 255, 255, 0.06); color: #e8f1fa; border-color: rgba(140, 190, 255, 0.25); }
+html[data-tema="oceano"] .course-conclusion-btn.light { color: #04162b; }
+html[data-tema="oceano"] .text-lesson { color: #cfe3f7; }
+html[data-tema="oceano"] .text-lesson h1, html[data-tema="oceano"] .text-lesson h2, html[data-tema="oceano"] .text-lesson h3 { color: #fff; }
+html[data-tema="oceano"] .text-lesson blockquote { color: #cfe3f7; background: rgba(255, 255, 255, 0.06); border-left-color: #3b9bff; }
+html[data-tema="oceano"] .text-lesson code { background: rgba(255, 255, 255, 0.1); border-color: rgba(140, 190, 255, 0.2); color: #e8f1fa; }
+html[data-tema="oceano"] .text-lesson hr { border-top-color: rgba(140, 190, 255, 0.2); }
+html[data-tema="oceano"] .text-lesson a { color: #7db8ff; }
+
+/* Login */
+html[data-tema="oceano"] .login-root { background: #04162b; color: #e8f1fa; }
+html[data-tema="oceano"] .login-shell, html[data-tema="oceano"] .login-left { background: transparent; border-color: rgba(140, 190, 255, 0.16); }
+html[data-tema="oceano"] .login-left { background: linear-gradient(120deg, rgba(4, 22, 43, 0.82), rgba(4, 22, 43, 0.5)), url(/tema/cardume.jpg) center / cover; }
+html[data-tema="oceano"] .login-card { background: rgba(255, 255, 255, 0.05); border-color: rgba(140, 190, 255, 0.2); backdrop-filter: blur(14px); }
+html[data-tema="oceano"] .login-intro > p, html[data-tema="oceano"] .login-sub, html[data-tema="oceano"] .login-support { color: #a9c1da; }
+html[data-tema="oceano"] .login-input-wrap { border-color: rgba(140, 190, 255, 0.28); background: rgba(255, 255, 255, 0.05); }
+html[data-tema="oceano"] .login-input { color: #e8f1fa; }
+html[data-tema="oceano"] .login-input-wrap svg.leading, html[data-tema="oceano"] .login-eye { color: #a9c1da; }
+html[data-tema="oceano"] .login-submit { background: linear-gradient(135deg, #3b9bff, #1d6fe0); box-shadow: 0 8px 26px rgba(59, 155, 255, 0.35); }
+html[data-tema="oceano"] .login-link { color: #cfe3f7; }
+
+/* Filtros, favoritos e trilhas */
+html[data-tema="oceano"] .nexa-pill { border-color: rgba(140, 190, 255, 0.28); color: #cfe3f7; background: rgba(255, 255, 255, 0.05); }
+html[data-tema="oceano"] .nexa-pill:hover { background: rgba(255, 255, 255, 0.12); border-color: rgba(140, 190, 255, 0.5); color: #fff; }
+html[data-tema="oceano"] .nexa-pill.active { background: linear-gradient(135deg, #3b9bff, #1d6fe0); border-color: transparent; color: #fff; box-shadow: 0 0 18px rgba(59, 155, 255, 0.45); }
+html[data-tema="oceano"] .nexa-fav-button { background: rgba(4, 22, 43, 0.7); border-color: rgba(140, 190, 255, 0.3); color: #cfe3f7; }
+html[data-tema="oceano"] .nexa-fav-button:hover, html[data-tema="oceano"] .nexa-fav-button.active { color: #7db8ff; }
+html[data-tema="oceano"] .nexa-trilha-cover { background: #0a2441; }
+html[data-tema="oceano"] .nexa-side-item:hover { background: rgba(255, 255, 255, 0.06); }
+html[data-tema="oceano"] .nexa-section-title { font-family: 'Playfair Display', serif; font-weight: 600; font-size: 17px; }
+
+/* Botão de alternar tema (nos dois temas) */
+.nexa-tema-toggle {
+  display: inline-flex; align-items: center; gap: 8px; height: 42px; padding: 0 14px; cursor: pointer;
+  border: 1px solid var(--nexa-border-strong); border-radius: 999px; background: transparent; color: var(--nexa-text-primary);
+  font: 600 12.5px inherit; transition: background .15s, border-color .15s;
+}
+.nexa-tema-toggle:hover { background: var(--nexa-bg-card-hover); }
+html[data-tema="oceano"] .nexa-tema-toggle { border-color: rgba(140, 190, 255, 0.35); color: #cfe3f7; }
+@media (max-width: 760px) { .nexa-tema-toggle span { display: none; } .nexa-tema-toggle { padding: 0 12px; } }
+
+/* Login: marca em X branco */
+html[data-tema="oceano"] .login-brand img { display: none; }
+html[data-tema="oceano"] .login-brand::before { content: ""; width: 62px; height: 62px; background: url(/tema/x-branco.png) center / contain no-repeat; }

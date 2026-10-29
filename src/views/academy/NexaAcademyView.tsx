@@ -22,6 +22,7 @@ import { theme as palette } from "@/styles/theme";
 import CourseDetailView from "@/views/academy/components/CourseDetailView";
 import LessonDetailView from "@/views/academy/components/LessonDetailView";
 import LessonMaterialsEditor from "@/views/academy/components/LessonMaterialsEditor";
+import { useTema } from "@/hooks/use-tema";
 import NotificationBell from "@/views/academy/components/NotificationBell";
 import AdminSetPasswordModal from "@/views/academy/components/AdminSetPasswordModal";
 import ForcePasswordChange from "@/views/academy/components/ForcePasswordChange";
@@ -36,7 +37,7 @@ import {
   CheckCircle2, Lock, Star, X, Send, BookOpen, Code2, Workflow,
   Database, Network, Cpu, ShieldCheck, Users, Layers, Video,
   HelpCircle, ScrollText, Shield, ArrowLeft, TrendingUp,
-  PlusCircle, Folder, LogOut, MoreHorizontal, ImagePlus
+  PlusCircle, Folder, LogOut, MoreHorizontal, ImagePlus, Moon, Sun
 } from "lucide-react";
 
 const css = `
@@ -573,6 +574,7 @@ export default function NexaAcademy() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user, loading: authLoading } = useAuth();
+  const { tema, alternar: alternarTema } = useTema();
   const userId = user?.id;
   const { data: perfil, isLoading: perfilLoading } = usePerfil(userId);
   const isAdmin = perfil?.perfil === "administrador" && perfil?.status === "ativo";
@@ -1099,7 +1101,7 @@ export default function NexaAcademy() {
           </div>
           <div className="nexa-logo-wordmark">
             <div className="nexa-logo-text">Nexa</div>
-            <div className="nexa-logo-academy">Academy</div>
+            <div className="nexa-logo-academy">{tema === "oceano" ? "cardume" : "Academy"}</div>
             {mode === "admin" && <div className="nexa-logo-sub">Painel administrativo</div>}
           </div>
         </div>
@@ -1174,6 +1176,10 @@ export default function NexaAcademy() {
             {mode === "admin" ? "Buscar usuários, treinamentos, logs..." : "Pesquisar cursos, documentações, autores..."}
           </div>
           <div className="nexa-topbar-icons">
+            <button type="button" className="nexa-tema-toggle" onClick={alternarTema} title={tema === "oceano" ? "Voltar ao tema claro" : "Ativar o tema Oceano"} aria-pressed={tema === "oceano"}>
+              {tema === "oceano" ? <Sun size={16} /> : <Moon size={16} />}
+              <span>{tema === "oceano" ? "Tema claro" : "Tema Oceano"}</span>
+            </button>
             <NotificationBell userId={userId} />
             <div className="nexa-profile-menu-wrap">
               <button
@@ -1234,7 +1240,7 @@ export default function NexaAcademy() {
                 <h1 className="nexa-heading" style={{ fontSize: 30, fontWeight: 700, margin: 0 }}>Olá, {primeiroNome}</h1>
                 <p style={{ color: palette.textMuted, fontSize: 13, marginTop: 4 }}>
                   {continuar
-                    ? <>Você já concluiu {Math.round(continuar.matricula.progresso)}% de <strong style={{ color: "#111" }}>{continuar.curso.title}</strong>. Continue de onde parou.</>
+                    ? <>Você já concluiu {Math.round(continuar.matricula.progresso)}% de <strong style={{ color: palette.textPrimary }}>{continuar.curso.title}</strong>. Continue de onde parou.</>
                     : "Escolha um treinamento para começar a sua jornada."}
                 </p>
               </div>
