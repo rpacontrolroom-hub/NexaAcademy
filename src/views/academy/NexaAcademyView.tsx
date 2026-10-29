@@ -1252,8 +1252,72 @@ export default function NexaAcademy() {
             />
           )}
 
+          {/* ---------- USER: INÍCIO (tema Oceano) ---------- */}
+          {mode === "app" && active === "dashboard" && tema === "oceano" && (
+            <div className="nexa-dash-oceano">
+              <div className="nexa-dash-top">
+                <div className="nexa-dash-saudacao">
+                  <span className="nexa-assinatura">nexa <em>&amp;</em> cardume.</span>
+                  <h1 className="nexa-heading">Olá, {primeiroNome}.<br />Vamos continuar <em>sua jornada.</em></h1>
+                  <p>A cada treinamento, um novo passo para o seu crescimento.</p>
+                </div>
+                <div className="nexa-card nexa-dash-continuar">
+                  {continuar ? (
+                    <>
+                      <small>Continuar assistindo</small>
+                      <h2>{continuar.curso.title}</h2>
+                      <p>{continuar.curso.level} · {continuar.curso.dur}</p>
+                      <div className="nexa-dash-progresso">
+                        <div className="nexa-progress-track"><div className="nexa-progress-fill" style={{ width: `${continuar.matricula.progresso}%` }} /></div>
+                        <span>{Math.round(continuar.matricula.progresso)}%</span>
+                      </div>
+                      <button className="nexa-btn-primary" onClick={() => abrirCurso(continuar.curso.id, continuar.matricula.ultima_aula_id)}>
+                        <Play size={14} fill="#fff" /> Continuar aula
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <small>Comece agora</small>
+                      <h2>{catalogo.length ? "Que tal começar um treinamento hoje?" : "Nenhum treinamento disponível ainda"}</h2>
+                      <p>{catalogo.length ? `Explore os ${catalogo.length} treinamentos disponíveis.` : "Assim que novos treinamentos forem publicados, eles aparecem por aqui."}</p>
+                      {catalogo.length > 0 && <button className="nexa-btn-primary" onClick={() => setActive("treinamentos")}><GraduationCap size={15} /> Ver treinamentos</button>}
+                    </>
+                  )}
+                </div>
+              </div>
+
+              <div className="nexa-dash-stats">
+                {[
+                  { icon: GraduationCap, label: "Em andamento", valor: meuResumo?.em_andamento ?? 0 },
+                  { icon: CheckCircle2, label: "Concluídos", valor: meuResumo?.concluidos ?? 0 },
+                  { icon: Award, label: "Certificados", valor: meuResumo?.certificados ?? 0 },
+                  { icon: Star, label: "Favoritos", valor: meuResumo?.favoritos ?? 0 },
+                ].map(({ icon: Icone, label, valor }) => (
+                  <div className="nexa-card nexa-dash-stat" key={label}>
+                    <span className="nexa-dash-stat-icone"><Icone size={20} /></span>
+                    <div><b>{String(valor).padStart(2, "0")}</b><span>{label}</span></div>
+                  </div>
+                ))}
+              </div>
+
+              {trilhaEmAndamento && (
+                <div style={{ marginBottom: 26 }}>
+                  <div className="nexa-dash-secao"><h2>Sua trilha — {trilhaEmAndamento.trilha.title}</h2><span className="nexa-see-all" onClick={() => { setSelectedTrilha(trilhaEmAndamento.indice); setActive("trilhas"); }}>Ver trilha completa <ArrowRight size={14} /></span></div>
+                  <div className="nexa-card" style={{ padding: "18px 20px" }}><TrilhaTimeline steps={trilhaEmAndamento.trilha.steps} /></div>
+                </div>
+              )}
+
+              <div className="nexa-dash-secao"><h2>Recomendados para você</h2><span className="nexa-see-all" onClick={() => setActive("treinamentos")}>Ver todos <ArrowRight size={14} /></span></div>
+              <div className="nexa-grid-3">
+                {[...catalogo].sort((a, b) => Number(a.progress === 100) - Number(b.progress === 100)).slice(0, 3).map((c) => (
+                  <CourseCard key={c.id} c={c} onOpen={() => abrirCurso(c.id)} isFavorite={favoritosIds.includes(c.id)} onToggleFavorite={() => alternarFavorito(c.id)} />
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* ---------- USER: DASHBOARD ---------- */}
-          {mode === "app" && active === "dashboard" && (
+          {mode === "app" && active === "dashboard" && tema !== "oceano" && (
             <>
               <div style={{ marginBottom: 22 }}>
                 <h1 className="nexa-heading" style={{ fontSize: 30, fontWeight: 700, margin: 0 }}>Olá, {primeiroNome}</h1>

@@ -332,3 +332,28 @@ html[data-tema="oceano"] .nexa-course-body > div:nth-child(2) { font: 600 17px/1
   html[data-tema="oceano"] .nexa-pill { height: 46px; padding: 0 16px; border-radius: 16px; }
   html[data-tema="oceano"] .nexa-lado-frase { display: none; }
 }
+
+/* ===== Tema Oceano: tela Início ===== */
+html[data-tema="oceano"] .nexa-dash-top { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(300px, 0.85fr); gap: 36px; align-items: center; margin: 6px 0 26px; }
+html[data-tema="oceano"] .nexa-assinatura { display: block; margin-bottom: 14px; font: italic 500 17px 'Playfair Display', serif; color: #5aaeff; }
+html[data-tema="oceano"] .nexa-assinatura em { color: #5aaeff; }
+html[data-tema="oceano"] .nexa-dash-saudacao h1 { font: 600 clamp(34px, 4vw, 52px)/1.06 'Playfair Display', serif; color: #fff; margin: 0 0 16px; letter-spacing: -0.01em; }
+html[data-tema="oceano"] .nexa-dash-saudacao h1 em { color: #7dc0ff; font-style: italic; font-weight: 500; }
+html[data-tema="oceano"] .nexa-dash-saudacao p { margin: 0; font-size: 15px; color: #a9c1da; max-width: 380px; line-height: 1.55; }
+html[data-tema="oceano"] .nexa-dash-continuar { padding: 24px 26px; border-radius: 22px; background: rgba(8, 40, 78, 0.6); border-color: rgba(90, 174, 255, 0.3); }
+html[data-tema="oceano"] .nexa-dash-continuar small { display: block; font-size: 13px; color: #a9c1da; margin-bottom: 8px; }
+html[data-tema="oceano"] .nexa-dash-continuar h2 { margin: 0 0 6px; font: 600 21px/1.25 'Inter', sans-serif; color: #fff; }
+html[data-tema="oceano"] .nexa-dash-continuar p { margin: 0 0 16px; font-size: 13px; color: #a9c1da; }
+html[data-tema="oceano"] .nexa-dash-progresso { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+html[data-tema="oceano"] .nexa-dash-progresso .nexa-progress-track { flex: 1; }
+html[data-tema="oceano"] .nexa-dash-progresso span { font-size: 12.5px; color: #a9c1da; }
+html[data-tema="oceano"] .nexa-dash-continuar .nexa-btn-primary { border-radius: 999px; padding: 12px 24px; }
+html[data-tema="oceano"] .nexa-dash-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 30px; }
+html[data-tema="oceano"] .nexa-dash-stat { display: flex; align-items: center; gap: 16px; padding: 20px 22px; border-radius: 18px; background: rgba(8, 40, 78, 0.55); border-color: rgba(90, 174, 255, 0.22); }
+html[data-tema="oceano"] .nexa-dash-stat-icone { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 12px; color: #7dc0ff; background: rgba(90, 174, 255, 0.14); border: 1px solid rgba(90, 174, 255, 0.28); flex: none; }
+html[data-tema="oceano"] .nexa-dash-stat b { display: block; font: 600 24px/1 'Inter', sans-serif; color: #fff; margin-bottom: 4px; }
+html[data-tema="oceano"] .nexa-dash-stat span { font-size: 13px; color: #a9c1da; }
+html[data-tema="oceano"] .nexa-dash-secao { display: flex; align-items: center; justify-content: space-between; margin: 4px 0 16px; }
+html[data-tema="oceano"] .nexa-dash-secao h2 { margin: 0; font: 600 20px 'Inter', sans-serif; color: #fff; }
+html[data-tema="oceano"] .nexa-dash-secao .nexa-see-all { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
+@media (max-width: 1050px) { html[data-tema="oceano"] .nexa-dash-top { grid-template-columns: 1fr; } html[data-tema="oceano"] .nexa-dash-stats { grid-template-columns: 1fr 1fr; } }
