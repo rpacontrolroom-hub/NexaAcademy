@@ -37,7 +37,7 @@ import {
   CheckCircle2, Lock, Star, X, Send, BookOpen, Code2, Workflow,
   Database, Network, Cpu, ShieldCheck, Users, Layers, Video,
   HelpCircle, ScrollText, Shield, ArrowLeft, TrendingUp,
-  PlusCircle, Folder, LogOut, MoreHorizontal, ImagePlus, Moon, Sun
+  PlusCircle, Folder, LogOut, MoreHorizontal, ImagePlus, Moon, Sun, LayoutGrid, Heart, Cog, Bookmark, ArrowRight
 } from "lucide-react";
 
 const css = `
@@ -467,13 +467,25 @@ function StatCard({ icon: Icon, label, value, color }) {
   );
 }
 
+function iconeCategoria(nome: string) {
+  const n = nome.toLocaleLowerCase("pt-BR");
+  if (n === "todos") return LayoutGrid;
+  if (n.includes("automa")) return Cog;
+  if (n.includes("process")) return Workflow;
+  if (n.includes("inteligên") || n.includes("inteligen") || n === "ia") return Sparkles;
+  if (n.includes("cultura") || n.includes("pessoa") || n.includes("lider")) return Users;
+  return Folder;
+}
+
 function CourseCard({ c, onOpen, isFavorite = false, onToggleFavorite = null }) {
   const Icon = c.icon;
   return (
     <div className="nexa-card hoverable" style={{ overflow: "hidden", cursor: "pointer" }} onClick={onOpen}>
       <div className="nexa-course-cover" style={{ background: c.cover ? "#e5e5e5" : `linear-gradient(135deg, ${c.grad[0]}, ${c.grad[1]})` }}>
         {c.cover ? <img className="nexa-course-cover-image" src={c.cover} alt={`Capa do curso ${c.title}`} /> : <Icon size={30} color="rgba(255,255,255,0.9)" />}
-        {!c.cover && <div style={{ position: "absolute", top: 8, left: 8 }}><span className="nexa-badge">{c.level}</span></div>}
+        {!c.cover && <div className="nexa-badge-nivel" style={{ position: "absolute", top: 8, left: 8 }}><span className="nexa-badge">{c.level}</span></div>}
+        <span className="nexa-badge nexa-badge-status">{c.progress === 100 ? "Concluído" : c.progress > 0 ? "Em andamento" : "Novo"}</span>
+        <span className="nexa-card-seta"><ArrowRight size={18} /></span>
         {c.progress === 100 && <div style={{ position: "absolute", top: 8, right: onToggleFavorite ? 46 : 8 }}><CheckCircle2 size={18} color="#fff" /></div>}
         {onToggleFavorite && (
           <button
@@ -484,7 +496,8 @@ function CourseCard({ c, onOpen, isFavorite = false, onToggleFavorite = null }) 
             aria-label={isFavorite ? `Remover "${c.title}" dos favoritos` : `Adicionar "${c.title}" aos favoritos`}
             title={isFavorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}
           >
-            <Star size={15} fill={isFavorite ? "currentColor" : "none"} />
+            <Star className="nexa-fav-star" size={15} fill={isFavorite ? "currentColor" : "none"} />
+            <Bookmark className="nexa-fav-bookmark" size={15} fill={isFavorite ? "currentColor" : "none"} />
           </button>
         )}
       </div>
@@ -589,6 +602,7 @@ export default function NexaAcademy() {
   const [submenuAberto, setSubmenuAberto] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [catFilter, setCatFilter] = useState("Todos");
+  const [busca, setBusca] = useState("");
   const [selectedTrilha, setSelectedTrilha] = useState(0);
   const [showCadastroModal, setShowCadastroModal] = useState(false);
   const [novoNome, setNovoNome] = useState("");
@@ -1044,9 +1058,13 @@ export default function NexaAcademy() {
   }
 
   const FILTRO_FAVORITOS = "__favoritos__";
-  const filtered = catFilter === "Todos" ? catalogo
+  const porCategoria = catFilter === "Todos" ? catalogo
     : catFilter === FILTRO_FAVORITOS ? favoritos
     : catalogo.filter((c) => c.cat === catFilter);
+  const termoBusca = busca.trim().toLocaleLowerCase("pt-BR");
+  const filtered = termoBusca
+    ? porCategoria.filter((c) => `${c.title} ${c.cat} ${c.desc}`.toLocaleLowerCase("pt-BR").includes(termoBusca))
+    : porCategoria;
   const navItems = mode === "admin" ? adminNavItems : userNavItems;
   const certificateCourseTitles = adminTrainings.map((training) => training.title).sort((a, b) => a.localeCompare(b, "pt-BR"));
 
@@ -1129,7 +1147,7 @@ export default function NexaAcademy() {
                     }}
                   >
                     <Icon size={16} />
-                    {item.label}
+                    {tema === "oceano" && item.key === "dashboard" ? "Início" : item.label}
                     {children && <ChevronDown size={14} className="nexa-navchevron" style={{ transform: expandido ? "rotate(180deg)" : undefined }} />}
                   </div>
                   {expandido && children.map((sub) => {
@@ -1152,6 +1170,7 @@ export default function NexaAcademy() {
 
         </div>
 
+        {tema === "oceano" && <div className="nexa-lado-frase">Aprender<br /><em>é crescer.</em><br />junto.</div>}
         <div className="nexa-sidebar-footer">
           {isAdmin && <div
             className="nexa-mode-switch"
@@ -1361,22 +1380,40 @@ export default function NexaAcademy() {
           {/* ---------- USER: TREINAMENTOS ---------- */}
           {mode === "app" && active === "treinamentos" && (
             <>
-              <div style={{ marginBottom: 18 }}>
-                <h1 className="nexa-heading" style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>Treinamentos</h1>
-                <p style={{ color: palette.textMuted, fontSize: 13, marginTop: 4 }}>{filtered.length} treinamentos disponíveis para o time de RPA</p>
-              </div>
-              <div style={{ display: "flex", gap: 8, marginBottom: 22, overflowX: "auto", paddingBottom: 4 }}>
+              {tema === "oceano" ? (
+                <div className="nexa-hero-oceano">
+                  <small>Treinamentos</small>
+                  <h1 className="nexa-heading">Conhecimento<br />que move o <em>cardume</em>.</h1>
+                  <p>Acesse treinamentos pensados para o seu momento e acelere seu desenvolvimento.</p>
+                  <label className="nexa-busca-grande">
+                    <Search size={18} />
+                    <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar por nome, tecnologia ou tema..." />
+                  </label>
+                </div>
+              ) : (
+                <div style={{ marginBottom: 18 }}>
+                  <h1 className="nexa-heading" style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>Treinamentos</h1>
+                  <p style={{ color: palette.textMuted, fontSize: 13, marginTop: 4 }}>{filtered.length} treinamentos disponíveis para o time de RPA</p>
+                </div>
+              )}
+              <div className="nexa-pills-row" style={{ display: "flex", gap: 8, marginBottom: 22, overflowX: "auto", paddingBottom: 4 }}>
                 {categories.map((cat) => (
                   <Fragment key={cat}>
-                    <span className={`nexa-pill ${catFilter === cat ? "active" : ""}`} onClick={() => setCatFilter(cat)}>{cat}</span>
+                    <span className={`nexa-pill ${catFilter === cat ? "active" : ""}`} onClick={() => setCatFilter(cat)}>
+                      {tema === "oceano" && (() => { const I = iconeCategoria(cat); return <I size={20} />; })()}
+                      {cat}
+                    </span>
                     {cat === "Todos" && (
                       <span className={`nexa-pill nexa-pill-fav ${catFilter === FILTRO_FAVORITOS ? "active" : ""}`} onClick={() => setCatFilter(FILTRO_FAVORITOS)}>
-                        <Star size={12} fill={catFilter === FILTRO_FAVORITOS ? "currentColor" : "none"} /> Favoritos{favoritos.length > 0 ? ` (${favoritos.length})` : ""}
+                        {tema === "oceano" ? <Heart size={20} fill={catFilter === FILTRO_FAVORITOS ? "currentColor" : "none"} /> : <Star size={12} fill={catFilter === FILTRO_FAVORITOS ? "currentColor" : "none"} />} Favoritos{favoritos.length > 0 ? ` (${favoritos.length})` : ""}
                       </span>
                     )}
                   </Fragment>
                 ))}
               </div>
+              {tema === "oceano" && filtered.length > 0 && (
+                <div className="nexa-destaque-titulo"><h2>{termoBusca ? "Resultados" : catFilter === "Todos" ? "Em destaque" : catFilter === FILTRO_FAVORITOS ? "Seus favoritos" : catFilter}</h2></div>
+              )}
               {filtered.length > 0
                 ? <div className="nexa-grid-3">{filtered.map((c) => <CourseCard key={c.id} c={c} onOpen={() => abrirCurso(c.id)} isFavorite={favoritosIds.includes(c.id)} onToggleFavorite={() => alternarFavorito(c.id)} />)}</div>
                 : catFilter === FILTRO_FAVORITOS

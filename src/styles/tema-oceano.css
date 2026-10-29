@@ -237,3 +237,98 @@ html[data-tema="oceano"] .nexa-tema-toggle { border-color: rgba(140, 190, 255, 0
 /* Login: marca em X branco */
 html[data-tema="oceano"] .login-brand img { display: none; }
 html[data-tema="oceano"] .login-brand::before { content: ""; width: 62px; height: 62px; background: url(/tema/x-branco.png) center / contain no-repeat; }
+
+/* ===== Tema Oceano: visual da referência (cardume, frases, busca grande, chips com ícone, cards com selo) ===== */
+
+/* Elementos que só existem no tema Oceano */
+.nexa-badge-status, .nexa-card-seta, .nexa-fav-bookmark, .nexa-lado-frase, .nexa-hero-oceano, .nexa-destaque-titulo { display: none; }
+
+/* Cardume atravessando o topo da página (atrás do conteúdo) */
+html[data-tema="oceano"] .nexa-main { position: relative; }
+html[data-tema="oceano"] .nexa-main::before {
+  content: ""; position: absolute; top: 0; right: 0; width: 78%; height: 560px; pointer-events: none; z-index: 0;
+  background: url(/tema/cardume.jpg) right top / cover no-repeat; opacity: 0.6;
+  -webkit-mask-image: linear-gradient(to left, #000 25%, transparent 100%), linear-gradient(to bottom, #000 35%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to left, #000 25%, transparent 100%), linear-gradient(to bottom, #000 35%, transparent 100%);
+  mask-composite: intersect;
+}
+html[data-tema="oceano"] .nexa-topbar { background: transparent; border-bottom: 0; backdrop-filter: none; position: relative; z-index: 2; justify-content: flex-end; }
+html[data-tema="oceano"] .nexa-content { position: relative; z-index: 1; }
+html[data-tema="oceano"] .nexa-search { display: none; }
+
+/* Menu lateral: cardume desenhado + frase */
+html[data-tema="oceano"] .nexa-sidebar { position: relative; overflow: hidden; }
+html[data-tema="oceano"] .nexa-sidebar::after {
+  content: ""; position: absolute; left: -18%; bottom: -4%; width: 135%; aspect-ratio: 1; pointer-events: none;
+  background: url(/tema/cardume-linhas.png) center / contain no-repeat; opacity: 0.32; transform: rotate(-8deg);
+}
+html[data-tema="oceano"] .nexa-sidebar > * { position: relative; z-index: 1; }
+html[data-tema="oceano"] .nexa-lado-frase { display: block; margin: 0 6px 18px; font: 500 21px/1.25 'Playfair Display', serif; color: #e8f1fa; }
+html[data-tema="oceano"] .nexa-lado-frase em { color: #e8f1fa; font-style: italic; }
+
+/* Cabeçalho da tela Treinamentos */
+html[data-tema="oceano"] .nexa-hero-oceano { display: block; max-width: 760px; margin: 14px 0 26px; }
+html[data-tema="oceano"] .nexa-hero-oceano small { display: block; font: 600 12.5px 'Inter', sans-serif; letter-spacing: 0.16em; text-transform: uppercase; color: #5aaeff; margin-bottom: 16px; }
+html[data-tema="oceano"] .nexa-hero-oceano h1 { font: 600 clamp(34px, 4vw, 50px)/1.08 'Playfair Display', serif; color: #fff; margin: 0 0 16px; letter-spacing: -0.01em; }
+html[data-tema="oceano"] .nexa-hero-oceano h1 em { color: #7dc0ff; font-style: italic; font-weight: 500; }
+html[data-tema="oceano"] .nexa-hero-oceano p { font-size: 15px; line-height: 1.55; color: #a9c1da; max-width: 440px; margin: 0 0 28px; }
+html[data-tema="oceano"] .nexa-busca-grande {
+  display: flex; align-items: center; gap: 14px; height: 54px; padding: 0 22px; max-width: 700px; cursor: text;
+  border: 1px solid rgba(90, 174, 255, 0.4); border-radius: 18px; color: #a9c1da;
+  background: rgba(8, 40, 78, 0.55); backdrop-filter: blur(12px); box-shadow: 0 0 0 1px rgba(90, 174, 255, 0.08) inset, 0 10px 30px rgba(0, 10, 30, 0.35);
+}
+html[data-tema="oceano"] .nexa-busca-grande:focus-within { border-color: #5aaeff; box-shadow: 0 0 0 3px rgba(90, 174, 255, 0.2); }
+html[data-tema="oceano"] .nexa-busca-grande input { flex: 1; min-width: 0; height: 100%; border: 0 !important; outline: 0; background: transparent !important; color: #e8f1fa; font: 400 14px 'Inter', sans-serif; padding: 0; box-shadow: none; }
+html[data-tema="oceano"] .nexa-busca-grande input::placeholder { color: #8aa6c2; }
+
+/* Chips de categoria grandes, com ícone */
+html[data-tema="oceano"] .nexa-pills-row { gap: 14px !important; padding: 6px 4px 14px !important; margin-bottom: 18px !important; }
+html[data-tema="oceano"] .nexa-pill {
+  display: inline-flex; align-items: center; gap: 12px; height: 56px; padding: 0 24px; border-radius: 20px; font-size: 13.5px; font-weight: 500;
+  border: 1px solid rgba(90, 174, 255, 0.22); color: #cfe3f7; background: rgba(8, 40, 78, 0.5); backdrop-filter: blur(10px);
+}
+html[data-tema="oceano"] .nexa-pill svg { opacity: 0.9; flex: none; }
+html[data-tema="oceano"] .nexa-pill.active {
+  color: #fff; border-color: rgba(125, 192, 255, 0.55); background: linear-gradient(135deg, #2f93ff, #0b64d6);
+  box-shadow: 0 8px 30px rgba(47, 147, 255, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.12) inset;
+}
+html[data-tema="oceano"] .nexa-destaque-titulo { display: block; margin: 8px 0 16px; }
+html[data-tema="oceano"] .nexa-destaque-titulo h2 { margin: 0; font: 600 20px 'Inter', sans-serif; color: #fff; }
+
+/* Cards de treinamento no estilo da referência */
+html[data-tema="oceano"] .nexa-grid-3 { gap: 22px; }
+html[data-tema="oceano"] .nexa-card.hoverable { border-radius: 22px; background: rgba(8, 36, 70, 0.62); border-color: rgba(90, 174, 255, 0.2); }
+html[data-tema="oceano"] .nexa-card.hoverable:hover { border-color: rgba(125, 192, 255, 0.6); transform: translateY(-3px); box-shadow: 0 18px 44px rgba(0, 20, 50, 0.55), 0 0 30px rgba(47, 147, 255, 0.18); }
+html[data-tema="oceano"] .nexa-course-cover { aspect-ratio: 16 / 8.6; border-radius: 22px 22px 0 0; }
+html[data-tema="oceano"] .nexa-course-cover:not(:has(.nexa-course-cover-image)) {
+  background: linear-gradient(180deg, rgba(4, 22, 43, 0.1), rgba(4, 22, 43, 0.55)), url(/tema/cardume.jpg) center / cover !important;
+}
+html[data-tema="oceano"] .nexa-grid-3 > :nth-child(3n + 2) .nexa-course-cover:not(:has(.nexa-course-cover-image)) {
+  background: linear-gradient(180deg, rgba(4, 22, 43, 0.1), rgba(4, 22, 43, 0.55)), url(/tema/equipe.jpg) center 20% / cover !important;
+}
+html[data-tema="oceano"] .nexa-grid-3 > :nth-child(3n) .nexa-course-cover:not(:has(.nexa-course-cover-image)) {
+  background: linear-gradient(180deg, rgba(4, 22, 43, 0.1), rgba(4, 22, 43, 0.55)), url(/tema/peixes.jpg) center / cover !important;
+}
+html[data-tema="oceano"] .nexa-course-cover:not(:has(.nexa-course-cover-image)) > svg { display: none; }
+html[data-tema="oceano"] .nexa-badge-nivel { display: none; }
+html[data-tema="oceano"] .nexa-badge-status {
+  display: inline-block; position: absolute; top: 14px; left: 14px; padding: 5px 12px; border-radius: 999px; font-size: 11.5px; font-weight: 600;
+  background: rgba(255, 255, 255, 0.94) !important; color: #0b3a63 !important; backdrop-filter: none; border: 0 !important;
+}
+html[data-tema="oceano"] .nexa-card-seta {
+  display: grid; place-items: center; position: absolute; right: 16px; bottom: 14px; width: 44px; height: 44px; border-radius: 50%;
+  border: 1.5px solid #5aaeff; color: #fff; background: rgba(4, 22, 43, 0.55); backdrop-filter: blur(6px);
+}
+html[data-tema="oceano"] .nexa-fav-star { display: none; }
+html[data-tema="oceano"] .nexa-fav-bookmark { display: block; }
+html[data-tema="oceano"] .nexa-fav-button { top: 12px; right: 12px; width: 34px; height: 34px; border-radius: 10px; background: rgba(4, 22, 43, 0.6); border-color: rgba(125, 192, 255, 0.35); }
+html[data-tema="oceano"] .nexa-course-body { padding: 16px 20px 20px; }
+html[data-tema="oceano"] .nexa-course-body > div:nth-child(1) { display: none; }
+html[data-tema="oceano"] .nexa-course-body > div:nth-child(2) { font: 600 17px/1.3 'Inter', sans-serif !important; color: #fff; margin-bottom: 12px !important; }
+
+@media (max-width: 1050px) { html[data-tema="oceano"] .nexa-main::before { width: 100%; opacity: 0.4; } }
+@media (max-width: 760px) {
+  html[data-tema="oceano"] .nexa-pill { height: 46px; padding: 0 16px; border-radius: 16px; }
+  html[data-tema="oceano"] .nexa-lado-frase { display: none; }
+}
