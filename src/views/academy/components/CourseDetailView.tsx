@@ -104,7 +104,8 @@ const courseDetailCss = `
 export default function CourseDetailView({ userId, course: treinamento, matricula, isFavorite, onToggleFavorite, onBack, onOpenLesson, openConclusion, onOpenCertificates }: CourseDetailViewProps) {
   const [activeTab, setActiveTab] = useState<"content" | "about" | "materials">("content");
   const [selectedModuleIndex, setSelectedModuleIndex] = useState<number | null>(null);
-  const [conclusaoAberta, setConclusaoAberta] = useState(!!openConclusion);
+  // null = ainda não escolhido: treinamento já concluído abre direto na Conclusão.
+  const [escolhaConclusao, setConclusaoAberta] = useState<boolean | null>(openConclusion ? true : null);
   const { course, isLoading } = useCursoDetalhe(userId, treinamento, matricula?.progresso ?? 0);
   const { data: avaliacoes = [] } = useAvaliacaoDoTreinamento(treinamento?.id);
 
@@ -140,6 +141,7 @@ export default function CourseDetailView({ userId, course: treinamento, matricul
   const cursoConcluido = course.progress >= 100 || (allCourseLessons.length > 0 && allCourseLessons.every((l) => l.completed));
   const avaliacaoPendente = avaliacoes.length > 0 && !avaliacoes.every((q) => q.tentativas.some((t) => t.aprovado));
   const ultimoModulo = moduleIndex >= course.modules.length - 1;
+  const conclusaoAberta = escolhaConclusao ?? cursoConcluido;
   const aulasConcluidas = allCourseLessons.filter((l) => l.completed).length;
 
   const selectModule = (index: number) => {
