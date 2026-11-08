@@ -454,12 +454,38 @@ html[data-tema="oceano"] .course-conclusion-card, html[data-tema="oceano"] .logi
 html[data-tema="oceano"] .nexa-root .nexa-card.nexa-scroll { background: #0a2441; }
 html[data-tema="oceano"] .nexa-card { transition: transform .45s var(--oc-ease), box-shadow .45s var(--oc-ease), border-color .3s; }
 html[data-tema="oceano"] .nexa-card:hover { border-color: var(--oc-hairline-hi); }
-html[data-tema="oceano"] .nexa-dash-continuar { background: var(--oc-glass-strong); border-color: rgba(120, 185, 255, 0.24); box-shadow: var(--oc-highlight), var(--oc-shadow-lg); position: relative; overflow: hidden; }
-html[data-tema="oceano"] .nexa-dash-continuar::before {
-  content: ""; position: absolute; inset: 0; pointer-events: none;
-  background: radial-gradient(420px 180px at 100% 0%, rgba(90, 170, 255, 0.24), transparent 70%);
+html[data-tema="oceano"] .nexa-dash-continuar {
+  background: radial-gradient(420px 180px at 100% 0%, rgba(90, 170, 255, 0.24), transparent 70%), var(--oc-glass-strong);
+  border-color: rgba(120, 185, 255, 0.24); box-shadow: var(--oc-highlight), var(--oc-shadow-lg);
 }
-html[data-tema="oceano"] .nexa-dash-continuar > * { position: relative; }
+
+/* Vidro espelhado em todos os cards: o oceano desfocado por trás + um reflexo diagonal
+ * (o mesmo efeito que o card do certificado tem quando fica sobre o cardume do topo) */
+html[data-tema="oceano"] .nexa-card { position: relative; isolation: isolate; }
+html[data-tema="oceano"] .nexa-card::before,
+html[data-tema="oceano"] .nexa-card::after {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; border-radius: inherit;
+}
+html[data-tema="oceano"] .nexa-card::before {
+  background:
+    linear-gradient(180deg, rgba(10, 36, 72, 0.25), rgba(3, 16, 36, 0.5)),
+    url(/tema/cardume.jpg) center / cover;
+  filter: blur(18px) saturate(1.35);
+  opacity: 0.55;
+  clip-path: inset(0 round 22px);
+  transform: scale(1.02);
+  transition: transform 1.2s var(--oc-ease), opacity .6s;
+}
+html[data-tema="oceano"] .nexa-card:nth-of-type(2n)::before { background-position: 30% 40%; }
+html[data-tema="oceano"] .nexa-card:nth-of-type(3n)::before { background-position: 75% 60%; }
+html[data-tema="oceano"] .nexa-card::after {
+  background:
+    linear-gradient(125deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.03) 28%, transparent 46%),
+    radial-gradient(120% 60% at 0% 0%, rgba(150, 205, 255, 0.1), transparent 60%);
+}
+html[data-tema="oceano"] .nexa-card:hover::before { transform: scale(1.12) translate3d(-2%, -1%, 0); opacity: 0.7; }
+html[data-tema="oceano"] .nexa-root .nexa-card.nexa-scroll::before,
+html[data-tema="oceano"] .nexa-root .nexa-card.nexa-scroll::after { display: none; }
 html[data-tema="oceano"] .nexa-dash-stat:hover { transform: translateY(-3px); box-shadow: var(--oc-highlight), var(--oc-shadow-lg); }
 html[data-tema="oceano"] .nexa-dash-stat-icone {
   background: linear-gradient(180deg, rgba(90, 170, 255, 0.24), rgba(40, 110, 220, 0.12));
