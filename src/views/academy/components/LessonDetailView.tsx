@@ -115,6 +115,7 @@ const extraLessonCss = `
   .lesson-doc-frame { margin:16px 16px 0; height:75vh; min-height:460px; overflow:hidden; background:#f4f4f4; border:1px solid #e2e2e2; border-radius:9px; }
   .lesson-doc-frame.slides { height:auto; min-height:0; aspect-ratio:16/9; }
   .lesson-doc-frame iframe { display:block; width:100%; height:100%; border:0; }
+  .lesson-doc-frame:has(> .pdf-viewer) { height:auto; min-height:0; aspect-ratio:auto; background:#0b1220; border-color:#0b1220; }
   .lesson-doc-bar { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin:10px 16px 16px; color:#888; font-size:11.5px; }
   .lesson-doc-bar a { text-decoration:none; }
   .lesson-reading-bar { display:flex; align-items:center; gap:12px; padding:14px 18px; color:#777; border-bottom:1px solid #ececec; font-size:11.5px; }

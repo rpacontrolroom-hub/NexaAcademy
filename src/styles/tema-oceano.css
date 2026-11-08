@@ -808,6 +808,11 @@ html[data-tema="oceano"] .lesson-video::before, html[data-tema="oceano"] .lesson
 html[data-tema="oceano"] .lesson-video-brand { font-family: 'Playfair Display', serif; }
 html[data-tema="oceano"] .lesson-video-play { background: var(--oc-accent-grad); box-shadow: 0 0 0 8px rgba(58, 140, 255, 0.14), 0 14px 34px -8px rgba(40, 130, 255, 0.8); }
 
+html[data-tema="oceano"] .lesson-doc-frame:has(> .pdf-viewer) { background: #051530; border-color: rgba(140, 200, 255, 0.18); }
+html[data-tema="oceano"] .pdf-viewer { background: radial-gradient(90% 70% at 50% 0%, rgba(40, 110, 220, 0.18), transparent 70%), #051530; }
+html[data-tema="oceano"] .pdf-bar { border-top: 1px solid var(--oc-hairline); background: linear-gradient(180deg, rgba(10, 30, 60, 0.9), rgba(4, 16, 34, 0.95)); color: #cfe3f7; }
+html[data-tema="oceano"] .pdf-hit span { background: var(--oc-accent-grad); box-shadow: 0 8px 22px -4px rgba(50, 140, 255, 0.8); }
+
 /* Rodapé: pílulas, concluir em verde luminoso */
 html[data-tema="oceano"] .lesson-detail-navigation { margin-top: 22px; animation: oc-fade .6s ease-out .3s backwards; }
 html[data-tema="oceano"] .lesson-nav-button { min-height: 44px; padding: 0 18px; border-radius: 999px; font-size: 12.5px; background: rgba(120, 180, 255, 0.06); border-color: var(--oc-hairline-hi); transition: background .25s, border-color .25s, transform .3s var(--oc-ease); }
