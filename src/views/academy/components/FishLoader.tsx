@@ -14,7 +14,7 @@ const css = `
   .fish-loader-bubble:nth-of-type(1) { left:46%; }
   .fish-loader-bubble:nth-of-type(2) { left:54%; width:4px; height:4px; animation-delay:.7s; }
   .fish-loader-bubble:nth-of-type(3) { left:50%; width:5px; height:5px; animation-delay:1.4s; }
-  .fish-loader-text { font-size:13px; font-weight:500; letter-spacing:.01em; opacity:.85; }
+  .fish-loader-text { font:italic 500 18px/1.2 'Playfair Display', Georgia, serif; letter-spacing:.01em; opacity:.92; }
   .fish-loader-text span { display:inline-block; animation:fish-dot 1.2s ease-in-out infinite; }
   .fish-loader-text span:nth-child(2) { animation-delay:.15s; }
   .fish-loader-text span:nth-child(3) { animation-delay:.3s; }
