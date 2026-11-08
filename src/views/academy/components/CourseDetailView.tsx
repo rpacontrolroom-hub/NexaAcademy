@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import {
   Check,
   CheckCircle2,
@@ -35,6 +35,7 @@ interface CourseDetailViewProps {
 
 const courseDetailCss = `
   .course-detail { color:#111; }
+  .course-detail-eyebrow, .course-detail-ring-wrap { display:none; }
   .course-detail-breadcrumb { display:flex; align-items:center; gap:10px; margin-bottom:16px; color:#777; font-size:12px; }
   .course-detail-breadcrumb button { padding:0; color:#666; background:none; border:0; cursor:pointer; }
   .course-detail-breadcrumb button:hover { color:#111; }
@@ -139,6 +140,7 @@ export default function CourseDetailView({ userId, course: treinamento, matricul
   const cursoConcluido = course.progress >= 100 || (allCourseLessons.length > 0 && allCourseLessons.every((l) => l.completed));
   const avaliacaoPendente = avaliacoes.length > 0 && !avaliacoes.every((q) => q.tentativas.some((t) => t.aprovado));
   const ultimoModulo = moduleIndex >= course.modules.length - 1;
+  const aulasConcluidas = allCourseLessons.filter((l) => l.completed).length;
 
   const selectModule = (index: number) => {
     const module = course.modules[index];
@@ -158,7 +160,8 @@ export default function CourseDetailView({ userId, course: treinamento, matricul
       </div>
 
       <header className="course-detail-summary">
-        <div>
+        <div className="course-detail-intro">
+          <span className="course-detail-eyebrow">Treinamento · {treinamento.cat}</span>
           <h1 className="course-detail-title">{course.title}</h1>
           <p className="course-detail-description">{course.description}</p>
           <div className="course-detail-chips">
@@ -169,6 +172,15 @@ export default function CourseDetailView({ userId, course: treinamento, matricul
           </div>
         </div>
         <div className="course-detail-actions">
+          <div className="course-detail-ring-wrap">
+            <div className="course-detail-ring" style={{ "--p": Math.min(100, Math.max(0, course.progress)) } as CSSProperties}>
+              <span>{course.progress}%</span>
+            </div>
+            <div>
+              <small>Seu progresso</small>
+              <b>{aulasConcluidas} de {allCourseLessons.length} {allCourseLessons.length === 1 ? "aula" : "aulas"}</b>
+            </div>
+          </div>
           <button className="course-detail-primary" disabled={!nextLessonId} onClick={() => nextLessonId && onOpenLesson(nextLessonId)}>
             <Play size={14} /> {course.progress > 0 ? "Continuar" : "Começar"}
           </button>
