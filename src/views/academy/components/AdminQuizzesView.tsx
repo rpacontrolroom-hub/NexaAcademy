@@ -36,7 +36,7 @@ type PerguntaForm = repo.QuizPerguntaAdmin;
 const novaPergunta = (): PerguntaForm => ({ enunciado: "", alternativas: [{ texto: "", correta: true }, { texto: "", correta: false }] });
 
 const formInicial = {
-  id: "", titulo: "", treinamentoId: "", aulaId: "", notaMinima: "90", maxTentativas: "",
+  id: "", tipo: "quiz" as "quiz" | "prova", titulo: "", treinamentoId: "", aulaId: "", notaMinima: "90", maxTentativas: "",
   status: "publicado" as "publicado" | "rascunho", perguntas: [novaPergunta()],
 };
 
@@ -55,10 +55,12 @@ export default function AdminQuizzesView({ trainings, modo = "quiz" }: AdminQuiz
   const { data: aulas = [] } = useAulasDoTreinamento(form.treinamentoId || null);
 
   const termo = busca.trim().toLowerCase();
+  // O tipo do formulário pode ser trocado na edição (ex.: um quiz antigo sem aula que caiu em "Provas finais").
+  const formProva = form.tipo === "prova";
   const doModo = quizzes.filter((q) => (ehProva ? !q.aula_id : !!q.aula_id));
   const lista = doModo.filter((q) => !termo || q.titulo.toLowerCase().includes(termo) || q.treinamento.toLowerCase().includes(termo));
   // Cada treinamento tem no máximo uma prova final.
-  const provaExistente = ehProva && form.treinamentoId
+  const provaExistente = formProva && form.treinamentoId
     ? quizzes.find((q) => !q.aula_id && q.treinamento_id === form.treinamentoId && q.id !== form.id)
     : undefined;
 
@@ -71,10 +73,10 @@ export default function AdminQuizzesView({ trainings, modo = "quiz" }: AdminQuiz
     : form.perguntas.some((p) => p.alternativas.filter((a) => a.correta && a.texto.trim()).length !== 1) ? "Marque a alternativa correta de cada pergunta."
     : null;
   const erros = {
-    titulo: form.titulo.trim().length < 3 ? (ehProva ? "Informe o título da prova." : "Informe o título do quiz.") : null,
+    titulo: form.titulo.trim().length < 3 ? (formProva ? "Informe o título da prova." : "Informe o título do quiz.") : null,
     treinamentoId: !form.treinamentoId ? "Selecione o treinamento."
       : provaExistente ? `Este treinamento já tem a prova final "${provaExistente.titulo}". Edite a existente.` : null,
-    aulaId: !ehProva && !form.aulaId ? "Selecione a aula onde o quiz aparece." : null,
+    aulaId: !formProva && !form.aulaId ? "Selecione a aula onde o quiz aparece." : null,
     notaMinima: !(nota >= 0 && nota <= 100) ? "Use um valor entre 0 e 100." : null,
     maxTentativas: tentativas !== null && !(Number.isInteger(tentativas) && tentativas >= 1) ? "Use um número inteiro (ou deixe vazio)." : null,
     perguntas: erroPergunta,
@@ -82,14 +84,14 @@ export default function AdminQuizzesView({ trainings, modo = "quiz" }: AdminQuiz
   const valido = Object.values(erros).every((e) => !e);
 
   function abrirNovo() {
-    setForm({ ...formInicial, perguntas: [novaPergunta()] });
+    setForm({ ...formInicial, tipo: modo, perguntas: [novaPergunta()] });
     setTentou(false);
     setShowModal(true);
   }
 
   function abrirEdicao(q: repo.QuizAdmin) {
     setForm({
-      id: q.id, titulo: q.titulo, treinamentoId: q.treinamento_id ?? "", aulaId: q.aula_id ?? "",
+      id: q.id, tipo: q.aula_id ? "quiz" : "prova", titulo: q.titulo, treinamentoId: q.treinamento_id ?? "", aulaId: q.aula_id ?? "",
       notaMinima: String(q.nota_minima), maxTentativas: q.max_tentativas ? String(q.max_tentativas) : "",
       status: q.status, perguntas: q.perguntas.length ? q.perguntas.map((p) => ({ ...p, alternativas: p.alternativas.map((a) => ({ ...a })) })) : [novaPergunta()],
     });
@@ -137,13 +139,18 @@ export default function AdminQuizzesView({ trainings, modo = "quiz" }: AdminQuiz
         id: form.id || undefined,
         titulo: form.titulo,
         treinamento_id: form.treinamentoId,
-        aula_id: ehProva ? null : form.aulaId || null,
+        aula_id: formProva ? null : form.aulaId || null,
         nota_minima: nota,
         max_tentativas: tentativas,
         status: form.status,
         perguntas: form.perguntas.map((p) => ({ enunciado: p.enunciado, alternativas: p.alternativas.filter((a) => a.texto.trim()) })),
       });
-      toast.success(ehProva ? (form.id ? "Prova final atualizada" : "Prova final criada") : (form.id ? "Quiz atualizado" : "Quiz criado"));
+      const mudouDeTipo = formProva !== ehProva;
+      toast.success(
+        mudouDeTipo
+          ? (formProva ? "Agora é a prova final do treinamento. Ela está em Provas finais." : "Agora é um quiz de aula. Ele está em Quizzes.")
+          : formProva ? (form.id ? "Prova final atualizada" : "Prova final criada") : (form.id ? "Quiz atualizado" : "Quiz criado"),
+      );
       queryClient.invalidateQueries({ queryKey: ["quizzes"] });
       setShowModal(false);
     } catch (err) {
@@ -214,9 +221,9 @@ export default function AdminQuizzesView({ trainings, modo = "quiz" }: AdminQuiz
           <div className="nexa-card nexa-scroll" style={{ width: "min(780px, calc(100vw - 32px))", maxHeight: "calc(100vh - 48px)", overflowY: "auto", padding: 22 }} onClick={(e) => e.stopPropagation()}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
               <div>
-                <div className="nexa-section-title">{form.id ? `Editar ${nome}` : ehProva ? "Nova prova final" : "Novo quiz"}</div>
+                <div className="nexa-section-title">{form.id ? `Editar ${nome}` : formProva ? "Nova prova final" : "Novo quiz"}</div>
                 <div style={{ marginTop: 4, color: palette.textFaint, fontSize: 11.5 }}>
-                  {ehProva
+                  {formProva
                     ? "Aparece para o aluno no fim do treinamento, depois da última aula, em tela ampla."
                     : "Aparece dentro da aula escolhida, abaixo do conteúdo."}
                 </div>
@@ -225,9 +232,21 @@ export default function AdminQuizzesView({ trainings, modo = "quiz" }: AdminQuiz
             </div>
 
             <div className="admin-quiz-form">
-              <label style={{ gridColumn: "1 / -1" }}><span className="nexa-label">Título<RequiredMark /></span><input className="nexa-input" placeholder={ehProva ? "Ex: Prova final do Onboarding RPA" : "Ex: Avaliação do módulo 1"} value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} />{erro("titulo")}</label>
+              <label style={{ gridColumn: "1 / -1" }}>
+                <span className="nexa-label">Tipo</span>
+                <select className="nexa-input" value={form.tipo} onChange={(e) => setForm({ ...form, tipo: e.target.value as typeof form.tipo })}>
+                  <option value="quiz">Quiz de aula (aparece dentro da aula, abaixo do conteúdo)</option>
+                  <option value="prova">Prova final (tela própria, no fim do treinamento)</option>
+                </select>
+                {form.id && formProva !== ehProva && (
+                  <small style={{ color: palette.textMuted }}>
+                    Ao salvar, {formProva ? "vira a prova final e passa para Provas finais" : "vira quiz da aula escolhida e passa para Quizzes"}.
+                  </small>
+                )}
+              </label>
+              <label style={{ gridColumn: "1 / -1" }}><span className="nexa-label">Título<RequiredMark /></span><input className="nexa-input" placeholder={formProva ? "Ex: Prova final do Onboarding RPA" : "Ex: Avaliação do módulo 1"} value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} />{erro("titulo")}</label>
               <label><span className="nexa-label">Treinamento<RequiredMark /></span><select className="nexa-input" value={form.treinamentoId} onChange={(e) => setForm({ ...form, treinamentoId: e.target.value, aulaId: "" })}><option value="" disabled>Selecionar treinamento</option>{trainings.map((t) => <option key={t.id} value={t.id}>{t.title}</option>)}</select>{erro("treinamentoId")}</label>
-              {ehProva ? (
+              {formProva ? (
                 <div style={{ alignSelf: "end", padding: "10px 12px", borderRadius: 9, background: "rgba(59,155,255,.08)", color: palette.textMuted, fontSize: 11.5, lineHeight: 1.45 }}>
                   O aluno faz a prova depois de concluir todas as aulas. O certificado só é liberado com a aprovação.
                 </div>
@@ -277,7 +296,7 @@ export default function AdminQuizzesView({ trainings, modo = "quiz" }: AdminQuiz
 
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 9, marginTop: 20 }}>
               <button className="nexa-btn-ghost" type="button" onClick={() => setShowModal(false)}>Cancelar</button>
-              <button className="nexa-btn-primary" type="button" onClick={salvar} disabled={salvando}><HelpCircle size={14} /> {salvando ? "Salvando..." : form.id ? "Salvar alterações" : ehProva ? "Criar prova final" : "Criar quiz"}</button>
+              <button className="nexa-btn-primary" type="button" onClick={salvar} disabled={salvando}><HelpCircle size={14} /> {salvando ? "Salvando..." : form.id ? "Salvar alterações" : formProva ? "Criar prova final" : "Criar quiz"}</button>
             </div>
           </div>
         </div>
