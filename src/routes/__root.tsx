@@ -33,20 +33,44 @@ function NotFoundComponent() {
   );
 }
 
+/** Erro de carregar um pedaço do app que não existe mais (nova versão publicada com a aba aberta). */
+function ehVersaoAntiga(error: unknown) {
+  const msg = error instanceof Error ? error.message : String(error);
+  return /dynamically imported module|Importing a module script failed|module script|Failed to fetch dynamically|Loading chunk/i.test(msg);
+}
+
 function ErrorComponent({ error, reset }: { error: unknown; reset: () => void }) {
-  console.error(error);
   const router = useRouter();
-  useEffect(() => console.error("Root route error", error), [error]);
+  const mensagem = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+  useEffect(() => {
+    console.error("Root route error", error);
+    // Nova versão publicada: recarrega uma vez para buscar os arquivos novos.
+    if (ehVersaoAntiga(error)) {
+      try {
+        // No máximo uma vez a cada 30 s, para não entrar em laço se o erro for outro.
+        const ultima = Number(sessionStorage.getItem("nexa-recarregou") ?? 0);
+        if (Date.now() - ultima > 30_000) {
+          sessionStorage.setItem("nexa-recarregou", String(Date.now()));
+          window.location.reload();
+        }
+      } catch {
+        // sem armazenamento: segue mostrando a tela de erro
+      }
+    }
+  }, [error]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          This page didn't load
+          Algo deu errado nesta tela
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Something went wrong on our end. You can try refreshing or head back home.
+          Tente de novo ou volte para o início. Se continuar, envie a mensagem abaixo para o suporte.
         </p>
+        <pre className="mt-4 max-h-40 overflow-auto whitespace-pre-wrap break-words rounded-md border border-input bg-muted px-3 py-2 text-left text-xs text-muted-foreground">
+          {mensagem}
+        </pre>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => {
@@ -55,13 +79,13 @@ function ErrorComponent({ error, reset }: { error: unknown; reset: () => void })
             }}
             className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
-            Try again
+            Tentar de novo
           </button>
           <a
             href="/"
             className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
           >
-            Go home
+            Voltar ao início
           </a>
         </div>
       </div>
