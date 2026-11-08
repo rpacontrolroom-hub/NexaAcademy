@@ -1,11 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { buscarArquivoDrive } from "@/lib/drive-client";
-import PdfViewer from "@/views/academy/components/PdfViewer";
+import PdfViewer, { type ProgressoPdf } from "@/views/academy/components/PdfViewer";
 
 /** Mostra um arquivo do Drive lido pelo servidor com a conta de serviço (sem login do Google).
  *  PDFs abrem no visualizador do app (slides um por vez, documentos em rolagem); se ele não abrir o arquivo,
- *  usa o visualizador do navegador. Se o servidor não conseguir, cai no iframe do próprio Drive (`fallbackSrc`). */
-export default function DriveViewer({ id, title, fallbackSrc }: { id: string; title: string; fallbackSrc: string }) {
+ *  usa o visualizador do navegador. Se o servidor não conseguir, cai no iframe do próprio Drive (`fallbackSrc`).
+ *  `onControle` diz se dá para acompanhar a leitura: o progresso das páginas (visualizador do app) ou "livre" (visualizador
+ *  do navegador/Drive, que não informa o que foi visto). */
+export default function DriveViewer({ id, title, fallbackSrc, chaveProgresso, onControle }: {
+  id: string; title: string; fallbackSrc: string; chaveProgresso?: string | null; onControle?: (c: ProgressoPdf | "livre") => void;
+}) {
   const [blob, setBlob] = useState<Blob | null>(null);
   const [falhou, setFalhou] = useState(false);
   const [usarNavegador, setUsarNavegador] = useState(false);
@@ -25,8 +29,11 @@ export default function DriveViewer({ id, title, fallbackSrc }: { id: string; ti
   const src = useMemo(() => (blob && (!ehPdf || usarNavegador) ? URL.createObjectURL(blob) : null), [blob, ehPdf, usarNavegador]);
   useEffect(() => () => { if (src) URL.revokeObjectURL(src); }, [src]);
 
+  const semControle = falhou || (!!blob && (!ehPdf || usarNavegador));
+  useEffect(() => { if (semControle) onControle?.("livre"); }, [semControle, onControle]);
+
   if (falhou) return <iframe src={fallbackSrc} title={title} allow="fullscreen" allowFullScreen loading="lazy" />;
   if (!blob) return <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", minHeight: 260, fontSize: 13, opacity: 0.7 }}>Carregando arquivo...</div>;
-  if (ehPdf && !usarNavegador) return <PdfViewer blob={blob} title={title} onFalha={() => setUsarNavegador(true)} />;
+  if (ehPdf && !usarNavegador) return <PdfViewer blob={blob} title={title} onFalha={() => setUsarNavegador(true)} chaveProgresso={chaveProgresso} onProgresso={onControle} />;
   return src ? <iframe src={src} title={title} allowFullScreen /> : null;
 }

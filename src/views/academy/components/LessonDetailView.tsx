@@ -25,6 +25,7 @@ import TextLessonContent, { minutosDeLeitura } from "@/views/academy/components/
 import * as repo from "@/data/academy-repository";
 import { downloadDireto, driveFileId, embedDocumento, formatBytes, linkValido, youtubeId } from "@/lib/format";
 import { baixarArquivoDrive } from "@/lib/drive-client";
+import type { ProgressoPdf } from "@/views/academy/components/PdfViewer";
 import DriveViewer from "./DriveViewer";
 import type { LessonDetail } from "@/models/lesson-detail";
 
@@ -115,6 +116,8 @@ const extraLessonCss = `
   .lesson-doc-frame { margin:16px 16px 0; height:75vh; min-height:460px; overflow:hidden; background:#f4f4f4; border:1px solid #e2e2e2; border-radius:9px; }
   .lesson-doc-frame.slides { height:auto; min-height:0; aspect-ratio:16/9; }
   .lesson-doc-frame iframe { display:block; width:100%; height:100%; border:0; }
+  @media (min-width:1101px) { .lesson-detail-grid:has(.pdf-viewer.slides) { grid-template-columns:minmax(0,1fr) 290px; } }
+  .lesson-doc-frame:has(> .pdf-viewer.slides) { margin:8px 8px 0; }
   .lesson-doc-frame:has(> .pdf-viewer) { height:auto; min-height:0; aspect-ratio:auto; background:#0b1220; border-color:#0b1220; }
   .lesson-doc-bar { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin:10px 16px 16px; color:#888; font-size:11.5px; }
   .lesson-doc-bar a { text-decoration:none; }
@@ -176,6 +179,10 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
   );
   const { data: quizzesDaAula = [] } = useQuizzesDaAula(lessonId);
 
+  // Aula com PDF do Drive: só conclui depois de passar por todas as páginas/slides.
+  const [controlePdf, setControlePdf] = useState<ProgressoPdf | "livre" | "carregando">("carregando");
+  useEffect(() => setControlePdf("carregando"), [lessonId]);
+
   // Aula de texto: só conclui depois de rolar até o fim da leitura.
   const [leuAteFim, setLeuAteFim] = useState(false);
   const [fimTexto, setFimTexto] = useState<HTMLDivElement | null>(null);
@@ -236,10 +243,15 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
   const embedAula = !videoId ? embedDocumento(aula?.url) : null;
   const textoAula = !videoId && aula?.tipo === "texto" ? aula.conteudo?.trim() ?? "" : "";
   const textoLiberado = !textoAula || completed || leuAteFim;
-  const podeConcluir = videoLiberado && textoLiberado && quizLiberado;
+  const pdfControlado = !!embedAula && !!aula?.url && !!driveFileId(aula.url);
+  const progressoPdf = typeof controlePdf === "object" ? controlePdf : null;
+  const nomePaginas = progressoPdf?.modo === "paginas" ? "páginas" : "slides";
+  const pdfLiberado = !pdfControlado || completed || controlePdf === "livre" || (!!progressoPdf && progressoPdf.vistas >= progressoPdf.total);
+  const podeConcluir = videoLiberado && textoLiberado && pdfLiberado && quizLiberado;
   const motivoBloqueio = !videoLiberado
     ? `Assista pelo menos ${PERCENTUAL_MINIMO_VIDEO}% do vídeo para concluir a aula.`
     : !textoLiberado ? "Leia o conteúdo até o fim para concluir a aula."
+    : !pdfLiberado ? (progressoPdf ? `Passe por todos os ${nomePaginas} (${progressoPdf.vistas} de ${progressoPdf.total}) para concluir a aula.` : "Aguarde o arquivo carregar.")
     : !quizLiberado ? "Seja aprovado no quiz desta aula para concluí-la." : undefined;
 
   async function concluirAula() {
@@ -355,9 +367,27 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
               <>
                 <div className={`lesson-doc-frame ${embedAula.tipo}`}>
                   {driveFileId(aula.url)
-                    ? <DriveViewer id={driveFileId(aula.url)!} title={detail.title} fallbackSrc={embedAula.src} />
+                    ? <DriveViewer
+                        id={driveFileId(aula.url)!}
+                        title={detail.title}
+                        fallbackSrc={embedAula.src}
+                        chaveProgresso={userId ? `nexa:pdf:${userId}:${lessonId}:${driveFileId(aula.url)}` : null}
+                        onControle={setControlePdf}
+                      />
                     : <iframe src={embedAula.src} title={detail.title} allow="fullscreen" allowFullScreen loading="lazy" />}
                 </div>
+                {pdfControlado && !completed && progressoPdf && (
+                  <div className="lesson-player-actions" style={{ marginTop: 14 }}>
+                    <div className="lesson-watch">
+                      <div className="lesson-watch-track"><span style={{ width: `${progressoPdf.total ? (progressoPdf.vistas / progressoPdf.total) * 100 : 0}%` }} /></div>
+                      <span className="lesson-done-hint">
+                        {pdfLiberado
+                          ? (quizLiberado ? `Você passou por todos os ${nomePaginas}. Clique em Concluir aula para seguir.` : `Você passou por todos os ${nomePaginas}. Agora responda o quiz abaixo para concluir a aula.`)
+                          : `Você viu ${progressoPdf.vistas} de ${progressoPdf.total} ${nomePaginas} · passe por todos para liberar a conclusão`}
+                      </span>
+                    </div>
+                  </div>
+                )}
                 <div className="lesson-doc-bar">
                   <span>Não carregou? Confira se o arquivo está compartilhado no Drive.</span>
                   <a className="lesson-nav-button" href={aula.url} target="_blank" rel="noreferrer"><ExternalLink size={14} />Abrir em nova aba</a>
