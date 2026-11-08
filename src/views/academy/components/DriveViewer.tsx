@@ -34,7 +34,7 @@ export default function DriveViewer({ id, title, fallbackSrc, chaveProgresso, on
   useEffect(() => { if (semControle) onControle?.("livre"); }, [semControle, onControle]);
 
   if (falhou) return <iframe src={fallbackSrc} title={title} allow="fullscreen" allowFullScreen loading="lazy" />;
-  if (!blob) return <FishLoader texto="Carregando arquivo" />;
+  if (!blob) return <FishLoader texto="Mergulhando no conteúdo" />;
   if (ehPdf && !usarNavegador) return <PdfViewer blob={blob} title={title} onFalha={() => setUsarNavegador(true)} chaveProgresso={chaveProgresso} onProgresso={onControle} />;
   return src ? <iframe src={src} title={title} allowFullScreen /> : null;
 }

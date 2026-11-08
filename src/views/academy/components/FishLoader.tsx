@@ -48,7 +48,7 @@ const CARDUME = [
   { angulo: -128, escala: 0.52, opacidade: 0.3 },
 ];
 
-export default function FishLoader({ texto = "Carregando arquivo" }: { texto?: string }) {
+export default function FishLoader({ texto = "Mergulhando no conteúdo" }: { texto?: string }) {
   return (
     <div className="fish-loader" role="status" aria-live="polite">
       <style>{css}</style>

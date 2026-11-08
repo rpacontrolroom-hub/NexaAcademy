@@ -233,7 +233,7 @@ export default function PdfViewer({ blob, title, onFalha, chaveProgresso, onProg
     <div className={`pdf-viewer ${modo}`} ref={raizRef} tabIndex={0} onKeyDown={aoTeclar} aria-label={title}>
       <style>{css}</style>
       {!doc ? (
-        <FishLoader texto="Preparando o arquivo" />
+        <FishLoader texto="Quase na superfície" />
       ) : modo === "slides" ? (
         <>
           <div className="pdf-stage" style={{ padding: 8 }}>
