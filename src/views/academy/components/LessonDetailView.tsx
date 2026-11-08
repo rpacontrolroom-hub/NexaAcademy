@@ -41,6 +41,7 @@ interface LessonDetailViewProps {
 
 const lessonDetailCss = `
   .lesson-detail { color:#111; }
+  .lesson-detail-eyebrow, .lesson-side-count { display:none; }
   .lesson-detail-breadcrumb { display:flex; align-items:center; flex-wrap:wrap; gap:9px; margin-bottom:18px; color:#777; font-size:11.5px; }
   .lesson-detail-breadcrumb button { padding:0; color:#666; background:none; border:0; cursor:pointer; }
   .lesson-detail-breadcrumb button:hover { color:#111; }
@@ -221,6 +222,8 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
   }
 
   const { lesson, module, previousLesson, nextLesson, detail } = context;
+  const posicaoNaLista = module.lessons.findIndex((l) => l.id === lesson.id) + 1;
+  const concluidasNoModulo = module.lessons.filter((l) => l.completed).length;
   const completed = lesson.completed;
   // Última aula: com todas as outras concluídas, concluir esta encerra o treinamento.
   const outrasConcluidas = course.modules.every((m) => m.lessons.every((l) => l.completed || l.id === lessonId));
@@ -283,6 +286,7 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
 
       <header className="lesson-detail-header">
         <div>
+          <span className="lesson-detail-eyebrow">Aula {posicaoNaLista} de {module.lessons.length} · Módulo {module.order}</span>
           <h1 className="lesson-detail-title">{module.order}. {detail.title}</h1>
           <p className="lesson-detail-description">{detail.description}</p>
         </div>
@@ -401,7 +405,7 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
 
         <aside className="lesson-detail-side">
           <section className="lesson-detail-side-card">
-            <h2 className="lesson-detail-side-title">Conteúdo da aula</h2>
+            <h2 className="lesson-detail-side-title">Conteúdo da aula <span className="lesson-side-count">{concluidasNoModulo}/{module.lessons.length}</span></h2>
             <div className="lesson-content-list">
               {module.lessons.map((item, index) => (
                 <button key={item.id} className={`lesson-content-row ${item.id === lesson.id ? "active" : ""}`} onClick={() => onNavigate(item.id)}>

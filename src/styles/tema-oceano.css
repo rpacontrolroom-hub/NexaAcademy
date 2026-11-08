@@ -761,6 +761,127 @@ html[data-tema="oceano"] .course-detail-empty { border-radius: 16px; }
   html[data-tema="oceano"] .course-detail-tab { padding: 8px 12px; }
 }
 
+/* ===== Tema Oceano: tela da aula ===== */
+html[data-tema="oceano"] .lesson-detail-breadcrumb { font-size: 12px; margin-bottom: 22px; animation: oc-fade .5s ease-out backwards; }
+html[data-tema="oceano"] .lesson-detail-breadcrumb button { padding: 5px 12px; border-radius: 999px; background: rgba(120, 180, 255, 0.07); border: 1px solid var(--oc-hairline); max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; transition: background .2s, color .2s; }
+html[data-tema="oceano"] .lesson-detail-breadcrumb button:hover { background: rgba(120, 180, 255, 0.14); }
+html[data-tema="oceano"] .lesson-detail-breadcrumb > span { color: #7390ad; }
+html[data-tema="oceano"] .lesson-detail-header { margin-bottom: 26px; }
+html[data-tema="oceano"] .lesson-detail-header > div > * { animation: oc-rise .8s var(--oc-ease) backwards; }
+html[data-tema="oceano"] .lesson-detail-header > div > :nth-child(2) { animation-delay: .07s; }
+html[data-tema="oceano"] .lesson-detail-header > div > :nth-child(3) { animation-delay: .14s; }
+html[data-tema="oceano"] .lesson-detail-eyebrow { display: block; margin-bottom: 12px; font: 600 12px 'Inter', sans-serif; letter-spacing: 0.2em; text-transform: uppercase; color: #8cc6ff; }
+html[data-tema="oceano"] .lesson-detail-title { margin: 0 0 12px; font: 600 clamp(28px, 2.8vw, 40px)/1.12 'Playfair Display', serif; letter-spacing: -0.02em; color: #fff; text-wrap: balance; text-shadow: 0 2px 24px rgba(0, 10, 30, 0.6); }
+html[data-tema="oceano"] .lesson-detail-description { font-size: 14.5px; line-height: 1.65; color: #b8cde3; max-width: 720px; text-shadow: 0 1px 12px rgba(0, 10, 30, 0.7); }
+html[data-tema="oceano"] .lesson-detail-grid { grid-template-columns: minmax(0, 1fr) 360px; gap: 24px; }
+
+/* Palco do conteúdo: vidro com moldura luminosa */
+html[data-tema="oceano"] .lesson-detail-main { position: relative; isolation: isolate; border-radius: 24px; animation: oc-rise .85s var(--oc-ease) .15s backwards; }
+html[data-tema="oceano"] .lesson-detail-main::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: linear-gradient(125deg, rgba(255, 255, 255, 0.07), transparent 40%), radial-gradient(120% 50% at 50% 0%, rgba(70, 150, 255, 0.12), transparent 70%);
+}
+html[data-tema="oceano"] .lesson-detail-main > div { border-top-color: var(--oc-hairline) !important; }
+html[data-tema="oceano"] .lesson-player-shell {
+  margin: 14px; border-radius: 16px; background: #000;
+  box-shadow: 0 0 0 1px rgba(140, 200, 255, 0.18), 0 24px 60px -20px rgba(0, 0, 0, 0.9), 0 0 50px -10px rgba(40, 130, 255, 0.35);
+}
+html[data-tema="oceano"] .lesson-player-bar { min-height: 46px; padding: 0 10px 0 18px; background: linear-gradient(180deg, rgba(10, 30, 60, 0.96), rgba(4, 16, 34, 0.98)); border-top: 1px solid var(--oc-hairline); color: #cfe3f7; }
+html[data-tema="oceano"] .lesson-player-bar-title { font-size: 13px; font-weight: 500; }
+html[data-tema="oceano"] .lesson-player-bar button { border-radius: 10px; transition: background .2s, transform .3s var(--oc-ease); }
+html[data-tema="oceano"] .lesson-player-bar button:hover { background: rgba(120, 180, 255, 0.16); transform: scale(1.08); }
+html[data-tema="oceano"] .lesson-player-actions { margin: 4px 18px 18px; }
+html[data-tema="oceano"] .lesson-watch { max-width: 520px; gap: 8px; }
+html[data-tema="oceano"] .lesson-watch-track { height: 6px; background: rgba(140, 190, 255, 0.12); box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35); }
+html[data-tema="oceano"] .lesson-watch-track span { background: linear-gradient(90deg, #1a5fd6, #4a9dff 70%, #9fd2ff); box-shadow: 0 0 12px rgba(80, 160, 255, 0.65); border-radius: inherit; }
+html[data-tema="oceano"] .lesson-done-hint { font-size: 12.5px; color: #a9c1da; }
+html[data-tema="oceano"] .lesson-skip-warning { margin: 0 18px 18px; border-radius: 14px; }
+html[data-tema="oceano"] .lesson-doc-frame { margin: 14px 14px 0; border-radius: 16px; border-color: rgba(140, 200, 255, 0.18); box-shadow: 0 24px 60px -24px rgba(0, 0, 0, 0.9); }
+html[data-tema="oceano"] .lesson-doc-bar { margin: 12px 18px 18px; }
+html[data-tema="oceano"] .lesson-reading-bar { padding: 16px 22px; border-bottom-color: var(--oc-hairline); }
+html[data-tema="oceano"] .lesson-reading-chip { padding: 5px 12px; color: #b5dcff; background: rgba(58, 140, 255, 0.16); box-shadow: inset 0 0 0 1px rgba(120, 185, 255, 0.3); }
+html[data-tema="oceano"] .lesson-reading-end { margin: 0 18px 20px; border-radius: 14px; }
+html[data-tema="oceano"] .text-lesson { font-size: 15.5px; line-height: 1.8; }
+html[data-tema="oceano"] .text-lesson h1, html[data-tema="oceano"] .text-lesson h2 { font-family: 'Playfair Display', serif; font-weight: 600; letter-spacing: -0.01em; }
+html[data-tema="oceano"] .lesson-video { margin: 14px; border-radius: 16px; background: radial-gradient(80% 80% at 50% 30%, rgba(40, 110, 220, 0.25), transparent 70%), #061a35; }
+html[data-tema="oceano"] .lesson-video::before, html[data-tema="oceano"] .lesson-video::after { display: none; }
+html[data-tema="oceano"] .lesson-video-brand { font-family: 'Playfair Display', serif; }
+html[data-tema="oceano"] .lesson-video-play { background: var(--oc-accent-grad); box-shadow: 0 0 0 8px rgba(58, 140, 255, 0.14), 0 14px 34px -8px rgba(40, 130, 255, 0.8); }
+
+/* Rodapé: pílulas, concluir em verde luminoso */
+html[data-tema="oceano"] .lesson-detail-navigation { margin-top: 22px; animation: oc-fade .6s ease-out .3s backwards; }
+html[data-tema="oceano"] .lesson-nav-button { min-height: 44px; padding: 0 18px; border-radius: 999px; font-size: 12.5px; background: rgba(120, 180, 255, 0.06); border-color: var(--oc-hairline-hi); transition: background .25s, border-color .25s, transform .3s var(--oc-ease); }
+html[data-tema="oceano"] .lesson-nav-button:not(:disabled):not(.next):hover { background: rgba(120, 180, 255, 0.14); }
+html[data-tema="oceano"] .lesson-nav-button.next { border: 0; }
+html[data-tema="oceano"] .lesson-complete-button { min-height: 44px; padding: 0 20px; border-radius: 999px; font-size: 12.5px; }
+html[data-tema="oceano"] .lesson-complete-button.ready {
+  color: #fff; border: 0; background: linear-gradient(135deg, #5fe0a6, #22a66a);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 10px 26px -8px rgba(40, 200, 130, 0.7);
+  animation: oc-pulse-green 2.4s ease-in-out infinite;
+}
+html[data-tema="oceano"] .lesson-complete-button.ready:hover { filter: brightness(1.08); transform: translateY(-1px); }
+html[data-tema="oceano"] .lesson-complete-button.done { box-shadow: inset 0 0 0 1px rgba(62, 207, 142, 0.25); }
+@keyframes oc-pulse-green {
+  0%, 100% { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 10px 26px -8px rgba(40, 200, 130, 0.7), 0 0 0 0 rgba(62, 207, 142, 0.45); }
+  50% { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 10px 26px -8px rgba(40, 200, 130, 0.7), 0 0 0 8px rgba(62, 207, 142, 0); }
+}
+
+/* Lateral: playlist e materiais, fixos ao rolar */
+html[data-tema="oceano"] .lesson-detail-side { position: sticky; top: 8px; align-self: start; gap: 18px; }
+html[data-tema="oceano"] .lesson-detail-side-card { position: relative; isolation: isolate; padding: 18px; border-radius: 22px; animation: oc-rise .8s var(--oc-ease) .25s backwards; }
+html[data-tema="oceano"] .lesson-detail-side-card + .lesson-detail-side-card { animation-delay: .35s; }
+html[data-tema="oceano"] .lesson-detail-side-card::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; border-radius: inherit;
+  background: linear-gradient(125deg, rgba(255, 255, 255, 0.08), transparent 45%);
+}
+html[data-tema="oceano"] .lesson-detail-side-title { margin-bottom: 14px; font: 600 18px 'Playfair Display', serif; color: #fff; }
+html[data-tema="oceano"] .lesson-detail-side-title svg { color: #8cc6ff; }
+html[data-tema="oceano"] .lesson-side-count { display: inline-block; padding: 4px 10px; border-radius: 999px; font: 600 11.5px 'Inter', sans-serif; color: #b5dcff; background: rgba(58, 140, 255, 0.16); box-shadow: inset 0 0 0 1px rgba(120, 185, 255, 0.3); }
+html[data-tema="oceano"] .lesson-content-list, html[data-tema="oceano"] .lesson-material-list { display: grid; gap: 6px; overflow: visible; background: transparent; border: 0; }
+html[data-tema="oceano"] .lesson-content-row, html[data-tema="oceano"] .lesson-material-row {
+  position: relative; grid-template-columns: 28px minmax(0, 1fr) auto 18px; gap: 12px; min-height: 52px; padding: 0 12px;
+  border: 1px solid transparent; border-radius: 14px; font-size: 12.5px; color: #cfe3f7; background: rgba(120, 180, 255, 0.04);
+  transition: background .25s, border-color .25s, transform .3s var(--oc-ease);
+}
+html[data-tema="oceano"] .lesson-content-row:last-child, html[data-tema="oceano"] .lesson-material-row:last-child { border-bottom: 1px solid transparent; }
+html[data-tema="oceano"] .lesson-content-row:hover, html[data-tema="oceano"] .lesson-material-row:hover { background: rgba(120, 180, 255, 0.1); border-color: var(--oc-hairline); transform: translateX(3px); }
+html[data-tema="oceano"] .lesson-content-row > span:first-child {
+  display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; font-size: 11px; font-weight: 600;
+  color: #a9c1da; background: #071d3a; box-shadow: inset 0 0 0 1px rgba(140, 190, 255, 0.3);
+}
+html[data-tema="oceano"] .lesson-content-row > span:nth-child(4) { border-color: rgba(140, 190, 255, 0.4) !important; }
+html[data-tema="oceano"] .lesson-content-row .lesson-content-duration { font-size: 11.5px; color: #8aa6c2; }
+html[data-tema="oceano"] .lesson-content-row.active {
+  color: #fff; font-weight: 600; border-color: rgba(110, 180, 255, 0.3);
+  background: linear-gradient(90deg, rgba(58, 140, 255, 0.26), rgba(58, 140, 255, 0.05));
+  box-shadow: 0 10px 26px -14px rgba(40, 130, 255, 0.7);
+}
+html[data-tema="oceano"] .lesson-content-row.active::before {
+  content: ""; position: absolute; left: -1px; top: 26%; bottom: 26%; width: 3px; border-radius: 3px;
+  background: linear-gradient(180deg, #9fd2ff, #3a8cff); box-shadow: 0 0 12px rgba(80, 160, 255, 0.9);
+}
+html[data-tema="oceano"] .lesson-content-row.active > span:first-child { color: #fff; background: var(--oc-accent-grad); box-shadow: 0 0 0 3px rgba(58, 140, 255, 0.18), 0 0 12px rgba(70, 150, 255, 0.6); }
+html[data-tema="oceano"] .lesson-content-row.active > svg:last-child { color: #9fd2ff; }
+html[data-tema="oceano"] .lesson-material-row > svg:first-child {
+  width: 28px; height: 28px; padding: 7px; border-radius: 9px; color: #b5dcff;
+  background: linear-gradient(180deg, rgba(90, 170, 255, 0.22), rgba(40, 110, 220, 0.1)); box-shadow: inset 0 0 0 1px rgba(130, 195, 255, 0.28);
+}
+html[data-tema="oceano"] .lesson-material-row a { transition: color .2s; }
+html[data-tema="oceano"] .lesson-material-row a:hover { color: #9fd2ff; }
+html[data-tema="oceano"] .lesson-no-material { padding: 22px; border-radius: 14px; background: rgba(120, 180, 255, 0.04); border: 1px dashed var(--oc-hairline-hi); font-size: 12.5px; }
+
+/* Comentários */
+html[data-tema="oceano"] .lesson-comments { position: relative; isolation: isolate; margin-top: 24px; padding: 22px 24px; border-radius: 22px; animation: oc-fade .6s ease-out .4s backwards; }
+html[data-tema="oceano"] .lesson-comments-title { font: 600 18px 'Playfair Display', serif; }
+html[data-tema="oceano"] .lesson-comment-form textarea { border-radius: 14px; transition: border-color .25s, box-shadow .25s; }
+html[data-tema="oceano"] .lesson-comment-form textarea:focus { outline: 0; border-color: rgba(140, 200, 255, 0.7); box-shadow: 0 0 0 4px rgba(70, 150, 255, 0.16); }
+html[data-tema="oceano"] .lesson-comment-send { border-radius: 999px; }
+
+@media (max-width: 1100px) {
+  html[data-tema="oceano"] .lesson-detail-grid { grid-template-columns: 1fr; }
+  html[data-tema="oceano"] .lesson-detail-side { position: static; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html[data-tema="oceano"] *, html[data-tema="oceano"] *::before, html[data-tema="oceano"] *::after {
     animation-duration: 0.01ms !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important;
