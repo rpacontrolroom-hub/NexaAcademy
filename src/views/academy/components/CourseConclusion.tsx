@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Award, Clock3, Layers3, PlayCircle, Send, Star, Trophy, Users } from "lucide-react";
+import { Award, ClipboardCheck, Clock3, Layers3, PlayCircle, Send, Star, Trophy, Users } from "lucide-react";
 
 import { keys, useAvaliacoesTreinamento, useConcluintes } from "@/hooks/use-academy";
 import * as repo from "@/data/academy-repository";
@@ -55,12 +55,14 @@ interface CourseConclusionProps {
   /** Avaliação final do treinamento ainda sem aprovação (o certificado depende dela). */
   avaliacaoPendente: boolean;
   onOpenCertificates?: () => void;
+  /** Abre a prova final (quando o treinamento tem uma). */
+  onOpenExam?: () => void;
   onReviewLessons: () => void;
 }
 
 const ROTULOS = ["", "Ruim", "Regular", "Bom", "Muito bom", "Excelente"];
 
-export default function CourseConclusion({ userId, treinamentoId, course, matricula, avaliacaoPendente, onOpenCertificates, onReviewLessons }: CourseConclusionProps) {
+export default function CourseConclusion({ userId, treinamentoId, course, matricula, avaliacaoPendente, onOpenCertificates, onOpenExam, onReviewLessons }: CourseConclusionProps) {
   const queryClient = useQueryClient();
   const lessons = course.modules.flatMap((m) => m.lessons);
   const concluido = course.progress >= 100 || (lessons.length > 0 && lessons.every((l) => l.completed));
@@ -123,6 +125,9 @@ export default function CourseConclusion({ userId, treinamentoId, course, matric
           {matricula?.aproveitamento != null && <span className="course-conclusion-stat"><Award size={13} />{Number(matricula.aproveitamento)}% de aproveitamento</span>}
         </div>
         <div className="course-conclusion-actions">
+          {avaliacaoPendente && onOpenExam && (
+            <button className="course-conclusion-btn light" type="button" onClick={onOpenExam}><ClipboardCheck size={14} />Fazer a prova final</button>
+          )}
           {onOpenCertificates && !avaliacaoPendente && (
             <button className="course-conclusion-btn light" type="button" onClick={onOpenCertificates}><Award size={14} />Ver meu certificado</button>
           )}
@@ -131,7 +136,7 @@ export default function CourseConclusion({ userId, treinamentoId, course, matric
       </section>
 
       {avaliacaoPendente && (
-        <div className="course-conclusion-pending">Falta só a <strong>avaliação final</strong> (logo abaixo) para liberar o seu certificado.</div>
+        <div className="course-conclusion-pending">Falta só a <strong>prova final</strong> para liberar o seu certificado.</div>
       )}
 
       <div className="course-conclusion-grid">

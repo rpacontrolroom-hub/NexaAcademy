@@ -4,7 +4,7 @@ import RequiredMark from "@/components/RequiredMark";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { theme as palette } from "@/styles/theme";
-import { ArrowDown, ArrowUp, CheckCircle2, HelpCircle, Pencil, PlusCircle, Search, Trash2, X } from "lucide-react";
+import { ArrowDown, ArrowUp, CheckCircle2, ClipboardCheck, HelpCircle, Pencil, PlusCircle, Search, Trash2, X } from "lucide-react";
 import { keys, useAulasDoTreinamento, useQuizzesAdmin } from "@/hooks/use-academy";
 import * as repo from "@/data/academy-repository";
 
@@ -27,6 +27,8 @@ const quizCss = `
 
 interface AdminQuizzesViewProps {
   trainings: { id: string; title: string }[];
+  /** "quiz": quizzes dentro das aulas. "prova": prova final do treinamento (quiz sem aula, uma por treinamento). */
+  modo?: "quiz" | "prova";
 }
 
 type PerguntaForm = repo.QuizPerguntaAdmin;
@@ -40,7 +42,9 @@ const formInicial = {
 
 const MAX_ALTERNATIVAS = 6;
 
-export default function AdminQuizzesView({ trainings }: AdminQuizzesViewProps) {
+export default function AdminQuizzesView({ trainings, modo = "quiz" }: AdminQuizzesViewProps) {
+  const ehProva = modo === "prova";
+  const nome = ehProva ? "prova final" : "quiz";
   const queryClient = useQueryClient();
   const { data: quizzes = [] } = useQuizzesAdmin();
   const [showModal, setShowModal] = useState(false);
@@ -51,7 +55,12 @@ export default function AdminQuizzesView({ trainings }: AdminQuizzesViewProps) {
   const { data: aulas = [] } = useAulasDoTreinamento(form.treinamentoId || null);
 
   const termo = busca.trim().toLowerCase();
-  const lista = quizzes.filter((q) => !termo || q.titulo.toLowerCase().includes(termo) || q.treinamento.toLowerCase().includes(termo));
+  const doModo = quizzes.filter((q) => (ehProva ? !q.aula_id : !!q.aula_id));
+  const lista = doModo.filter((q) => !termo || q.titulo.toLowerCase().includes(termo) || q.treinamento.toLowerCase().includes(termo));
+  // Cada treinamento tem no máximo uma prova final.
+  const provaExistente = ehProva && form.treinamentoId
+    ? quizzes.find((q) => !q.aula_id && q.treinamento_id === form.treinamentoId && q.id !== form.id)
+    : undefined;
 
   const nota = Number(form.notaMinima.replace(",", "."));
   const tentativas = form.maxTentativas.trim() ? Number(form.maxTentativas) : null;
@@ -62,8 +71,10 @@ export default function AdminQuizzesView({ trainings }: AdminQuizzesViewProps) {
     : form.perguntas.some((p) => p.alternativas.filter((a) => a.correta && a.texto.trim()).length !== 1) ? "Marque a alternativa correta de cada pergunta."
     : null;
   const erros = {
-    titulo: form.titulo.trim().length < 3 ? "Informe o título do quiz." : null,
-    treinamentoId: !form.treinamentoId ? "Selecione o treinamento." : null,
+    titulo: form.titulo.trim().length < 3 ? (ehProva ? "Informe o título da prova." : "Informe o título do quiz.") : null,
+    treinamentoId: !form.treinamentoId ? "Selecione o treinamento."
+      : provaExistente ? `Este treinamento já tem a prova final "${provaExistente.titulo}". Edite a existente.` : null,
+    aulaId: !ehProva && !form.aulaId ? "Selecione a aula onde o quiz aparece." : null,
     notaMinima: !(nota >= 0 && nota <= 100) ? "Use um valor entre 0 e 100." : null,
     maxTentativas: tentativas !== null && !(Number.isInteger(tentativas) && tentativas >= 1) ? "Use um número inteiro (ou deixe vazio)." : null,
     perguntas: erroPergunta,
@@ -126,13 +137,13 @@ export default function AdminQuizzesView({ trainings }: AdminQuizzesViewProps) {
         id: form.id || undefined,
         titulo: form.titulo,
         treinamento_id: form.treinamentoId,
-        aula_id: form.aulaId || null,
+        aula_id: ehProva ? null : form.aulaId || null,
         nota_minima: nota,
         max_tentativas: tentativas,
         status: form.status,
         perguntas: form.perguntas.map((p) => ({ enunciado: p.enunciado, alternativas: p.alternativas.filter((a) => a.texto.trim()) })),
       });
-      toast.success(form.id ? "Quiz atualizado" : "Quiz criado");
+      toast.success(ehProva ? (form.id ? "Prova final atualizada" : "Prova final criada") : (form.id ? "Quiz atualizado" : "Quiz criado"));
       queryClient.invalidateQueries({ queryKey: ["quizzes"] });
       setShowModal(false);
     } catch (err) {
@@ -143,10 +154,10 @@ export default function AdminQuizzesView({ trainings }: AdminQuizzesViewProps) {
   }
 
   async function excluir(q: repo.QuizAdmin) {
-    if (!window.confirm(`Excluir o quiz "${q.titulo}"? As tentativas dos alunos também serão removidas.`)) return;
+    if (!window.confirm(`Excluir ${ehProva ? "a prova final" : "o quiz"} "${q.titulo}"? As tentativas dos alunos também serão removidas.`)) return;
     try {
       await repo.excluirQuiz(q.id);
-      toast.success("Quiz excluído");
+      toast.success(ehProva ? "Prova final excluída" : "Quiz excluído");
       queryClient.invalidateQueries({ queryKey: ["quizzes"] });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : String(err));
@@ -160,26 +171,30 @@ export default function AdminQuizzesView({ trainings }: AdminQuizzesViewProps) {
       <style>{quizCss}</style>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 18, marginBottom: 18 }}>
         <div>
-          <h1 className="nexa-heading" style={{ margin: 0, fontSize: 24, fontWeight: 700 }}>Quizzes</h1>
-          <p style={{ margin: "4px 0 0", color: palette.textMuted, fontSize: 13 }}>Avaliações corrigidas automaticamente. A nota compõe o aproveitamento do certificado.</p>
+          <h1 className="nexa-heading" style={{ margin: 0, fontSize: 24, fontWeight: 700 }}>{ehProva ? "Provas finais" : "Quizzes"}</h1>
+          <p style={{ margin: "4px 0 0", color: palette.textMuted, fontSize: 13 }}>
+            {ehProva
+              ? "Prova no fim do treinamento, em tela ampla para o aluno. Opcional por treinamento: quando existe, o certificado só sai com a aprovação."
+              : "Perguntas dentro das aulas, corrigidas automaticamente. A nota compõe o aproveitamento do certificado."}
+          </p>
         </div>
-        <button className="nexa-btn-primary" type="button" onClick={abrirNovo}><PlusCircle size={15} /> Novo quiz</button>
+        <button className="nexa-btn-primary" type="button" onClick={abrirNovo}><PlusCircle size={15} /> {ehProva ? "Nova prova final" : "Novo quiz"}</button>
       </div>
 
       <div className="nexa-card" style={{ overflow: "hidden" }}>
         <div className="admin-quiz-toolbar">
-          <div className="admin-quiz-search"><Search size={15} /><input placeholder="Buscar por quiz ou treinamento..." value={busca} onChange={(e) => setBusca(e.target.value)} /></div>
-          <span style={{ color: palette.textMuted, fontSize: 12 }}>{quizzes.length} {quizzes.length === 1 ? "quiz cadastrado" : "quizzes cadastrados"}</span>
+          <div className="admin-quiz-search"><Search size={15} /><input placeholder={ehProva ? "Buscar por prova ou treinamento..." : "Buscar por quiz ou treinamento..."} value={busca} onChange={(e) => setBusca(e.target.value)} /></div>
+          <span style={{ color: palette.textMuted, fontSize: 12 }}>{doModo.length} {ehProva ? (doModo.length === 1 ? "prova cadastrada" : "provas cadastradas") : (doModo.length === 1 ? "quiz cadastrado" : "quizzes cadastrados")}</span>
         </div>
         <div style={{ overflowX: "auto", padding: "14px 18px 4px" }}>
           <table className="nexa-table">
-            <thead><tr><th>Quiz</th><th>Onde aparece</th><th>Perguntas</th><th>Nota mínima</th><th>Status</th><th></th></tr></thead>
+            <thead><tr><th>{ehProva ? "Prova" : "Quiz"}</th><th>{ehProva ? "Treinamento" : "Onde aparece"}</th><th>Perguntas</th><th>Nota mínima</th><th>Status</th><th></th></tr></thead>
             <tbody>
-              {lista.length === 0 && <tr><td colSpan={6} style={{ color: palette.textMuted, textAlign: "center", padding: 24 }}>Nenhum quiz encontrado.</td></tr>}
+              {lista.length === 0 && <tr><td colSpan={6} style={{ color: palette.textMuted, textAlign: "center", padding: 24 }}>{ehProva ? "Nenhuma prova final cadastrada." : "Nenhum quiz encontrado."}</td></tr>}
               {lista.map((q) => (
                 <tr key={q.id}>
-                  <td><div style={{ display: "flex", alignItems: "center", gap: 9 }}><HelpCircle size={16} /><strong style={{ fontSize: 12.5 }}>{q.titulo}</strong></div></td>
-                  <td><div style={{ fontSize: 12 }}>{q.treinamento}</div><div style={{ marginTop: 3, color: palette.textFaint, fontSize: 10.5 }}>{q.aula ? `Aula: ${q.aula}` : "Avaliação final do treinamento"}</div></td>
+                  <td><div style={{ display: "flex", alignItems: "center", gap: 9 }}>{ehProva ? <ClipboardCheck size={16} /> : <HelpCircle size={16} />}<strong style={{ fontSize: 12.5 }}>{q.titulo}</strong></div></td>
+                  <td><div style={{ fontSize: 12 }}>{q.treinamento}</div><div style={{ marginTop: 3, color: palette.textFaint, fontSize: 10.5 }}>{q.aula ? `Aula: ${q.aula}` : "Prova final do treinamento"}</div></td>
                   <td>{q.perguntas.length}</td>
                   <td>{q.nota_minima}%{q.max_tentativas ? <div style={{ color: palette.textFaint, fontSize: 10.5 }}>{q.max_tentativas} tentativa(s)</div> : null}</td>
                   <td><span className={`admin-quiz-status ${q.status === "rascunho" ? "draft" : ""}`}>{q.status === "rascunho" ? "Rascunho" : "Publicado"}</span></td>
@@ -199,16 +214,26 @@ export default function AdminQuizzesView({ trainings }: AdminQuizzesViewProps) {
           <div className="nexa-card nexa-scroll" style={{ width: "min(780px, calc(100vw - 32px))", maxHeight: "calc(100vh - 48px)", overflowY: "auto", padding: 22 }} onClick={(e) => e.stopPropagation()}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
               <div>
-                <div className="nexa-section-title">{form.id ? "Editar quiz" : "Novo quiz"}</div>
-                <div style={{ marginTop: 4, color: palette.textFaint, fontSize: 11.5 }}>Ligado a uma aula, aparece dentro dela. Sem aula, vira a avaliação final do treinamento.</div>
+                <div className="nexa-section-title">{form.id ? `Editar ${nome}` : ehProva ? "Nova prova final" : "Novo quiz"}</div>
+                <div style={{ marginTop: 4, color: palette.textFaint, fontSize: 11.5 }}>
+                  {ehProva
+                    ? "Aparece para o aluno no fim do treinamento, depois da última aula, em tela ampla."
+                    : "Aparece dentro da aula escolhida, abaixo do conteúdo."}
+                </div>
               </div>
               <button className="nexa-btn-ghost" type="button" onClick={() => setShowModal(false)}><X size={15} /></button>
             </div>
 
             <div className="admin-quiz-form">
-              <label style={{ gridColumn: "1 / -1" }}><span className="nexa-label">Título<RequiredMark /></span><input className="nexa-input" placeholder="Ex: Avaliação do módulo 1" value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} />{erro("titulo")}</label>
+              <label style={{ gridColumn: "1 / -1" }}><span className="nexa-label">Título<RequiredMark /></span><input className="nexa-input" placeholder={ehProva ? "Ex: Prova final do Onboarding RPA" : "Ex: Avaliação do módulo 1"} value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} />{erro("titulo")}</label>
               <label><span className="nexa-label">Treinamento<RequiredMark /></span><select className="nexa-input" value={form.treinamentoId} onChange={(e) => setForm({ ...form, treinamentoId: e.target.value, aulaId: "" })}><option value="" disabled>Selecionar treinamento</option>{trainings.map((t) => <option key={t.id} value={t.id}>{t.title}</option>)}</select>{erro("treinamentoId")}</label>
-              <label><span className="nexa-label">Aula (opcional)</span><select className="nexa-input" value={form.aulaId} onChange={(e) => setForm({ ...form, aulaId: e.target.value })} disabled={!form.treinamentoId}><option value="">Avaliação final (sem aula)</option>{aulas.map((a) => <option key={a.id} value={a.id}>{a.label}</option>)}</select></label>
+              {ehProva ? (
+                <div style={{ alignSelf: "end", padding: "10px 12px", borderRadius: 9, background: "rgba(59,155,255,.08)", color: palette.textMuted, fontSize: 11.5, lineHeight: 1.45 }}>
+                  O aluno faz a prova depois de concluir todas as aulas. O certificado só é liberado com a aprovação.
+                </div>
+              ) : (
+                <label><span className="nexa-label">Aula<RequiredMark /></span><select className="nexa-input" value={form.aulaId} onChange={(e) => setForm({ ...form, aulaId: e.target.value })} disabled={!form.treinamentoId}><option value="" disabled>Selecionar aula</option>{aulas.map((a) => <option key={a.id} value={a.id}>{a.label}</option>)}</select>{erro("aulaId")}</label>
+              )}
               <label><span className="nexa-label">Nota mínima para aprovar (%)<RequiredMark /></span><input className="nexa-input" inputMode="decimal" value={form.notaMinima} onChange={(e) => setForm({ ...form, notaMinima: e.target.value })} />{erro("notaMinima")}</label>
               <label><span className="nexa-label">Limite de tentativas</span><input className="nexa-input" inputMode="numeric" placeholder="Vazio = ilimitado" value={form.maxTentativas} onChange={(e) => setForm({ ...form, maxTentativas: e.target.value })} />{erro("maxTentativas")}</label>
               <label><span className="nexa-label">Status</span><select className="nexa-input" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as typeof form.status })}><option value="publicado">Publicado (aparece para os alunos)</option><option value="rascunho">Rascunho (oculto)</option></select></label>
@@ -252,7 +277,7 @@ export default function AdminQuizzesView({ trainings }: AdminQuizzesViewProps) {
 
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 9, marginTop: 20 }}>
               <button className="nexa-btn-ghost" type="button" onClick={() => setShowModal(false)}>Cancelar</button>
-              <button className="nexa-btn-primary" type="button" onClick={salvar} disabled={salvando}><HelpCircle size={14} /> {salvando ? "Salvando..." : form.id ? "Salvar alterações" : "Criar quiz"}</button>
+              <button className="nexa-btn-primary" type="button" onClick={salvar} disabled={salvando}><HelpCircle size={14} /> {salvando ? "Salvando..." : form.id ? "Salvar alterações" : ehProva ? "Criar prova final" : "Criar quiz"}</button>
             </div>
           </div>
         </div>

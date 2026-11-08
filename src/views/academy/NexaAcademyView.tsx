@@ -36,7 +36,7 @@ import {
   User, Settings, Search, ChevronDown, ChevronRight, Play, Clock, Flame, Camera, Trash2, KeyRound,
   CheckCircle2, Lock, Star, X, Send, BookOpen, Code2, Workflow,
   Database, Network, Cpu, ShieldCheck, Users, Layers, Video,
-  HelpCircle, ScrollText, Shield, ArrowLeft, TrendingUp,
+  HelpCircle, ClipboardCheck, ScrollText, Shield, ArrowLeft, TrendingUp,
   PlusCircle, Folder, LogOut, MoreHorizontal, ImagePlus, Moon, Sun, LayoutGrid, Heart, Cog, Bookmark, ArrowRight
 } from "lucide-react";
 
@@ -439,6 +439,7 @@ const adminNavItems = [
     children: [
       { key: "admin-trilhas", label: "Trilhas", icon: Map },
       { key: "admin-quizzes", label: "Quizzes", icon: HelpCircle },
+      { key: "admin-provas", label: "Provas finais", icon: ClipboardCheck },
     ],
   },
   { key: "admin-certificados", label: "Certificados", icon: Award },
@@ -1119,7 +1120,7 @@ export default function NexaAcademy() {
           </div>
           <div className="nexa-logo-wordmark">
             <div className="nexa-logo-text">Nexa</div>
-            <div className="nexa-logo-academy">{tema === "oceano" ? "cardume" : "Academy"}</div>
+            <div className="nexa-logo-academy">{tema === "oceano" ? "Cardume" : "Academy"}</div>
             {mode === "admin" && <div className="nexa-logo-sub">Painel administrativo</div>}
           </div>
         </div>
@@ -2033,10 +2034,13 @@ export default function NexaAcademy() {
           {mode === "admin" && adminActive === "admin-trilhas" && <AdminTrilhasView trainings={adminTrainings} />}
 
           {/* ---------- ADMIN: QUIZZES ---------- */}
-          {mode === "admin" && adminActive === "admin-quizzes" && <AdminQuizzesView trainings={adminTrainings} />}
+          {mode === "admin" && adminActive === "admin-quizzes" && <AdminQuizzesView key="quiz" modo="quiz" trainings={adminTrainings} />}
+
+          {/* ---------- ADMIN: PROVAS FINAIS ---------- */}
+          {mode === "admin" && adminActive === "admin-provas" && <AdminQuizzesView key="prova" modo="prova" trainings={adminTrainings} />}
 
           {/* ---------- ADMIN: outras seções (placeholder) ---------- */}
-          {mode === "admin" && !["admin-dashboard", "admin-usuarios", "admin-treinamentos", "admin-certificados", "admin-trilhas", "admin-quizzes"].includes(adminActive) && (
+          {mode === "admin" && !["admin-dashboard", "admin-usuarios", "admin-treinamentos", "admin-certificados", "admin-trilhas", "admin-quizzes", "admin-provas"].includes(adminActive) && (
             <AdminPlaceholder
               title={adminNavFlat.find((n) => n.key === adminActive)?.label || ""}
               icon={adminNavFlat.find((n) => n.key === adminActive)?.icon || Folder}

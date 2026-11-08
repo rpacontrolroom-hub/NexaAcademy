@@ -1,8 +1,10 @@
 import { useState, type CSSProperties } from "react";
 import {
   Check,
+  ArrowLeft,
   CheckCircle2,
   ChevronLeft,
+  ClipboardCheck,
   ChevronRight,
   Clock3,
   FileText,
@@ -36,6 +38,20 @@ interface CourseDetailViewProps {
 const courseDetailCss = `
   .course-detail { color:#111; }
   .course-detail-eyebrow, .course-detail-ring-wrap { display:none; }
+  .course-exam { overflow:hidden; background:#fff; border:1px solid #dedede; border-radius:14px; box-shadow:0 5px 18px rgba(0,0,0,.025); }
+  .course-exam-head { display:flex; align-items:flex-start; justify-content:space-between; gap:20px; flex-wrap:wrap; padding:26px 30px 22px; border-bottom:1px solid #ececec; }
+  .course-exam-back { display:inline-flex; align-items:center; gap:7px; margin-bottom:16px; padding:0; color:#666; background:none; border:0; font-size:12.5px; cursor:pointer; }
+  .course-exam-back:hover { color:#111; }
+  .course-exam-eyebrow { display:block; margin-bottom:8px; color:#777; font-size:11.5px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; }
+  .course-exam-title { margin:0; font-size:28px; font-weight:700; letter-spacing:-.02em; }
+  .course-exam-info { margin:10px 0 0; max-width:640px; color:#666; font-size:13.5px; line-height:1.55; }
+  .course-exam-chips { display:flex; flex-wrap:wrap; gap:8px; }
+  .course-exam-body { max-width:880px; margin:0 auto; padding:10px 30px 30px; }
+  .course-exam-body .quiz-player { padding:18px 0 0; }
+  .course-exam-body .quiz-player-head { display:none; }
+  .course-exam-body .quiz-question-title { font-size:15.5px; }
+  .course-exam-body .quiz-option { padding:13px 15px; font-size:14px; }
+  @media (max-width:600px) { .course-exam-head, .course-exam-body { padding-left:16px; padding-right:16px; } .course-exam-title { font-size:22px; } }
   .course-detail-breadcrumb { display:flex; align-items:center; gap:10px; margin-bottom:16px; color:#777; font-size:12px; }
   .course-detail-breadcrumb button { padding:0; color:#666; background:none; border:0; cursor:pointer; }
   .course-detail-breadcrumb button:hover { color:#111; }
@@ -101,11 +117,11 @@ const courseDetailCss = `
   }
 `;
 
-export default function CourseDetailView({ userId, course: treinamento, matricula, isFavorite, onToggleFavorite, onBack, onOpenLesson, openConclusion, onOpenCertificates }: CourseDetailViewProps) {
+export default function CourseDetailView({ userId, course: treinamento, matricula, isFavorite, onToggleFavorite, onBack, onOpenLesson, onOpenCertificates }: CourseDetailViewProps) {
   const [activeTab, setActiveTab] = useState<"content" | "about" | "materials">("content");
   const [selectedModuleIndex, setSelectedModuleIndex] = useState<number | null>(null);
-  // null = ainda não escolhido: treinamento já concluído abre direto na Conclusão.
-  const [escolhaConclusao, setConclusaoAberta] = useState<boolean | null>(openConclusion ? true : null);
+  // null = o aluno ainda não escolheu: treinamento concluído abre na prova final (se pendente) ou na Conclusão.
+  const [escolhaSecao, setEscolhaSecao] = useState<"modulo" | "prova" | "conclusao" | null>(null);
   const { course, isLoading } = useCursoDetalhe(userId, treinamento, matricula?.progresso ?? 0);
   const { data: avaliacoes = [] } = useAvaliacaoDoTreinamento(treinamento?.id);
 
@@ -141,7 +157,15 @@ export default function CourseDetailView({ userId, course: treinamento, matricul
   const cursoConcluido = course.progress >= 100 || (allCourseLessons.length > 0 && allCourseLessons.every((l) => l.completed));
   const avaliacaoPendente = avaliacoes.length > 0 && !avaliacoes.every((q) => q.tentativas.some((t) => t.aprovado));
   const ultimoModulo = moduleIndex >= course.modules.length - 1;
-  const conclusaoAberta = escolhaConclusao ?? cursoConcluido;
+  const temProva = avaliacoes.length > 0;
+  const provaAprovada = temProva && !avaliacaoPendente;
+  const secao = escolhaSecao ?? (cursoConcluido ? (avaliacaoPendente ? "prova" : "conclusao") : "modulo");
+  const conclusaoAberta = secao === "conclusao";
+  const provaAberta = secao === "prova" && temProva && cursoConcluido;
+  const setConclusaoAberta = (aberta: boolean) => setEscolhaSecao(aberta ? "conclusao" : "modulo");
+  const abrirProva = () => setEscolhaSecao("prova");
+  const totalPerguntas = avaliacoes.reduce((n, q) => n + q.perguntas.length, 0);
+  const notaMinimaProva = avaliacoes[0]?.nota_minima;
   const aulasConcluidas = allCourseLessons.filter((l) => l.completed).length;
 
   const selectModule = (index: number) => {
@@ -161,6 +185,31 @@ export default function CourseDetailView({ userId, course: treinamento, matricul
         <span>{course.title}</span>
       </div>
 
+      {provaAberta ? (
+        <section className="course-exam" aria-label="Prova final">
+          <div className="course-exam-head">
+            <div>
+              <button type="button" className="course-exam-back" onClick={() => setEscolhaSecao("modulo")}><ArrowLeft size={14} /> Voltar ao treinamento</button>
+              <span className="course-exam-eyebrow">Prova final · {course.title}</span>
+              <h1 className="course-exam-title">{avaliacoes.length === 1 ? avaliacoes[0].titulo : "Prova final"}</h1>
+              <p className="course-exam-info">
+                Responda todas as perguntas e envie no final. Com {notaMinimaProva ?? 0}% ou mais de acertos você é aprovado e o certificado é liberado.
+              </p>
+            </div>
+            <div className="course-exam-chips">
+              <span className="course-detail-chip"><ClipboardCheck size={13} />{totalPerguntas} {totalPerguntas === 1 ? "pergunta" : "perguntas"}</span>
+              {notaMinimaProva != null && <span className="course-detail-chip"><Trophy size={13} />Nota mínima {notaMinimaProva}%</span>}
+              {provaAprovada && <span className="course-detail-chip"><CheckCircle2 size={13} />Aprovado</span>}
+            </div>
+          </div>
+          <div className="course-exam-body">
+            {avaliacoes.map((quiz) => (
+              <QuizPlayer key={quiz.id} quiz={quiz} onRespondido={(r) => { if (r.aprovado) setTimeout(() => setEscolhaSecao("conclusao"), 1200); }} />
+            ))}
+          </div>
+        </section>
+      ) : (
+      <>
       <header className="course-detail-summary">
         <div className="course-detail-intro">
           <span className="course-detail-eyebrow">Treinamento · {treinamento.cat}</span>
@@ -230,6 +279,19 @@ export default function CourseDetailView({ userId, course: treinamento, matricul
                 </button>
               ))}
               <div className="course-detail-modules-divider" />
+              {temProva && (
+                <button
+                  className="course-detail-module course-detail-module-prova"
+                  disabled={!cursoConcluido}
+                  title={cursoConcluido ? undefined : "Conclua todas as aulas para liberar a prova final"}
+                  onClick={abrirProva}
+                >
+                  <span className={`course-detail-module-state ${provaAprovada ? "completed" : cursoConcluido ? "current" : ""}`}>
+                    {provaAprovada ? <Check size={12} /> : cursoConcluido ? <ClipboardCheck size={11} /> : <Lock size={11} />}
+                  </span>
+                  <span>Prova final</span>
+                </button>
+              )}
               <button
                 className={`course-detail-module ${conclusaoAberta ? "active" : ""}`}
                 disabled={!cursoConcluido}
@@ -252,6 +314,7 @@ export default function CourseDetailView({ userId, course: treinamento, matricul
                   matricula={matricula}
                   avaliacaoPendente={avaliacaoPendente}
                   onOpenCertificates={onOpenCertificates}
+                  onOpenExam={temProva ? abrirProva : undefined}
                   onReviewLessons={() => { setConclusaoAberta(false); setSelectedModuleIndex(0); }}
                 />
               </div>
@@ -292,9 +355,15 @@ export default function CourseDetailView({ userId, course: treinamento, matricul
                   <ChevronLeft size={15} /> Anterior
                 </button>
                 {ultimoModulo ? (
-                  <button className="course-detail-nav-button next" disabled={!cursoConcluido} onClick={() => setConclusaoAberta(true)}>
-                    Conclusão <Trophy size={14} />
-                  </button>
+                  avaliacaoPendente ? (
+                    <button className="course-detail-nav-button next" disabled={!cursoConcluido} onClick={abrirProva}>
+                      Prova final <ClipboardCheck size={14} />
+                    </button>
+                  ) : (
+                    <button className="course-detail-nav-button next" disabled={!cursoConcluido} onClick={() => setConclusaoAberta(true)}>
+                      Conclusão <Trophy size={14} />
+                    </button>
+                  )
                 ) : (
                   <button
                     className="course-detail-nav-button next"
@@ -326,20 +395,7 @@ export default function CourseDetailView({ userId, course: treinamento, matricul
         )}
       </div>
 
-      {avaliacoes.length > 0 && (
-        <section className="course-detail-panel" style={{ marginTop: 18 }} aria-label="Avaliação final">
-          <div style={{ padding: "16px 20px 0" }}>
-            <h2 style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>Avaliação final</h2>
-            <p style={{ margin: "4px 0 0", color: "#777", fontSize: 12 }}>A nota da avaliação compõe o aproveitamento exigido para o certificado.</p>
-          </div>
-          {course.progress < 100 ? (
-            <div className="course-detail-empty" style={{ margin: 18 }}>
-              <div><Lock size={24} /><p>Conclua todas as aulas para liberar a avaliação final.</p></div>
-            </div>
-          ) : (
-            avaliacoes.map((quiz) => <QuizPlayer key={quiz.id} quiz={quiz} />)
-          )}
-        </section>
+      </>
       )}
     </section>
   );

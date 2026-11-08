@@ -55,6 +55,10 @@ html[data-tema="oceano"] .nexa-sidebar .nexa-logo-mark::before {
 }
 html[data-tema="oceano"] .nexa-logo-text { text-transform: none; letter-spacing: 0; font: 600 20px 'Playfair Display', serif; color: #fff; }
 html[data-tema="oceano"] .nexa-logo-academy { color: #7db8ff; font: italic 500 20px 'Playfair Display', serif; letter-spacing: 0; text-transform: none; margin-top: 0; }
+/* "Nexa Cardume" numa linha só */
+html[data-tema="oceano"] .nexa-logo-wordmark { flex-direction: row; align-items: baseline; flex-wrap: wrap; column-gap: 6px; row-gap: 2px; white-space: nowrap; }
+html[data-tema="oceano"] .nexa-logo-text, html[data-tema="oceano"] .nexa-logo-academy { font-size: 19px; line-height: 1.1; }
+html[data-tema="oceano"] .nexa-logo-sub { flex-basis: 100%; }
 html[data-tema="oceano"] .nexa-logo-sub { color: #7390ad; }
 html[data-tema="oceano"] .nexa-navlabel { color: #7390ad; }
 html[data-tema="oceano"] .nexa-navitem { color: #a9c1da; }
@@ -760,6 +764,61 @@ html[data-tema="oceano"] .course-detail-empty { border-radius: 16px; }
   html[data-tema="oceano"] .course-detail-lesson { grid-template-columns: 34px minmax(0, 1fr) auto; }
   html[data-tema="oceano"] .course-detail-tab { padding: 8px 12px; }
 }
+
+/* ===== Tema Oceano: prova final (tela ampla) ===== */
+html[data-tema="oceano"] .course-exam {
+  position: relative; isolation: isolate; border-radius: 26px; color: #e8f1fa;
+  background: var(--oc-glass); border: 1px solid var(--oc-hairline); box-shadow: var(--oc-highlight), var(--oc-shadow-lg);
+  backdrop-filter: blur(16px) saturate(140%); animation: oc-rise .8s var(--oc-ease) backwards;
+}
+html[data-tema="oceano"] .course-exam::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; border-radius: inherit;
+  background: radial-gradient(70% 50% at 100% 0%, rgba(70, 150, 255, 0.18), transparent 70%), linear-gradient(125deg, rgba(255, 255, 255, 0.07), transparent 40%);
+}
+html[data-tema="oceano"] .course-exam-head { padding: 30px 36px 26px; border-bottom-color: var(--oc-hairline); }
+html[data-tema="oceano"] .course-exam-back { padding: 6px 14px; border-radius: 999px; color: #cfe3f7; background: rgba(120, 180, 255, 0.07); border: 1px solid var(--oc-hairline); transition: background .2s, color .2s; }
+html[data-tema="oceano"] .course-exam-back:hover { color: #fff; background: rgba(120, 180, 255, 0.14); }
+html[data-tema="oceano"] .course-exam-eyebrow { color: #8cc6ff; letter-spacing: 0.2em; }
+html[data-tema="oceano"] .course-exam-title { font: 600 clamp(30px, 3.2vw, 44px)/1.1 'Playfair Display', serif; letter-spacing: -0.02em; color: #fff; text-wrap: balance; }
+html[data-tema="oceano"] .course-exam-info { color: #b8cde3; font-size: 14.5px; }
+html[data-tema="oceano"] .course-exam-chips { align-self: flex-end; }
+html[data-tema="oceano"] .course-exam-body { padding: 14px 36px 36px; }
+html[data-tema="oceano"] .course-exam-body .quiz-question { border-top-color: var(--oc-hairline) !important; padding: 22px 0 !important; animation: oc-rise .6s var(--oc-ease) backwards; }
+html[data-tema="oceano"] .course-exam-body .quiz-question:nth-of-type(2) { animation-delay: .05s; }
+html[data-tema="oceano"] .course-exam-body .quiz-question:nth-of-type(3) { animation-delay: .1s; }
+html[data-tema="oceano"] .course-exam-body .quiz-question:nth-of-type(n + 4) { animation-delay: .15s; }
+html[data-tema="oceano"] .course-exam-body .quiz-question-title { font: 600 18px/1.45 'Inter', sans-serif; color: #fff; margin-bottom: 14px; }
+html[data-tema="oceano"] .course-exam-body .quiz-option {
+  gap: 14px; padding: 15px 18px; margin-top: 10px; border-radius: 16px; font-size: 14.5px; color: #dcebfb;
+  background: rgba(120, 180, 255, 0.05); border-color: var(--oc-hairline); transition: background .25s, border-color .25s, transform .3s var(--oc-ease), box-shadow .3s;
+}
+html[data-tema="oceano"] .course-exam-body .quiz-option:hover { transform: translateX(4px); border-color: var(--oc-hairline-hi); background: rgba(120, 180, 255, 0.1); }
+html[data-tema="oceano"] .course-exam-body .quiz-option.selected {
+  color: #fff; border-color: rgba(120, 190, 255, 0.6); background: linear-gradient(90deg, rgba(58, 140, 255, 0.26), rgba(58, 140, 255, 0.08));
+  box-shadow: 0 10px 26px -14px rgba(40, 130, 255, 0.8);
+}
+html[data-tema="oceano"] .course-exam-body .quiz-option input { accent-color: #4a9dff; width: 17px; height: 17px; }
+html[data-tema="oceano"] .course-exam-body .quiz-actions { position: sticky; bottom: 0; margin: 10px -36px -36px; padding: 18px 36px; border-top-color: var(--oc-hairline); background: linear-gradient(180deg, rgba(6, 22, 46, 0.6), rgba(4, 16, 34, 0.95)); backdrop-filter: blur(12px); border-radius: 0 0 26px 26px; }
+html[data-tema="oceano"] .course-exam-body .quiz-actions small { font-size: 13px; color: #a9c1da; }
+html[data-tema="oceano"] .course-exam-body .quiz-submit { min-height: 48px; padding: 0 26px; border-radius: 999px; font-size: 14px; }
+html[data-tema="oceano"] .course-exam-body .quiz-result { border-radius: 16px; padding: 16px 18px; font-size: 14px; margin-top: 18px; }
+html[data-tema="oceano"] .course-detail-module-prova .course-detail-module-state.current { background: linear-gradient(135deg, #9fd2ff, #3a8cff); }
+@media (max-width: 600px) {
+  html[data-tema="oceano"] .course-exam-head, html[data-tema="oceano"] .course-exam-body { padding-left: 18px; padding-right: 18px; }
+  html[data-tema="oceano"] .course-exam-body .quiz-actions { margin: 10px -18px -36px; padding: 16px 18px; }
+}
+
+/* Editor de quiz/prova no admin */
+html[data-tema="oceano"] .admin-quiz-pergunta { background: rgba(120, 180, 255, 0.05); border-color: var(--oc-hairline); border-radius: 14px; }
+html[data-tema="oceano"] .admin-quiz-pergunta-head { color: #dcebfb; }
+html[data-tema="oceano"] .admin-quiz-alt label { color: #a9c1da; }
+html[data-tema="oceano"] .admin-quiz-alt.correta input[type=text] { border-color: rgba(62, 207, 142, 0.6); background: rgba(62, 207, 142, 0.08); }
+html[data-tema="oceano"] .admin-quiz-icon { color: #cfe3f7; }
+html[data-tema="oceano"] .admin-quiz-toolbar { border-bottom-color: var(--oc-hairline); }
+html[data-tema="oceano"] .admin-quiz-search { background: rgba(255, 255, 255, 0.06); border-color: var(--oc-hairline-hi); color: #a9c1da; }
+html[data-tema="oceano"] .admin-quiz-search input { color: #e8f1fa; }
+html[data-tema="oceano"] .admin-quiz-status { background: rgba(62, 207, 142, 0.12); border-color: rgba(62, 207, 142, 0.35); color: #7ee2b0; }
+html[data-tema="oceano"] .admin-quiz-status.draft { background: rgba(255, 255, 255, 0.06); border-color: var(--oc-hairline-hi); color: #a9c1da; }
 
 /* ===== Tema Oceano: tela da aula ===== */
 html[data-tema="oceano"] .lesson-detail-breadcrumb { font-size: 12px; margin-bottom: 22px; animation: oc-fade .5s ease-out backwards; }
