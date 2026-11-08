@@ -145,10 +145,11 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
   const { course, isLoading } = useCursoDetalhe(userId, treinamento, matricula?.progresso ?? 0);
   const { data: aula } = useAula(lessonId);
 
+  /** Atualiza o progresso; a promessa termina quando os dados novos chegam (libera a próxima aula/módulo). */
   function invalidarProgresso() {
-    for (const queryKey of [["concluidas"], ["matriculas"], ["meu-resumo"], ["meus-certificados"], keys.adminResumo]) {
-      queryClient.invalidateQueries({ queryKey });
-    }
+    return Promise.all(
+      [["concluidas"], ["matriculas"], ["meu-resumo"], ["meus-certificados"], keys.adminResumo].map((queryKey) => queryClient.invalidateQueries({ queryKey })),
+    );
   }
 
   // Abrir a aula registra a matrícula no treinamento (na primeira vez).
@@ -263,12 +264,18 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
     setSalvando(true);
     try {
       await repo.concluirAula(userId, lessonId);
-      invalidarProgresso();
       if (ultimaAula && onFinish) {
+        invalidarProgresso();
         toast.success("Treinamento concluído! 🎉");
         onFinish();
+      } else if (nextLesson) {
+        // Espera o progresso atualizar (a próxima aula pode estar no módulo que acabou de ser liberado) e já abre ela.
+        await invalidarProgresso().catch(() => {});
+        toast.success("Aula concluída! Seguindo para a próxima.");
+        onNavigate(nextLesson.id);
       } else {
-        toast.success(nextLesson ? "Aula concluída! Siga para a próxima." : "Aula concluída!");
+        invalidarProgresso();
+        toast.success("Aula concluída!");
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : String(err));
