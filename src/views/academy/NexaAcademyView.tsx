@@ -390,14 +390,23 @@ const css = `
     .nexa-dashboard-course-grid { grid-template-columns: 1fr 1fr; }
   }
   @media (max-width: 760px) {
+    /* Celular: o menu lateral vira uma barra de abas fixa embaixo. */
     .nexa-root { height: auto; min-height: 100vh; overflow: visible; }
-    .nexa-sidebar { width: 76px; padding: 20px 10px; }
-    .nexa-logo { padding: 0 4px 20px; }
-    .nexa-logo > div:last-child, .nexa-navlabel, .nexa-navitem:not(.active) span { display: none; }
-    .nexa-navitem { justify-content: center; padding: 12px; gap: 0; }
-    .nexa-navchevron { display: none; }
-    .nexa-mode-switch { font-size: 0; }
-    .nexa-main { min-width: 0; }
+    .nexa-sidebar {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; width: auto; height: auto;
+      flex-direction: row; align-items: stretch; padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
+      border-right: 0; border-top: 1px solid ${palette.border};
+    }
+    .nexa-logo, .nexa-navlabel, .nexa-navchevron, .nexa-sidebar-footer, .nexa-navsubitem { display: none; }
+    .nexa-navscroll { flex: 1; overflow: visible; padding: 0; }
+    .nexa-navgroup { display: flex; flex-direction: row; justify-content: space-around; gap: 2px; margin: 0; }
+    .nexa-navitem {
+      flex: 1 1 0; min-width: 0; flex-direction: column; justify-content: center; gap: 4px; margin: 0;
+      padding: 7px 2px; font-size: 10.5px; line-height: 1.1; text-align: center;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .nexa-navitem svg { width: 19px; height: 19px; flex: none; }
+    .nexa-main { min-width: 0; padding-bottom: calc(74px + env(safe-area-inset-bottom)); }
     .nexa-topbar { padding: 14px 18px; min-height: 76px; }
     .nexa-search { width: calc(100% - 76px); height: 48px; }
     .nexa-content { padding: 24px 18px 40px; }
