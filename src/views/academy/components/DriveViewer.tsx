@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { buscarArquivoDrive } from "@/lib/drive-client";
+import FishLoader from "@/views/academy/components/FishLoader";
 import PdfViewer, { type ProgressoPdf } from "@/views/academy/components/PdfViewer";
 
 /** Mostra um arquivo do Drive lido pelo servidor com a conta de serviço (sem login do Google).
@@ -33,7 +34,7 @@ export default function DriveViewer({ id, title, fallbackSrc, chaveProgresso, on
   useEffect(() => { if (semControle) onControle?.("livre"); }, [semControle, onControle]);
 
   if (falhou) return <iframe src={fallbackSrc} title={title} allow="fullscreen" allowFullScreen loading="lazy" />;
-  if (!blob) return <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", minHeight: 260, fontSize: 13, opacity: 0.7 }}>Carregando arquivo...</div>;
+  if (!blob) return <FishLoader texto="Carregando arquivo" />;
   if (ehPdf && !usarNavegador) return <PdfViewer blob={blob} title={title} onFalha={() => setUsarNavegador(true)} chaveProgresso={chaveProgresso} onProgresso={onControle} />;
   return src ? <iframe src={src} title={title} allowFullScreen /> : null;
 }

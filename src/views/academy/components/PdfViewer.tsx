@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Maximize2, Minimize2 } from "lucide-react";
-import type { PDFDocumentProxy, RenderTask } from "pdfjs-dist";
+import FishLoader from "@/views/academy/components/FishLoader";
+import type { PDFDocumentLoadingTask, PDFDocumentProxy, RenderTask } from "pdfjs-dist";
 
 // pdf.js só roda no navegador: carregado sob demanda (fora do SSR) e uma vez só.
 let pdfjsPromise: Promise<typeof import("pdfjs-dist")> | null = null;
@@ -143,23 +144,30 @@ export default function PdfViewer({ blob, title, onFalha, chaveProgresso, onProg
   // Abre o arquivo e decide o modo pela orientação da primeira página.
   useEffect(() => {
     let cancelado = false;
-    let aberto: PDFDocumentProxy | null = null;
+    let tarefa: PDFDocumentLoadingTask | null = null;
     setDoc(null);
     setPagina(1);
     (async () => {
       const pdfjs = await carregarPdfjs();
       const data = new Uint8Array(await blob.arrayBuffer());
-      aberto = await pdfjs.getDocument({ data }).promise;
+      if (cancelado) return;
+      tarefa = pdfjs.getDocument({ data });
+      const aberto = await tarefa.promise;
       const primeira = (await aberto.getPage(1)).getViewport({ scale: 1 });
       if (cancelado) return;
       setModo(primeira.width > primeira.height ? "slides" : "paginas");
-      setVistas(new Set(lerVistas(chaveProgresso).filter((n) => n >= 1 && n <= aberto!.numPages)));
+      setVistas(new Set(lerVistas(chaveProgresso).filter((n) => n >= 1 && n <= aberto.numPages)));
       setDoc(aberto);
     })().catch((e) => {
       console.warn("pdf.js não abriu o arquivo:", e);
       if (!cancelado) onFalhaRef.current();
     });
-    return () => { cancelado = true; aberto?.destroy(); };
+    // Libera o arquivo ao sair da aula. Quem destrói é a tarefa de carregamento (o documento não tem destroy no pdf.js 6);
+    // nunca deixa um erro aqui derrubar a tela.
+    return () => {
+      cancelado = true;
+      try { tarefa?.destroy().catch(() => {}); } catch { /* já liberado */ }
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [blob]);
 
@@ -225,7 +233,7 @@ export default function PdfViewer({ blob, title, onFalha, chaveProgresso, onProg
     <div className={`pdf-viewer ${modo}`} ref={raizRef} tabIndex={0} onKeyDown={aoTeclar} aria-label={title}>
       <style>{css}</style>
       {!doc ? (
-        <div className="pdf-status">Preparando o arquivo...</div>
+        <FishLoader texto="Preparando o arquivo" />
       ) : modo === "slides" ? (
         <>
           <div className="pdf-stage" style={{ padding: 8 }}>
