@@ -1,0 +1,79 @@
+/* Estrutura comum às quatro versões. Cada versão define as variáveis e sobrescreve o visual. */
+*{box-sizing:border-box;margin:0}
+body{font-family:"Red Hat Display",system-ui,sans-serif;background:var(--bg);color:var(--tx);-webkit-font-smoothing:antialiased}
+em{font-family:"Playfair Display",serif;font-style:italic;font-weight:500}
+a{color:inherit;text-decoration:none}button,input{font:inherit}
+.ico{width:18px;height:18px;flex:none}
+.app{display:grid;grid-template-columns:var(--lado-w,240px) 1fr;min-height:100vh}
+.lado{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;padding:24px 16px;overflow:hidden}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px;margin-bottom:28px}
+.x-logo{width:34px;height:34px}
+.lado nav{display:flex;flex-direction:column;gap:4px}
+.lado nav a{display:flex;align-items:center;gap:12px;padding:11px 14px;font-weight:500;font-size:14px}
+.lado-peixes{position:absolute;left:0;bottom:-20px;width:100%;opacity:.5;pointer-events:none}
+main{min-width:0}
+.topo{display:flex;justify-content:space-between;align-items:center;padding:18px 40px}
+.busca{display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:13px;width:340px;opacity:.85}
+.usuario{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:500}
+.usuario i{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:12px;font-weight:700}
+.pagina{padding:8px 40px 80px;max-width:1180px}
+.saudacao small{display:block;font-size:12px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;opacity:.7}
+.saudacao h1{font-size:34px;line-height:1.15;font-weight:700;margin-bottom:26px}
+.hero{display:grid;grid-template-columns:1.1fr 1fr;overflow:hidden;margin-bottom:22px}
+.hero-img,.capa,.player{background-size:cover;background-position:center}
+.hero-img{min-height:240px}
+.hero-txt{padding:30px;display:flex;flex-direction:column;justify-content:center;gap:10px}
+.hero-txt small{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;opacity:.75}
+.hero-txt h2{font-size:26px;line-height:1.2}.hero-txt p{font-size:13px;opacity:.8}
+.btn{display:inline-flex;align-items:center;gap:8px;border:0;cursor:pointer;padding:12px 22px;font-weight:700;font-size:14px;width:max-content}
+.barra{height:6px;background:rgba(127,127,127,.25);border-radius:9px;overflow:hidden;margin:6px 0 4px}
+.barra i{display:block;height:100%;border-radius:9px;background:var(--ac)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:34px}
+.stats div{padding:18px 20px}.stats b{display:block;font-size:28px;font-weight:700}.stats span{font-size:12.5px;opacity:.7}
+.sec-tit{display:flex;justify-content:space-between;align-items:baseline;margin:6px 0 16px}
+.sec-tit h2{font-size:22px}.sec-tit a{font-size:13px;font-weight:700}
+.grade{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:34px}
+.curso{overflow:hidden;display:flex;flex-direction:column}
+.capa{aspect-ratio:16/10;position:relative}
+.nivel{position:absolute;left:12px;top:12px;font-size:11px;font-weight:700;padding:4px 10px;border-radius:99px;background:rgba(255,255,255,.92);color:#0b3a63}
+.ok{position:absolute;right:12px;top:12px;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:#1f9d62;color:#fff}.ok .ico{width:14px;height:14px}
+.corpo{padding:16px 18px 18px}.cat{font-size:11px;letter-spacing:.07em;text-transform:uppercase;opacity:.65}
+.corpo h3{font-size:17px;line-height:1.25;margin:5px 0 8px}
+.meta{display:flex;align-items:center;gap:6px;font-size:12.5px;opacity:.75}.meta .ico{width:14px;height:14px}
+.pct{font-size:11.5px;opacity:.7}
+.filtros{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px}
+.filtros button{cursor:pointer;padding:9px 18px;font-size:13px;font-weight:500;border:1px solid var(--bd);background:transparent;color:inherit;border-radius:99px}
+.trilha ol{list-style:none;padding:0;display:flex;gap:14px}
+.trilha li{flex:1;display:flex;align-items:center;gap:10px;padding:14px 16px;font-size:13.5px;font-weight:500}
+.trilha li span{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:700;border:1.5px solid currentColor;opacity:.6;flex:none}
+.trilha li.feito span,.trilha li.atual span{opacity:1;background:var(--ac);border-color:var(--ac);color:var(--on-ac)}
+.trilha li .ico{width:14px;height:14px}
+.aula-grid{display:grid;grid-template-columns:1fr 320px;gap:26px}
+.player{aspect-ratio:16/9;position:relative;overflow:hidden;margin-bottom:16px}
+.play{position:absolute;inset:0;margin:auto;width:70px;height:70px;border-radius:50%;border:0;background:rgba(255,255,255,.92);color:#004f8b;display:grid;place-items:center;cursor:pointer}.play .ico{width:26px;height:26px;margin-left:3px}
+.aula-acoes{display:flex;gap:10px;margin-bottom:24px}
+.aula h3{font-size:16px;margin:0 0 10px}.aula p{font-size:14px;line-height:1.6;opacity:.85}
+.lateral{padding:20px;height:max-content}.lateral h3{margin-bottom:12px}
+.lateral ul{list-style:none;padding:0;display:flex;flex-direction:column;gap:4px;margin-bottom:22px}
+.lateral li{display:flex;align-items:center;gap:10px;padding:10px 12px;font-size:13.5px}.lateral li .ico{width:14px;height:14px}
+.alternador{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);display:flex;gap:4px;padding:5px;border-radius:99px;background:rgba(10,20,35,.88);backdrop-filter:blur(8px);z-index:99;box-shadow:0 6px 24px rgba(0,0,0,.25)}
+.alternador a{color:#cfe3f5;font-size:12.5px;font-weight:500;padding:7px 14px;border-radius:99px}.alternador a.on{background:#fff;color:#0b3a63}
+/* login */
+.login{display:grid;grid-template-columns:1.15fr 1fr;min-height:100vh}
+.login-arte{position:relative;overflow:hidden;padding:44px 54px;display:flex;flex-direction:column;justify-content:space-between}
+.marca-branca{width:150px;position:relative;z-index:2}
+.login-frase{position:relative;z-index:2;max-width:480px}
+.login-frase small{display:block;text-transform:uppercase;letter-spacing:.14em;font-size:12px;margin-bottom:14px;opacity:.8}
+.login-frase h1{font-size:50px;line-height:1.08;font-weight:700;margin-bottom:18px}.login-frase p{font-size:16px;line-height:1.55;opacity:.85}
+.peixinhos{position:absolute;right:-30px;bottom:-30px;width:55%;opacity:.55;z-index:1}
+.login-form{display:grid;place-items:center;padding:40px}
+.login-form form{width:min(380px,100%);display:flex;flex-direction:column;gap:14px}
+.login-form .x{width:54px;margin-bottom:6px}.login-form h2{font-size:28px;line-height:1.15}.login-form p{font-size:14px;opacity:.7;margin-bottom:6px}
+.login-form label{display:flex;flex-direction:column;gap:6px;font-size:12.5px;font-weight:500}
+.login-form input{padding:13px 14px;font-size:14px;border:1px solid var(--bd);background:var(--card);color:var(--tx);outline:0}
+.login-form .btn{justify-content:center;width:100%;margin-top:4px}.login-form a{font-size:13px;text-align:center;opacity:.75}
+@media(max-width:900px){.app{grid-template-columns:1fr}.lado{display:none}.grade,.stats{grid-template-columns:1fr 1fr}.hero,.aula-grid,.login{grid-template-columns:1fr}.login-arte{min-height:340px}}
+
+/* logo Hering em máscara: a cor vem de "color" */
+.by{display:none}
+.hering-logo{display:block;width:118px;aspect-ratio:2048/433;background:currentColor;-webkit-mask:url(assets/hering-branco.png) center/contain no-repeat;mask:url(assets/hering-branco.png) center/contain no-repeat}

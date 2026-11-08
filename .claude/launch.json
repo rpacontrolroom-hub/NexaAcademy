@@ -1,0 +1,28 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "previews-cardume",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "5190",
+        "--directory",
+        "design-previews"
+      ],
+      "port": 5190
+    },
+    {
+      "name": "app-dev",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vite",
+        "dev",
+        "--port",
+        "5191"
+      ],
+      "port": 5191
+    }
+  ]
+}

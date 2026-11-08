@@ -1,0 +1,28 @@
+/* V2 · Editorial — moda: fundo branco, tipografia grande com serifa itálica, fotos protagonistas, filetes finos */
+:root{--bg:#fff;--tx:#0d1b2a;--ac:#0d1b2a;--on-ac:#fff;--bd:#d9dde2;--card:#fff;--lado-w:0px}
+.app{display:block}.lado{position:static;height:auto;flex-direction:row;align-items:center;justify-content:space-between;padding:20px 56px;border-bottom:1px solid var(--bd);background:#fff}
+.lado-peixes{display:none}.logo{margin:0;font-size:20px;letter-spacing:.02em;color:#004f8b}
+.lado nav{flex-direction:row;gap:30px;position:absolute;left:50%;transform:translateX(-50%)}
+.lado nav a{padding:6px 0;border-bottom:2px solid transparent;font-size:12.5px;text-transform:uppercase;letter-spacing:.14em;color:#55616f}.lado nav a .ico{display:none}.lado nav a.on{color:#004f8b;border-color:#004f8b;font-weight:700}
+.x-logo{content:url(assets/x-azul.png)}
+.topo{position:absolute;top:18px;right:56px;padding:0}.topo .busca{display:none}.usuario span{display:none}.usuario i{background:#004f8b;color:#fff}
+.pagina{max-width:1240px;margin:0 auto;padding:56px 56px 100px}
+.saudacao small{color:#004f8b;font-weight:700;opacity:1}
+.saudacao h1{font-size:56px;font-weight:500;line-height:1.05;letter-spacing:-.01em}.saudacao h1 em{font-weight:500;color:#004f8b}
+.hero{grid-template-columns:1.4fr 1fr;background:#f4f1ea;border-radius:0;margin-bottom:46px}.hero-img{min-height:380px}
+.hero-txt{padding:44px}.hero-txt h2{font-family:"Playfair Display",serif;font-size:34px;font-weight:500}.hero-txt small{color:#004f8b;font-weight:700;opacity:1}
+.btn{background:#0d1b2a;color:#fff;border-radius:0;letter-spacing:.06em;text-transform:uppercase;font-size:12.5px}.btn.sec{background:transparent;color:#0d1b2a;border:1px solid #0d1b2a}
+.stats{border-top:1px solid #0d1b2a;border-bottom:1px solid var(--bd);gap:0;margin-bottom:56px}.stats div{padding:26px 8px;border-right:1px solid var(--bd)}.stats div:last-child{border:0}
+.stats b{font-family:"Playfair Display",serif;font-size:46px;font-weight:500;color:#004f8b}
+.sec-tit{border-bottom:1px solid #0d1b2a;padding-bottom:12px;margin-bottom:26px}.sec-tit h2{font-size:30px;font-weight:500}.sec-tit a{font-size:12px;text-transform:uppercase;letter-spacing:.12em}
+.grade{gap:34px}.capa{aspect-ratio:4/5}.curso{background:none}.corpo{padding:14px 0}.corpo h3{font-family:"Playfair Display",serif;font-size:22px;font-weight:500}
+.nivel{border-radius:0;background:#fff;letter-spacing:.06em;text-transform:uppercase;font-size:10px}.barra{height:2px;border-radius:0}.barra i{border-radius:0;background:#004f8b}
+.filtros button{border-radius:0;border:0;border-bottom:2px solid transparent;padding:6px 2px;margin-right:18px;font-size:12.5px;text-transform:uppercase;letter-spacing:.12em}.filtros button.on{border-color:#004f8b;color:#004f8b;font-weight:700}
+.trilha li{border-top:1px solid #0d1b2a;padding:18px 0}.trilha li.atual{color:#004f8b;font-weight:700}
+.lateral{border-top:1px solid #0d1b2a;padding:20px 0}.lateral li.atual{color:#004f8b;font-weight:700}.lateral li.feito{opacity:.55}
+.player{border-radius:0}
+.login-arte{background:#fff;color:#fff}.login-arte::before{content:"";position:absolute;inset:0;background:url(assets/equipe.jpg) center/cover}
+.login-arte::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,40,80,.88),rgba(0,40,80,.05) 65%)}
+.marca-branca{filter:brightness(0) invert(1)}.login-frase h1{font-weight:500;font-size:58px}.peixinhos{display:none}
+.login-form h2{font-family:"Playfair Display",serif;font-weight:500;font-size:34px}.login-form h2 em{color:#004f8b}.login-form input{border-radius:0}.login-form .btn{border-radius:0}
+@media(max-width:900px){.lado nav{display:none}}

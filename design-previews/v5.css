@@ -1,0 +1,25 @@
+/* V5 · Bloco de Cor — gráfica e chapada: blocos grandes azul / azul-claro / marinho, tipografia pesada, sem foto */
+:root{--bg:#f5f7fa;--tx:#0a2540;--ac:#004f8b;--on-ac:#fff;--bd:#0a2540;--card:#fff;--lado-w:230px;--c1:#004f8b;--c2:#a5d4fa;--c3:#0a2540;--c4:#3d8fd1}
+.lado{background:#0a2540;color:#fff;padding:0}
+.logo{padding:26px 22px;margin:0;border-bottom:1px solid rgba(255,255,255,.12)}.logo em{color:#a5d4fa}
+.lado nav{gap:0}.lado nav a{border-radius:0;padding:17px 22px;color:#9db6cf;border-bottom:1px solid rgba(255,255,255,.08);font-size:13.5px;text-transform:uppercase;letter-spacing:.1em}
+.lado nav a.on{background:#004f8b;color:#fff;box-shadow:inset 5px 0 0 #a5d4fa;font-weight:700}
+.lado-peixes{opacity:.22}
+.topo{border-bottom:2px solid #0a2540;padding:16px 40px}.topo .busca{background:#fff;border:2px solid #0a2540;border-radius:0}.usuario i{background:#004f8b;color:#fff;border-radius:0}
+.pagina{padding-top:34px}
+.saudacao h1{font-size:54px;font-weight:900;line-height:1.02;letter-spacing:-.02em}.saudacao h1 em{color:#004f8b;font-weight:700}
+.saudacao small{color:#004f8b;font-weight:700;opacity:1}
+.hero{background:#004f8b;color:#fff;border-radius:0;box-shadow:10px 10px 0 #a5d4fa}.hero-img{background-color:#0a2540!important;min-height:260px}
+.hero-txt h2{font-size:32px;font-weight:900;line-height:1.1}.hero .barra{height:10px;border-radius:0}.hero .barra i{background:#a5d4fa;border-radius:0}
+.btn{background:#004f8b;color:#fff;border-radius:0;text-transform:uppercase;letter-spacing:.08em;font-size:12.5px}.hero .btn{background:#a5d4fa;color:#0a2540}.btn.sec{background:#fff;color:#0a2540;border:2px solid #0a2540}
+.stats{margin-top:44px}.stats div{border-radius:0;border:2px solid #0a2540;background:#fff}.stats div:nth-child(1){background:#a5d4fa}.stats div:nth-child(3){background:#004f8b;color:#fff}.stats b{font-size:44px;font-weight:900}
+.sec-tit h2{font-size:28px;font-weight:900}.sec-tit h2 em{color:#004f8b}.sec-tit a{background:#0a2540;color:#fff;padding:7px 14px;font-size:12px;text-transform:uppercase;letter-spacing:.08em}
+.curso{background:#fff;border:2px solid #0a2540;border-radius:0}.curso:hover{box-shadow:6px 6px 0 #0a2540}
+.corpo h3{font-weight:900}.nivel{border-radius:0;background:#fff;color:#0a2540;border:1.5px solid #0a2540}.barra{border-radius:0;height:8px;background:#e1e8ef}.barra i{border-radius:0}
+.capa{aspect-ratio:16/8}.ok{border-radius:0}
+.filtros button{border-radius:0;border:2px solid #0a2540;font-weight:700;color:#0a2540}.filtros button.on{background:#0a2540;color:#fff}
+.trilha li{background:#fff;border:2px solid #0a2540;border-radius:0}.trilha li span{border-radius:0}.trilha li.atual{background:#a5d4fa}
+.lateral{background:#fff;border:2px solid #0a2540;border-radius:0}.lateral li.atual{background:#004f8b;color:#fff;font-weight:700}.lateral li.feito{opacity:.55}
+.player{border-radius:0;border:2px solid #0a2540;box-shadow:10px 10px 0 #a5d4fa}.play{border-radius:0;background:#a5d4fa}
+.login-arte{background:#004f8b;color:#fff}.login-frase h1{font-weight:900;font-size:60px;letter-spacing:-.02em}.login-frase h1 em{color:#a5d4fa}
+.peixinhos{opacity:.5}.login-form{background:#f5f7fa}.login-form input{border:2px solid #0a2540;border-radius:0}.login-form .btn{border-radius:0;justify-content:center}.login-form h2 em{color:#004f8b}

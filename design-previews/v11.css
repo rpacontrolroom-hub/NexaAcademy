@@ -1,0 +1,33 @@
+/* V11 · Noir Azul — premium tecnológico: quase preto com azul elétrico, vidro, brilho e linhas finas (Sora) */
+:root{--bg:#06080c;--tx:#e8eef7;--ac:#3b82ff;--on-ac:#fff;--bd:rgba(120,160,255,.16);--card:rgba(255,255,255,.035);--lado-w:252px;--neon:#3b82ff}
+body{font-family:"Sora",sans-serif;background:#06080c}
+body::before{content:"";position:fixed;inset:0;background:radial-gradient(700px 420px at 85% 0,rgba(0,79,139,.55),transparent),radial-gradient(600px 400px at 0 100%,rgba(59,130,255,.18),transparent);z-index:-1}
+em{font-family:"Sora",sans-serif;font-style:normal;font-weight:300;background:linear-gradient(90deg,#7db2ff,#3b82ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.lado{background:rgba(255,255,255,.02);border-right:1px solid var(--bd);padding:26px 18px}
+.logo{font-weight:600;letter-spacing:.02em;font-size:17px}.logo em{font-weight:600}
+.lado nav a{border-radius:12px;color:#8a97ab;font-size:13px}.lado nav a.on{color:#fff;background:linear-gradient(90deg,rgba(59,130,255,.25),transparent);box-shadow:inset 2px 0 0 #3b82ff}
+.lado-peixes{opacity:.2;bottom:70px}
+.by{display:block;position:absolute;left:20px;bottom:24px;color:#8a97ab}.by small{display:block;font-size:9px;letter-spacing:.22em;text-transform:uppercase;margin-bottom:8px;opacity:.8}.by .hering-logo{width:104px;color:#e8eef7}
+.topo .busca{background:var(--card);border:1px solid var(--bd);border-radius:12px}.usuario i{background:linear-gradient(135deg,#3b82ff,#004f8b);color:#fff}
+.saudacao small{color:#7db2ff;opacity:1;letter-spacing:.2em;font-size:11px}
+.saudacao h1{font-weight:300;font-size:46px;letter-spacing:-.025em}
+.hero{border:1px solid var(--bd);border-radius:24px;background:linear-gradient(120deg,rgba(0,79,139,.35),rgba(255,255,255,.02));position:relative}
+.hero::after{content:"";position:absolute;inset:0;border-radius:24px;box-shadow:inset 0 1px 0 rgba(255,255,255,.12);pointer-events:none}
+.hero-img{filter:saturate(.8) hue-rotate(-8deg);-webkit-mask-image:linear-gradient(90deg,#000 55%,transparent);mask-image:linear-gradient(90deg,#000 55%,transparent)}
+.hero-txt h2{font-weight:600;font-size:28px;letter-spacing:-.02em}.hero-txt small{color:#7db2ff;opacity:1;letter-spacing:.18em}
+.hero .barra i,.barra i{background:linear-gradient(90deg,#004f8b,#3b82ff);box-shadow:0 0 12px rgba(59,130,255,.7)}
+.btn{background:linear-gradient(135deg,#3b82ff,#1d5fd6);color:#fff;border-radius:12px;box-shadow:0 8px 30px rgba(59,130,255,.4);font-weight:600}.btn.sec{background:transparent;border:1px solid var(--bd);box-shadow:none;color:#cfe0ff}
+.stats div{background:var(--card);border:1px solid var(--bd);border-radius:18px}.stats b{font-weight:200;font-size:40px;background:linear-gradient(180deg,#fff,#7db2ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sec-tit h2{font-weight:300;font-size:24px}.sec-tit a{color:#7db2ff}
+.curso,.trilha li,.lateral{background:var(--card);border:1px solid var(--bd);border-radius:20px;backdrop-filter:blur(10px)}
+.curso:hover{border-color:#3b82ff;box-shadow:0 0 0 1px #3b82ff,0 12px 40px rgba(59,130,255,.2)}
+.capa{filter:saturate(.7) hue-rotate(-6deg) brightness(.85)}.capa::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(6,8,12,.85))}
+.nivel{background:rgba(6,8,12,.7);color:#cfe0ff;backdrop-filter:blur(6px);border:1px solid var(--bd)}.corpo h3{font-weight:600;letter-spacing:-.01em}
+.filtros button{border-radius:99px;color:#8a97ab;background:var(--card)}.filtros button.on{background:#3b82ff;color:#fff;border-color:#3b82ff;box-shadow:0 0 20px rgba(59,130,255,.5)}
+.trilha li.feito span,.trilha li.atual span{background:#3b82ff;border-color:#3b82ff;color:#fff;box-shadow:0 0 14px rgba(59,130,255,.6)}.trilha li.atual{border-color:#3b82ff}
+.lateral li.atual{background:linear-gradient(90deg,rgba(59,130,255,.22),transparent);border-radius:10px;font-weight:600}.lateral li.feito{opacity:.5}
+.player{border:1px solid var(--bd);border-radius:22px;filter:saturate(.8)}.play{background:linear-gradient(135deg,#3b82ff,#1d5fd6);color:#fff;box-shadow:0 0 40px rgba(59,130,255,.7)}
+.login{background:#06080c}.login-arte{background:#06080c url(assets/peixes.jpg) center/cover}.login-arte::before{content:"";position:absolute;inset:0;background:linear-gradient(120deg,rgba(6,8,12,.92),rgba(0,79,139,.45))}
+.login-frase h1{font-weight:300;font-size:54px;letter-spacing:-.03em}.peixinhos{display:none}
+.login-form{background:#06080c}.login-form form{background:var(--card);border:1px solid var(--bd);border-radius:24px;padding:36px;backdrop-filter:blur(14px);box-shadow:0 30px 80px rgba(0,79,139,.3)}
+.login-form .x{content:url(assets/x-branco.png)}.login-form input{border-radius:12px;background:rgba(255,255,255,.04)}.login-form .btn{border-radius:12px}

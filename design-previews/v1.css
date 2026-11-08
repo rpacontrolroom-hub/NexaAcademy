@@ -1,0 +1,19 @@
+/* V1 · Azul Hering — corporativo: menu lateral azul, conteúdo claro, cards brancos */
+:root{--bg:#f2f6fa;--tx:#10243a;--ac:#004f8b;--on-ac:#fff;--bd:#d6e0ea;--card:#fff;--lado-w:250px}
+.lado{background:#004f8b;color:#fff}
+.lado nav a{border-radius:10px;color:#cfe3f5}.lado nav a.on{background:#fff;color:#004f8b;font-weight:700}
+.logo em{color:#a5d4fa}
+.topo .busca{background:#fff;border-radius:99px;border:1px solid var(--bd)}.usuario i{background:#004f8b;color:#fff}
+.saudacao h1 em{color:#004f8b}
+.hero{background:#004f8b;color:#fff;border-radius:20px}.hero .barra i{background:#a5d4fa}
+.btn{background:#004f8b;color:#fff;border-radius:99px}.hero .btn{background:#fff;color:#004f8b}.btn.sec{background:#fff;color:#004f8b;border:1px solid var(--bd)}
+.stats div{background:#fff;border-radius:16px;border-bottom:3px solid #a5d4fa}.stats b{color:#004f8b}
+.sec-tit h2 em{color:#004f8b}.sec-tit a{color:#004f8b}
+.curso,.trilha li,.lateral{background:#fff;border-radius:16px;box-shadow:0 2px 14px rgba(0,60,110,.07)}
+.filtros button.on{background:#004f8b;color:#fff;border-color:#004f8b}
+.trilha li.atual{outline:2px solid #004f8b}
+.lateral li.atual{background:#e6f1fa;border-radius:8px;color:#004f8b;font-weight:700}.lateral li.feito{opacity:.6}
+.login-arte{background:#004f8b url(assets/padrao-x.jpg) center/cover;color:#fff}
+.login-arte::before{content:"";position:absolute;inset:0;background:linear-gradient(160deg,rgba(0,79,139,.75),rgba(0,79,139,.95))}
+.login-frase h1 em{color:#a5d4fa}.login-form .btn{border-radius:12px}.login-form input{border-radius:10px}
+.login-form h2 em{color:#004f8b}

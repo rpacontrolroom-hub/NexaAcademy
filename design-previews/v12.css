@@ -1,0 +1,29 @@
+/* V12 · Azul Royal — premium clássico: menu royal, miolo creme, numeração grande em Bodoni, detalhe dourado discreto */
+:root{--bg:#f3eee3;--tx:#0b2a4a;--ac:#0b3d80;--on-ac:#fff;--bd:#dcd3bf;--card:#fbf8f0;--lado-w:262px;--royal:#0b3d80;--ouro:#b8975a}
+body{font-family:"Manrope",sans-serif}em{font-family:"Bodoni Moda",serif;font-style:italic;font-weight:500}
+.lado{background:linear-gradient(180deg,#0b3d80,#072a5c);color:#f3eee3;padding:32px 24px}
+.logo{flex-direction:column;align-items:flex-start;gap:12px;font-family:"Bodoni Moda",serif;font-size:26px;font-weight:500;margin-bottom:38px}.logo em{color:#e3c88f;font-weight:500}.x-logo{width:46px;height:46px}
+.lado nav a{border-radius:0;padding:14px 0;color:#b9c9e2;font-size:13px;letter-spacing:.14em;text-transform:uppercase;border-bottom:1px solid rgba(243,238,227,.12)}.lado nav a.on{color:#fff;font-weight:700;box-shadow:none;padding-left:14px;border-left:3px solid #e3c88f}
+.lado-peixes{opacity:.22;bottom:80px}
+.by{display:block;position:absolute;left:24px;bottom:28px;color:#e3c88f}.by small{display:block;font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;margin-bottom:8px;opacity:.8}.by .hering-logo{width:112px;color:#f3eee3}
+.topo{border-bottom:1px solid var(--bd)}.topo .busca{background:var(--card);border:1px solid var(--bd);border-radius:0}.usuario i{background:var(--royal);color:#f3eee3;border-radius:0}
+.saudacao small{color:var(--ouro);opacity:1;letter-spacing:.22em;font-weight:700}
+.saudacao h1{font-family:"Bodoni Moda",serif;font-weight:500;font-size:52px;line-height:1.05;letter-spacing:-.01em}.saudacao h1 em{color:var(--royal);font-weight:500}
+.hero{background:var(--royal);color:#f3eee3;border-radius:0;border-bottom:4px solid var(--ouro)}.hero-img{filter:saturate(.75) contrast(1.05)}
+.hero-txt{padding:38px}.hero-txt h2{font-family:"Bodoni Moda",serif;font-weight:500;font-size:34px;line-height:1.08}.hero-txt small{color:#e3c88f;opacity:1;letter-spacing:.2em}.hero .barra{height:3px}.hero .barra i{background:#e3c88f}
+.btn{background:var(--royal);color:#fff;border-radius:0;letter-spacing:.14em;text-transform:uppercase;font-size:11.5px;padding:14px 26px}.hero .btn{background:#f3eee3;color:var(--royal)}.btn.sec{background:transparent;color:var(--royal);border:1px solid var(--royal)}
+.stats{gap:0;margin-top:40px}.stats div{background:var(--card);border:1px solid var(--bd);border-right:0;border-radius:0}.stats div:last-child{border-right:1px solid var(--bd)}
+.stats b{font-family:"Bodoni Moda",serif;font-weight:500;font-size:46px;color:var(--royal)}.stats span{text-transform:uppercase;letter-spacing:.14em;font-size:10.5px}
+.sec-tit{border-bottom:2px solid var(--royal);padding-bottom:12px}.sec-tit h2{font-family:"Bodoni Moda",serif;font-weight:500;font-size:30px}.sec-tit h2 em{color:var(--royal)}.sec-tit a{color:var(--royal);letter-spacing:.16em;text-transform:uppercase;font-size:11px}
+.grade{counter-reset:n;gap:26px}.curso{counter-increment:n;background:var(--card);border:1px solid var(--bd);border-radius:0;position:relative}
+.curso::before{content:"0" counter(n);position:absolute;right:16px;top:8px;z-index:2;font-family:"Bodoni Moda",serif;font-size:44px;font-weight:500;color:#fff;text-shadow:0 2px 14px rgba(0,0,0,.45)}
+.capa{filter:saturate(.7) contrast(1.05)}.nivel{border-radius:0;background:var(--royal);color:#f3eee3;letter-spacing:.12em;text-transform:uppercase;font-size:9.5px}.ok{right:auto;left:12px;top:44px;border-radius:0}
+.corpo h3{font-family:"Bodoni Moda",serif;font-weight:500;font-size:21px}.cat{color:var(--ouro);opacity:1;font-weight:700;letter-spacing:.16em}
+.barra{height:3px;border-radius:0;background:#e4dccb}.barra i{background:var(--royal);border-radius:0}
+.filtros button{border-radius:0;border-color:var(--bd);background:var(--card);letter-spacing:.12em;text-transform:uppercase;font-size:11px}.filtros button.on{background:var(--royal);color:#fff;border-color:var(--royal)}
+.trilha li{background:var(--card);border:1px solid var(--bd);border-radius:0}.trilha li span{border-radius:0}.trilha li.feito span,.trilha li.atual span{background:var(--royal);border-color:var(--royal)}.trilha li.atual{border-color:var(--royal);border-bottom:3px solid var(--ouro)}
+.lateral{background:var(--card);border:1px solid var(--bd);border-radius:0}.lateral h3{font-family:"Bodoni Moda",serif;font-weight:500;font-size:20px}.lateral li.atual{background:#e9e1ce;color:var(--royal);font-weight:700}.lateral li.feito{opacity:.5}
+.player{border-radius:0;border-bottom:4px solid var(--ouro)}.play{border-radius:0;background:#f3eee3;color:var(--royal)}
+.login-arte{background:#0b3d80 url(assets/padrao-x.jpg) center/cover;color:#f3eee3}.login-arte::before{content:"";position:absolute;inset:0;background:linear-gradient(160deg,rgba(11,61,128,.85),rgba(7,42,92,.97))}
+.login-frase small{color:#e3c88f;letter-spacing:.3em}.login-frase h1{font-family:"Bodoni Moda",serif;font-weight:500;font-size:58px}.login-frase h1 em{color:#e3c88f}.peixinhos{opacity:.6}
+.login-form{background:var(--bg)}.login-form h2{font-family:"Bodoni Moda",serif;font-weight:500;font-size:34px}.login-form h2 em{color:var(--royal)}.login-form input{border-radius:0;background:var(--card)}.login-form .btn{border-radius:0}

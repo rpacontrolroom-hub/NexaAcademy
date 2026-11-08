@@ -1,0 +1,33 @@
+/* V9 · Ouro & Marinho — premium: marinho profundo, filetes e detalhes em dourado champanhe, serifa clássica (Cormorant) */
+:root{--bg:#081c33;--tx:#f1e9d8;--ac:#2f7fc9;--on-ac:#fff;--bd:rgba(201,169,106,.3);--card:#0c2745;--lado-w:250px;--ouro:#c9a96a}
+body{font-family:"Manrope",sans-serif;background:radial-gradient(1200px 600px at 80% -10%,#0f3560,transparent),#081c33}
+em{font-family:"Cormorant Garamond",serif;font-weight:500}
+.lado{border-right:1px solid var(--bd);padding:30px 22px;background:linear-gradient(180deg,#06162a,#081c33)}
+.logo{flex-direction:column;align-items:flex-start;gap:12px;font-family:"Cormorant Garamond",serif;font-size:27px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;margin-bottom:36px;padding-bottom:26px;border-bottom:1px solid var(--bd);width:100%}
+.logo em{font-style:normal;color:var(--ouro);letter-spacing:.14em}.x-logo{width:44px;height:44px}
+.lado nav a{border-radius:0;padding:13px 6px;color:#9fb0c4;font-size:12.5px;letter-spacing:.18em;text-transform:uppercase;border-bottom:1px solid rgba(201,169,106,.12)}
+.lado nav a.on{color:var(--ouro);font-weight:700;box-shadow:none}
+.lado-peixes{opacity:.18;bottom:80px}
+.by{display:block;position:absolute;left:22px;bottom:26px;color:var(--ouro)}.by small{display:block;font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;opacity:.75;margin-bottom:8px}.by .hering-logo{width:112px}
+.topo{border-bottom:1px solid var(--bd)}.topo .busca{background:transparent;border:1px solid var(--bd);border-radius:0}.usuario i{background:transparent;border:1px solid var(--ouro);color:var(--ouro)}
+.saudacao small{color:var(--ouro);opacity:1;letter-spacing:.24em;font-size:11px}
+.saudacao h1{font-family:"Cormorant Garamond",serif;font-weight:500;font-size:60px;line-height:1.02}.saudacao h1 em{color:var(--ouro);font-weight:500}
+.hero{border:1px solid var(--bd);border-radius:0;background:#0c2745}.hero-img{position:relative}.hero-img::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent 40%,#0c2745),linear-gradient(0deg,rgba(8,28,51,.4),transparent)}
+.hero-txt h2{font-family:"Cormorant Garamond",serif;font-weight:500;font-size:38px;line-height:1.05}.hero-txt small{color:var(--ouro);opacity:1;letter-spacing:.22em}
+.hero .barra{height:2px}.hero .barra i{background:var(--ouro)}
+.btn{background:var(--ouro);color:#081c33;border-radius:0;letter-spacing:.16em;text-transform:uppercase;font-size:11.5px;padding:14px 26px}.btn.sec{background:transparent;color:var(--ouro);border:1px solid var(--ouro)}
+.stats{gap:0;border-top:1px solid var(--bd);border-bottom:1px solid var(--bd)}.stats div{padding:24px 6px;border-right:1px solid var(--bd);background:transparent}.stats div:last-child{border:0}
+.stats b{font-family:"Cormorant Garamond",serif;font-weight:500;font-size:52px;color:var(--ouro)}.stats span{letter-spacing:.14em;text-transform:uppercase;font-size:10.5px}
+.sec-tit h2{font-family:"Cormorant Garamond",serif;font-weight:500;font-size:34px}.sec-tit h2 em{color:var(--ouro)}.sec-tit a{color:var(--ouro);letter-spacing:.16em;text-transform:uppercase;font-size:11px}
+.curso,.trilha li,.lateral{background:var(--card);border:1px solid var(--bd);border-radius:0}.curso:hover{border-color:var(--ouro)}
+.capa{filter:saturate(.55) contrast(1.05) brightness(.9)}.nivel{border-radius:0;background:rgba(8,28,51,.85);color:var(--ouro);letter-spacing:.14em;text-transform:uppercase;font-size:9.5px}
+.corpo h3{font-family:"Cormorant Garamond",serif;font-weight:600;font-size:23px}.cat{color:var(--ouro);opacity:.9;letter-spacing:.16em}
+.barra{height:2px;border-radius:0}.barra i{background:#2f7fc9;border-radius:0}
+.filtros button{border-radius:0;color:#9fb0c4;border-color:var(--bd);letter-spacing:.14em;text-transform:uppercase;font-size:11px}.filtros button.on{background:var(--ouro);color:#081c33;border-color:var(--ouro)}
+.trilha li span{border-radius:0}.trilha li.feito span,.trilha li.atual span{background:var(--ouro);border-color:var(--ouro);color:#081c33}.trilha li.atual{border-color:var(--ouro)}
+.lateral li.atual{color:var(--ouro);font-weight:700;border-left:2px solid var(--ouro)}.lateral li.feito{opacity:.5}.lateral h3{font-family:"Cormorant Garamond",serif;font-size:22px;font-weight:600}
+.player{border:1px solid var(--bd)}.play{border-radius:0;background:var(--ouro);color:#081c33}
+.login-arte{background:#06162a url(assets/cardume.jpg) center/cover;color:var(--tx)}.login-arte::before{content:"";position:absolute;inset:0;background:linear-gradient(120deg,rgba(6,22,42,.92),rgba(8,40,72,.55))}
+.marca-branca{width:170px}.login-frase small{color:var(--ouro);letter-spacing:.3em}.login-frase h1{font-family:"Cormorant Garamond",serif;font-weight:500;font-size:68px}.login-frase h1 em{color:var(--ouro)}.peixinhos{display:none}
+.login-form{background:#081c33}.login-form .x{content:url(assets/x-branco.png);width:58px}.login-form h2{font-family:"Cormorant Garamond",serif;font-weight:500;font-size:36px}.login-form h2 em{color:var(--ouro)}
+.login-form input{border-radius:0;background:transparent;border-color:var(--bd)}.login-form .btn{border-radius:0}

@@ -1,0 +1,24 @@
+/* V7 · Cardume Gráfico — marinho com o cardume desenhado como textura: ilustração em vez de foto, destaques em azul-claro */
+:root{--bg:#0a2540;--tx:#eaf3fb;--ac:#a5d4fa;--on-ac:#0a2540;--bd:rgba(165,212,250,.22);--card:#0f2f50;--lado-w:236px;--c1:#004f8b;--c2:#1a6fb0;--c3:#0f2f50;--c4:#3d8fd1}
+body{background:#0a2540 url(assets/padrao-peixes.jpg) center/cover fixed}
+body::before{content:"";position:fixed;inset:0;background:rgba(10,37,64,.88);z-index:-1}
+.lado{border-right:1px solid var(--bd)}.logo em{color:#a5d4fa}
+.lado nav a{border-radius:99px;color:#9db6cf}.lado nav a.on{background:#a5d4fa;color:#0a2540;font-weight:700}
+.lado-peixes{opacity:.5}
+.topo .busca{background:rgba(255,255,255,.07);border:1px solid var(--bd);border-radius:99px}.usuario i{background:#a5d4fa;color:#0a2540}
+.saudacao h1{font-weight:300;font-size:46px;letter-spacing:-.01em}.saudacao h1 em{color:#a5d4fa;font-weight:500}.saudacao small{color:#a5d4fa;opacity:1}
+.hero{background:linear-gradient(120deg,#004f8b,#0b3d6e);border-radius:24px;border:1px solid var(--bd)}.hero-img{background-color:transparent!important}.hero-img::after{opacity:.9;background-size:62%;background-position:center}
+.hero .barra i{background:#a5d4fa}
+.btn{background:#a5d4fa;color:#0a2540;border-radius:99px}.btn.sec{background:transparent;color:#eaf3fb;border:1px solid var(--bd)}
+.stats div{background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:20px}.stats b{color:#a5d4fa;font-weight:300;font-size:36px}
+.sec-tit h2{font-weight:300;font-size:26px}.sec-tit h2 em{color:#a5d4fa}.sec-tit a{color:#a5d4fa}
+.curso,.trilha li,.lateral{background:rgba(15,47,80,.85);border:1px solid var(--bd);border-radius:20px}
+.curso:hover{border-color:#a5d4fa}.capa{aspect-ratio:16/9}.nivel{background:rgba(10,37,64,.7);color:#eaf3fb}
+.grade .curso:nth-child(n) .capa{background-image:linear-gradient(135deg,rgba(255,255,255,.06),rgba(0,0,0,.2))!important}
+.barra i{background:#a5d4fa}.filtros button{color:#eaf3fb;border-radius:99px}.filtros button.on{background:#a5d4fa;color:#0a2540;border-color:#a5d4fa}
+.trilha li.atual{border-color:#a5d4fa}.trilha li.atual span,.trilha li.feito span{background:#a5d4fa;color:#0a2540;border-color:#a5d4fa}
+.lateral li.atual{background:rgba(165,212,250,.16);border-radius:10px;font-weight:700}.lateral li.feito{opacity:.55}
+.player{border-radius:22px;border:1px solid var(--bd);background-color:#004f8b!important}.play{background:#a5d4fa}
+.login-arte{background:#004f8b url(assets/padrao-x.jpg) center/cover}.login-arte::before{content:"";position:absolute;inset:0;background:linear-gradient(120deg,rgba(0,79,139,.55),rgba(10,37,64,.95))}
+.login-frase h1{font-weight:300;font-size:56px}.login-frase h1 em{color:#a5d4fa;font-weight:500}.peixinhos{opacity:.7;width:60%}
+.login-form{background:#0a2540}.login-form .x{content:url(assets/x-branco.png)}.login-form input{border-radius:12px;background:rgba(255,255,255,.06)}.login-form .btn{border-radius:99px}.login-form h2 em{color:#a5d4fa}

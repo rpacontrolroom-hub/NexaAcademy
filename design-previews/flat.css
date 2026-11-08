@@ -1,0 +1,14 @@
+/* Base das versões 5–8: sem fotografia. Capas viram blocos de cor com o X do peixe / cardume desenhado. */
+.capa,.hero-img,.player{background-image:none!important;position:relative;overflow:hidden}
+.capa::after,.hero-img::after,.player::after{content:"";position:absolute;inset:0;background:url(assets/cardume-linhas.png) right -10% bottom -20%/70% no-repeat;opacity:.55}
+.capa::before{content:"";position:absolute;left:-14%;top:-30%;width:62%;aspect-ratio:1;background:url(assets/x-branco.png) center/contain no-repeat;opacity:.16}
+.grade .curso:nth-child(6n+1) .capa{background-color:var(--c1)!important}
+.grade .curso:nth-child(6n+2) .capa{background-color:var(--c2)!important}
+.grade .curso:nth-child(6n+3) .capa{background-color:var(--c3)!important}
+.grade .curso:nth-child(6n+4) .capa{background-color:var(--c4)!important}
+.grade .curso:nth-child(6n+5) .capa{background-color:var(--c1)!important}
+.grade .curso:nth-child(6n+6) .capa{background-color:var(--c2)!important}
+.hero-img,.player{background-color:var(--c1)!important}
+.login-arte{background-image:none}
+.login-arte::before{content:none}
+.play .ico{color:var(--c1)}

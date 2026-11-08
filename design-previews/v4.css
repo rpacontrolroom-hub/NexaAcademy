@@ -1,0 +1,25 @@
+/* V4 · Tecido — acolhedor: fundo cru (algodão), azul-claro Hering, cantos bem redondos */
+:root{--bg:#f4efe6;--tx:#12304d;--ac:#004f8b;--on-ac:#fff;--bd:#e0d8c8;--card:#fffdf8;--lado-w:262px}
+.lado{background:#a5d4fa;color:#0b3a63;margin:14px;height:calc(100vh - 28px);border-radius:30px;top:14px}
+.lado nav a{border-radius:99px;color:#0b3a63}.lado nav a.on{background:#004f8b;color:#fff;font-weight:700}
+.x-logo{content:url(assets/x-azul.png)}.logo em{color:#004f8b}.lado-peixes{filter:invert(.18) sepia(1) saturate(4) hue-rotate(175deg);opacity:.35}
+.topo .busca{background:var(--card);border-radius:99px;border:1px solid var(--bd)}.usuario i{background:#004f8b;color:#fff}
+.saudacao h1{font-size:38px}.saudacao h1 em{color:#004f8b;font-size:1.05em}
+.hero{background:#a5d4fa;border-radius:36px;color:#0b3a63}.hero .btn{background:#004f8b;color:#fff}.hero .barra i{background:#004f8b}
+.hero-img{border-radius:28px;margin:12px;min-height:220px}.hero-txt small{font-weight:700;opacity:1;color:#004f8b}
+.btn{background:#004f8b;color:#fff;border-radius:99px;padding:13px 26px}.btn.sec{background:var(--card);color:#004f8b;border:1px solid var(--bd)}
+.stats div{background:var(--card);border-radius:26px;border:1px solid var(--bd);position:relative;overflow:hidden}
+.stats div::after{content:"";position:absolute;right:-18px;top:-18px;width:70px;height:70px;background:url(assets/x-azul.png) center/contain;opacity:.1}
+.stats div:nth-child(2n){background:#e2f1fd}.stats b{color:#004f8b}
+.sec-tit h2 em{color:#004f8b}.sec-tit a{color:#004f8b;background:#e2f1fd;padding:7px 16px;border-radius:99px}
+.curso,.trilha li,.lateral{background:var(--card);border:1px solid var(--bd);border-radius:28px}
+.capa{margin:10px 10px 0;border-radius:20px}.nivel{background:#fffdf8}
+.filtros button{border-radius:99px;background:var(--card)}.filtros button.on{background:#004f8b;color:#fff;border-color:#004f8b}
+.trilha li{border-radius:99px}.trilha li.atual{background:#e2f1fd;border-color:#004f8b}
+.lateral li.atual{background:#e2f1fd;border-radius:99px;color:#004f8b;font-weight:700}.lateral li.feito{opacity:.55}
+.player{border-radius:30px;border:6px solid #a5d4fa}
+.login{background:#f4efe6}.login-arte{background:#a5d4fa;color:#0b3a63;margin:14px;border-radius:36px}
+.login-arte::before{content:"";position:absolute;right:-60px;top:-60px;width:380px;height:380px;background:url(assets/x-azul.png) center/contain;opacity:.12}
+.marca-branca{filter:brightness(0);opacity:.7}
+.peixinhos{filter:invert(.2) sepia(1) saturate(5) hue-rotate(172deg) brightness(.75);opacity:.35}
+.login-frase h1 em{color:#004f8b}.login-form h2 em{color:#004f8b}.login-form input{border-radius:99px;padding:14px 18px}.login-form .btn{border-radius:99px}

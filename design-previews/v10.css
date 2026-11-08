@@ -1,0 +1,28 @@
+/* V10 · Atelier Marfim — premium editorial: marfim, preto suave, azul Hering só nos acentos, Fraunces + DM Sans */
+:root{--bg:#f6f1e8;--tx:#16181c;--ac:#0b3c6f;--on-ac:#fff;--bd:#d8d0c0;--card:#fbf8f2;--lado-w:0px;--azul:#0b3c6f}
+body{font-family:"DM Sans",sans-serif}em{font-family:"Fraunces",serif;font-style:italic;font-weight:400}
+.app{display:block}.lado{position:static;height:auto;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:22px 56px;border-bottom:1px solid #16181c;overflow:visible;background:var(--bg)}
+.lado nav{flex-direction:row;gap:30px;order:1}.lado nav a{padding:4px 0;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:#6b6a66;border-bottom:1px solid transparent}.lado nav a .ico{display:none}.lado nav a.on{color:#16181c;border-color:#16181c;font-weight:700}
+.logo{order:2;margin:0;font-family:"Fraunces",serif;font-size:24px;font-weight:400;letter-spacing:.02em;color:var(--azul)}.logo em{color:#16181c}.x-logo{content:url(assets/x-azul.png);width:30px;height:30px}
+.lado-peixes{display:none}.by{display:flex;order:3;justify-self:end;align-items:center;gap:14px;color:var(--azul)}.by small{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#6b6a66}.by .hering-logo{width:104px}
+.topo{display:none}
+.pagina{max-width:1240px;margin:0 auto;padding:64px 56px 110px}
+.saudacao small{color:var(--azul);font-weight:700;opacity:1;letter-spacing:.2em}
+.saudacao h1{font-family:"Fraunces",serif;font-weight:300;font-size:64px;line-height:1.03;letter-spacing:-.02em;margin-bottom:44px}.saudacao h1 em{color:var(--azul);font-weight:300}
+.hero{grid-template-columns:1.25fr 1fr;border:1px solid #16181c;background:var(--card);border-radius:0;margin-bottom:60px}.hero-img{min-height:340px;filter:grayscale(.25) contrast(1.02)}
+.hero-txt{padding:46px}.hero-txt h2{font-family:"Fraunces",serif;font-weight:400;font-size:34px;line-height:1.1}.hero-txt small{color:var(--azul);opacity:1;font-weight:700;letter-spacing:.18em}
+.btn{background:var(--azul);color:#fff;border-radius:0;letter-spacing:.12em;text-transform:uppercase;font-size:11.5px;padding:15px 28px}.btn.sec{background:transparent;color:#16181c;border:1px solid #16181c}
+.barra{height:2px;border-radius:0;background:#d8d0c0}.barra i{background:var(--azul);border-radius:0}
+.stats{gap:0;border-top:1px solid #16181c;border-bottom:1px solid var(--bd);margin-bottom:64px}.stats div{padding:30px 4px;border-right:1px solid var(--bd)}.stats div:last-child{border:0}
+.stats b{font-family:"Fraunces",serif;font-weight:300;font-size:56px;color:var(--azul)}.stats span{letter-spacing:.14em;text-transform:uppercase;font-size:10.5px}
+.sec-tit{border-bottom:1px solid #16181c;padding-bottom:14px;margin-bottom:32px}.sec-tit h2{font-family:"Fraunces",serif;font-weight:300;font-size:32px}.sec-tit h2 em{color:var(--azul)}.sec-tit a{color:var(--azul);letter-spacing:.16em;text-transform:uppercase;font-size:11px}
+.grade{gap:40px}.curso{background:none;border:0}.capa{aspect-ratio:3/4;filter:grayscale(.2) sepia(.08)}.nivel{border-radius:0;background:#f6f1e8;letter-spacing:.14em;text-transform:uppercase;font-size:9.5px;color:#16181c}
+.corpo{padding:16px 0}.corpo h3{font-family:"Fraunces",serif;font-weight:400;font-size:24px;line-height:1.15}.cat{color:var(--azul);opacity:1;letter-spacing:.16em;font-weight:700}
+.filtros{gap:26px;margin-bottom:40px}.filtros button{border:0;border-bottom:1px solid transparent;border-radius:0;padding:4px 0;letter-spacing:.14em;text-transform:uppercase;font-size:11.5px;color:#6b6a66}.filtros button.on{color:#16181c;border-color:#16181c;font-weight:700}
+.trilha li{border-top:1px solid #16181c;padding:20px 4px;background:none}.trilha li span{border-radius:0}.trilha li.feito span,.trilha li.atual span{background:var(--azul);border-color:var(--azul)}.trilha li.atual{font-weight:700}
+.lateral{background:none;border-top:1px solid #16181c;padding:22px 0}.lateral h3{font-family:"Fraunces",serif;font-weight:400;font-size:22px}.lateral li.atual{color:var(--azul);font-weight:700}.lateral li.feito{opacity:.5}
+.player{border-radius:0;filter:grayscale(.2)}.play{border-radius:0;background:#f6f1e8;color:var(--azul)}
+.login-arte{background:#16181c url(assets/mulheres.jpg) center/cover;color:#fff}.login-arte::before{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(11,60,111,.9),rgba(22,24,28,.15) 70%)}
+.login-frase h1{font-family:"Fraunces",serif;font-weight:300;font-size:60px}.peixinhos{display:none}
+.login-form{background:var(--bg)}.login-form .x{width:46px}.login-form h2{font-family:"Fraunces",serif;font-weight:300;font-size:38px}.login-form h2 em{color:var(--azul)}.login-form input{border-radius:0;background:var(--card);border-color:#16181c}.login-form .btn{border-radius:0}
+@media(max-width:900px){.lado{grid-template-columns:1fr auto}.lado nav{display:none}}
