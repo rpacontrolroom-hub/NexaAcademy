@@ -258,7 +258,8 @@ html[data-tema="oceano"] .nexa-main::before {
   mask-composite: intersect;
 }
 html[data-tema="oceano"] .nexa-topbar { background: transparent; border-bottom: 0; backdrop-filter: none; position: relative; z-index: 2; justify-content: flex-end; }
-html[data-tema="oceano"] .nexa-content { position: relative; z-index: 1; }
+/* Sem z-index: assim as janelas (modais) de dentro do conteúdo ficam acima da barra do topo. */
+html[data-tema="oceano"] .nexa-content { position: relative; }
 html[data-tema="oceano"] .nexa-search { display: none; }
 
 /* Menu lateral: cardume desenhado + frase */
