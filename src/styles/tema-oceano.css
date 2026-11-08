@@ -357,3 +357,250 @@ html[data-tema="oceano"] .nexa-dash-secao { display: flex; align-items: center; 
 html[data-tema="oceano"] .nexa-dash-secao h2 { margin: 0; font: 600 20px 'Inter', sans-serif; color: #fff; }
 html[data-tema="oceano"] .nexa-dash-secao .nexa-see-all { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
 @media (max-width: 1050px) { html[data-tema="oceano"] .nexa-dash-top { grid-template-columns: 1fr; } html[data-tema="oceano"] .nexa-dash-stats { grid-template-columns: 1fr 1fr; } }
+
+/* ===== Tema Oceano: refino premium (profundidade, vidro, brilho) e animações ===== */
+html[data-tema="oceano"] {
+  --oc-ink: #020b18;
+  --oc-glass: linear-gradient(180deg, rgba(22, 58, 104, 0.5), rgba(8, 30, 60, 0.4));
+  --oc-glass-strong: linear-gradient(180deg, rgba(26, 66, 118, 0.6), rgba(9, 34, 68, 0.52));
+  --oc-hairline: rgba(150, 200, 255, 0.13);
+  --oc-hairline-hi: rgba(170, 215, 255, 0.32);
+  --oc-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  --oc-shadow: 0 1px 2px rgba(0, 6, 18, 0.4), 0 12px 32px -8px rgba(0, 8, 24, 0.6);
+  --oc-shadow-lg: 0 2px 4px rgba(0, 6, 18, 0.4), 0 28px 60px -14px rgba(0, 10, 30, 0.75);
+  --oc-accent-grad: linear-gradient(135deg, #6cb8ff 0%, #3a8cff 45%, #1a5fd6 100%);
+  --oc-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --nexa-bg-base: #020b18;
+  --background: #020b18;
+}
+html[data-tema="oceano"], html[data-tema="oceano"] body { background: var(--oc-ink); }
+html[data-tema="oceano"] body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+/* Fundo: tinta profunda + auroras azuis que respiram + granulado fino */
+html[data-tema="oceano"] .nexa-root {
+  background:
+    radial-gradient(1200px 700px at 85% -10%, rgba(40, 110, 220, 0.22), transparent 60%),
+    radial-gradient(900px 600px at -10% 110%, rgba(20, 90, 170, 0.2), transparent 60%),
+    linear-gradient(180deg, rgba(2, 11, 24, 0.86), rgba(2, 11, 24, 0.97)),
+    url(/tema/padrao-peixes.jpg) center / cover fixed,
+    var(--oc-ink);
+}
+html[data-tema="oceano"] .nexa-root::before,
+html[data-tema="oceano"] .nexa-root::after { content: ""; position: fixed; pointer-events: none; z-index: 0; }
+html[data-tema="oceano"] .nexa-root::before {
+  inset: -20%;
+  background:
+    radial-gradient(40% 35% at 70% 20%, rgba(70, 150, 255, 0.16), transparent 70%),
+    radial-gradient(35% 30% at 25% 80%, rgba(30, 120, 220, 0.12), transparent 70%);
+  animation: oc-aurora 26s ease-in-out infinite alternate;
+}
+html[data-tema="oceano"] .nexa-root::after {
+  inset: 0; opacity: 0.07; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+html[data-tema="oceano"] .nexa-sidebar, html[data-tema="oceano"] .nexa-main { position: relative; z-index: 1; }
+
+/* Tipografia */
+html[data-tema="oceano"] .nexa-hero-oceano h1, html[data-tema="oceano"] .nexa-dash-saudacao h1 { letter-spacing: -0.02em; text-wrap: balance; }
+html[data-tema="oceano"] .nexa-hero-oceano h1 em,
+html[data-tema="oceano"] .nexa-dash-saudacao h1 em,
+html[data-tema="oceano"] .nexa-logo-academy {
+  background: linear-gradient(100deg, #cfe7ff 0%, #7fc0ff 40%, #3d8eff 80%, #9fd0ff 100%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: oc-shine-text 9s ease-in-out infinite;
+  padding-right: 0.08em;
+}
+html[data-tema="oceano"] .nexa-assinatura, html[data-tema="oceano"] .nexa-assinatura em { color: #8cc6ff; letter-spacing: 0.02em; }
+html[data-tema="oceano"] .nexa-hero-oceano small { color: #8cc6ff; letter-spacing: 0.22em; }
+html[data-tema="oceano"] .nexa-dash-secao h2, html[data-tema="oceano"] .nexa-destaque-titulo h2 { letter-spacing: -0.01em; }
+
+/* Menu lateral: vidro escuro com linha de luz na borda */
+html[data-tema="oceano"] .nexa-sidebar {
+  background: linear-gradient(180deg, rgba(8, 26, 52, 0.78), rgba(2, 11, 24, 0.86));
+  border-right-color: transparent;
+  box-shadow: inset -1px 0 0 var(--oc-hairline), 18px 0 50px -30px rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(18px) saturate(140%);
+}
+html[data-tema="oceano"] .nexa-sidebar::after { opacity: 0.22; animation: oc-swim 18s ease-in-out infinite alternate; }
+html[data-tema="oceano"] .nexa-navitem { position: relative; border-radius: 12px; transition: background .25s var(--oc-ease), color .25s, transform .25s var(--oc-ease); }
+html[data-tema="oceano"] .nexa-navitem:hover { background: rgba(120, 180, 255, 0.07); transform: translateX(3px); }
+html[data-tema="oceano"] .nexa-navitem.active,
+html[data-tema="oceano"] .nexa-navitem.adminactive {
+  background: linear-gradient(90deg, rgba(58, 140, 255, 0.3), rgba(58, 140, 255, 0.06));
+  box-shadow: inset 0 0 0 1px rgba(110, 180, 255, 0.26), 0 10px 30px -12px rgba(40, 120, 255, 0.55);
+}
+html[data-tema="oceano"] .nexa-navitem.active::before,
+html[data-tema="oceano"] .nexa-navitem.adminactive::before {
+  content: ""; position: absolute; left: 0; top: 24%; bottom: 24%; width: 3px; border-radius: 3px;
+  background: linear-gradient(180deg, #9fd2ff, #3a8cff); box-shadow: 0 0 12px rgba(80, 160, 255, 0.9);
+  animation: oc-grow-y .5s var(--oc-ease) both;
+}
+html[data-tema="oceano"] .nexa-navitem.active svg, html[data-tema="oceano"] .nexa-navitem.adminactive svg { color: #b5dcff; filter: drop-shadow(0 0 6px rgba(90, 170, 255, 0.6)); }
+html[data-tema="oceano"] .nexa-lado-frase { color: #dcebfb; }
+html[data-tema="oceano"] .nexa-lado-frase em { color: #8cc6ff; }
+html[data-tema="oceano"] .nexa-mode-switch { border-radius: 12px; backdrop-filter: blur(8px); }
+
+/* Superfícies de vidro */
+html[data-tema="oceano"] .nexa-card,
+html[data-tema="oceano"] .course-detail-panel, html[data-tema="oceano"] .lesson-detail-main,
+html[data-tema="oceano"] .lesson-detail-side-card, html[data-tema="oceano"] .lesson-comments,
+html[data-tema="oceano"] .course-conclusion-card, html[data-tema="oceano"] .login-card {
+  background: var(--oc-glass);
+  border: 1px solid var(--oc-hairline);
+  box-shadow: var(--oc-highlight), var(--oc-shadow);
+  backdrop-filter: blur(16px) saturate(140%);
+}
+html[data-tema="oceano"] .nexa-root .nexa-card.nexa-scroll { background: #0a2441; }
+html[data-tema="oceano"] .nexa-card { transition: transform .45s var(--oc-ease), box-shadow .45s var(--oc-ease), border-color .3s; }
+html[data-tema="oceano"] .nexa-card:hover { border-color: var(--oc-hairline-hi); }
+html[data-tema="oceano"] .nexa-dash-continuar { background: var(--oc-glass-strong); border-color: rgba(120, 185, 255, 0.24); box-shadow: var(--oc-highlight), var(--oc-shadow-lg); position: relative; overflow: hidden; }
+html[data-tema="oceano"] .nexa-dash-continuar::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(420px 180px at 100% 0%, rgba(90, 170, 255, 0.24), transparent 70%);
+}
+html[data-tema="oceano"] .nexa-dash-continuar > * { position: relative; }
+html[data-tema="oceano"] .nexa-dash-stat:hover { transform: translateY(-3px); box-shadow: var(--oc-highlight), var(--oc-shadow-lg); }
+html[data-tema="oceano"] .nexa-dash-stat-icone {
+  background: linear-gradient(180deg, rgba(90, 170, 255, 0.24), rgba(40, 110, 220, 0.12));
+  border-color: rgba(130, 195, 255, 0.3); color: #b5dcff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 6px 18px -6px rgba(40, 130, 255, 0.6);
+  transition: transform .45s var(--oc-ease);
+}
+html[data-tema="oceano"] .nexa-dash-stat:hover .nexa-dash-stat-icone { transform: scale(1.08) rotate(-4deg); }
+html[data-tema="oceano"] .nexa-dash-stat b { font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+
+/* Cards de treinamento: capa que aproxima, brilho no hover */
+html[data-tema="oceano"] .nexa-card.hoverable:hover {
+  transform: translateY(-6px); border-color: rgba(140, 200, 255, 0.4);
+  box-shadow: var(--oc-highlight), var(--oc-shadow-lg), 0 20px 50px -20px rgba(40, 130, 255, 0.45);
+}
+html[data-tema="oceano"] .nexa-course-cover { overflow: hidden; transition: filter .6s var(--oc-ease); }
+html[data-tema="oceano"] .nexa-course-cover-image { transition: transform 1.2s var(--oc-ease); }
+html[data-tema="oceano"] .nexa-card.hoverable:hover .nexa-course-cover { filter: saturate(1.15) brightness(1.08); }
+html[data-tema="oceano"] .nexa-card.hoverable:hover .nexa-course-cover-image { transform: scale(1.06); }
+html[data-tema="oceano"] .nexa-badge-status { box-shadow: 0 4px 14px rgba(0, 10, 30, 0.35); letter-spacing: 0.01em; }
+html[data-tema="oceano"] .nexa-card-seta { border-color: rgba(140, 200, 255, 0.7); transition: transform .45s var(--oc-ease), background .3s, box-shadow .3s; }
+html[data-tema="oceano"] .nexa-card.hoverable:hover .nexa-card-seta {
+  background: var(--oc-accent-grad); border-color: transparent; transform: translateX(3px) rotate(-35deg);
+  box-shadow: 0 8px 22px -4px rgba(50, 140, 255, 0.8);
+}
+html[data-tema="oceano"] .nexa-fav-button { backdrop-filter: blur(8px); transition: transform .3s var(--oc-ease), color .2s; }
+html[data-tema="oceano"] .nexa-fav-button:hover { transform: scale(1.1); }
+
+/* Botões com reflexo de luz */
+html[data-tema="oceano"] .nexa-btn-primary,
+html[data-tema="oceano"] .course-detail-primary, html[data-tema="oceano"] .course-detail-nav-button.next,
+html[data-tema="oceano"] .lesson-nav-button.next, html[data-tema="oceano"] .lesson-open-link,
+html[data-tema="oceano"] .lesson-comment-send, html[data-tema="oceano"] .quiz-submit,
+html[data-tema="oceano"] .course-conclusion-send, html[data-tema="oceano"] .login-submit {
+  position: relative; overflow: hidden; isolation: isolate;
+  background: var(--oc-accent-grad);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 10px 26px -8px rgba(40, 130, 255, 0.75);
+  transition: transform .3s var(--oc-ease), box-shadow .3s var(--oc-ease), filter .3s;
+}
+html[data-tema="oceano"] .nexa-btn-primary::after, html[data-tema="oceano"] .course-detail-primary::after,
+html[data-tema="oceano"] .login-submit::after, html[data-tema="oceano"] .lesson-nav-button.next::after,
+html[data-tema="oceano"] .quiz-submit::after {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.35) 50%, transparent 70%);
+  transform: translateX(-120%); transition: transform .9s var(--oc-ease);
+}
+html[data-tema="oceano"] .nexa-btn-primary:hover, html[data-tema="oceano"] .course-detail-primary:hover,
+html[data-tema="oceano"] .login-submit:hover, html[data-tema="oceano"] .lesson-nav-button.next:hover,
+html[data-tema="oceano"] .quiz-submit:hover {
+  transform: translateY(-1px); filter: brightness(1.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 16px 34px -10px rgba(40, 130, 255, 0.9);
+}
+html[data-tema="oceano"] .nexa-btn-primary:hover::after, html[data-tema="oceano"] .course-detail-primary:hover::after,
+html[data-tema="oceano"] .login-submit:hover::after, html[data-tema="oceano"] .lesson-nav-button.next:hover::after,
+html[data-tema="oceano"] .quiz-submit:hover::after { transform: translateX(120%); }
+html[data-tema="oceano"] .nexa-btn-primary:active { transform: scale(0.98); }
+html[data-tema="oceano"] .nexa-btn-ghost, html[data-tema="oceano"] .nexa-tema-toggle { border-color: var(--oc-hairline-hi); backdrop-filter: blur(10px); background: rgba(120, 180, 255, 0.05); transition: background .25s, border-color .25s; }
+html[data-tema="oceano"] .nexa-tema-toggle:hover { background: rgba(120, 180, 255, 0.12); border-color: rgba(170, 215, 255, 0.5); }
+html[data-tema="oceano"] .nexa-tema-toggle svg { transition: transform .6s var(--oc-ease); }
+html[data-tema="oceano"] .nexa-tema-toggle:hover svg { transform: rotate(45deg); }
+html[data-tema="oceano"] .nexa-avatar { box-shadow: 0 0 0 2px rgba(2, 11, 24, 0.9), 0 0 0 3.5px rgba(110, 180, 255, 0.55), 0 8px 22px -6px rgba(40, 130, 255, 0.7); }
+html[data-tema="oceano"] .nexa-see-all { color: #8cc6ff; transition: color .2s, gap .3s var(--oc-ease); }
+html[data-tema="oceano"] .nexa-see-all:hover { color: #cfe7ff; gap: 10px !important; }
+
+/* Chips e busca */
+html[data-tema="oceano"] .nexa-pill { background: var(--oc-glass); border-color: var(--oc-hairline); box-shadow: var(--oc-highlight); transition: transform .3s var(--oc-ease), background .25s, border-color .25s, box-shadow .3s; }
+html[data-tema="oceano"] .nexa-pill:hover { transform: translateY(-2px); border-color: var(--oc-hairline-hi); }
+html[data-tema="oceano"] .nexa-pill.active { background: var(--oc-accent-grad); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 12px 30px -8px rgba(40, 130, 255, 0.75); }
+html[data-tema="oceano"] .nexa-busca-grande { background: var(--oc-glass); border-color: rgba(120, 185, 255, 0.28); box-shadow: var(--oc-highlight), var(--oc-shadow); transition: border-color .3s, box-shadow .3s; }
+html[data-tema="oceano"] .nexa-busca-grande:focus-within { border-color: rgba(140, 200, 255, 0.7); box-shadow: var(--oc-highlight), 0 0 0 4px rgba(70, 150, 255, 0.16), 0 16px 40px -12px rgba(40, 130, 255, 0.5); }
+
+/* Progresso que se preenche e tem um brilho correndo */
+html[data-tema="oceano"] .nexa-progress-track { background: rgba(140, 190, 255, 0.1); box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35); overflow: hidden; }
+html[data-tema="oceano"] .nexa-progress-fill {
+  position: relative; overflow: hidden;
+  background: linear-gradient(90deg, #1a5fd6, #4a9dff 70%, #9fd2ff);
+  box-shadow: 0 0 12px rgba(80, 160, 255, 0.65);
+  animation: oc-fill 1.4s var(--oc-ease) .3s both;
+}
+html[data-tema="oceano"] .nexa-progress-fill::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+  transform: translateX(-100%); animation: oc-sweep 3.2s ease-in-out 1.8s infinite;
+}
+
+/* Painéis flutuantes */
+html[data-tema="oceano"] .nexa-profile-menu, html[data-tema="oceano"] .nexa-bell-panel {
+  background: linear-gradient(180deg, rgba(14, 40, 76, 0.94), rgba(6, 22, 46, 0.96));
+  border-color: var(--oc-hairline-hi); backdrop-filter: blur(20px) saturate(150%);
+  box-shadow: var(--oc-highlight), 0 30px 70px -20px rgba(0, 0, 0, 0.8);
+  animation: oc-pop .28s var(--oc-ease) both; transform-origin: top right;
+}
+
+/* Barra de rolagem discreta */
+html[data-tema="oceano"] .nexa-scroll { scrollbar-width: thin; scrollbar-color: rgba(140, 190, 255, 0.22) transparent; }
+
+/* Animações: cardume e entradas (repetem a cada troca de tela) */
+html[data-tema="oceano"] .nexa-main::before { animation: oc-cardume 22s ease-in-out infinite alternate; }
+html[data-tema="oceano"] .nexa-content > * { animation: oc-fade .5s ease-out backwards; }
+html[data-tema="oceano"] .nexa-dash-saudacao > *, html[data-tema="oceano"] .nexa-hero-oceano > *,
+html[data-tema="oceano"] .nexa-dash-stats > *, html[data-tema="oceano"] .nexa-grid-3 > *,
+html[data-tema="oceano"] .nexa-pills-row > * { animation: oc-rise .75s var(--oc-ease) backwards; }
+html[data-tema="oceano"] .nexa-dash-saudacao > :nth-child(2), html[data-tema="oceano"] .nexa-hero-oceano > :nth-child(2) { animation-delay: .08s; }
+html[data-tema="oceano"] .nexa-dash-saudacao > :nth-child(3), html[data-tema="oceano"] .nexa-hero-oceano > :nth-child(3) { animation-delay: .16s; }
+html[data-tema="oceano"] .nexa-hero-oceano > :nth-child(4) { animation-delay: .24s; }
+html[data-tema="oceano"] .nexa-dash-continuar { animation: oc-rise .9s var(--oc-ease) .15s backwards; }
+html[data-tema="oceano"] .nexa-dash-stats > :nth-child(1) { animation-delay: .22s; }
+html[data-tema="oceano"] .nexa-dash-stats > :nth-child(2) { animation-delay: .28s; }
+html[data-tema="oceano"] .nexa-dash-stats > :nth-child(3) { animation-delay: .34s; }
+html[data-tema="oceano"] .nexa-dash-stats > :nth-child(4) { animation-delay: .40s; }
+html[data-tema="oceano"] .nexa-pills-row > :nth-child(2) { animation-delay: .04s; }
+html[data-tema="oceano"] .nexa-pills-row > :nth-child(3) { animation-delay: .08s; }
+html[data-tema="oceano"] .nexa-pills-row > :nth-child(4) { animation-delay: .12s; }
+html[data-tema="oceano"] .nexa-pills-row > :nth-child(n + 5) { animation-delay: .16s; }
+html[data-tema="oceano"] .nexa-grid-3 > :nth-child(1) { animation-delay: .30s; }
+html[data-tema="oceano"] .nexa-grid-3 > :nth-child(2) { animation-delay: .38s; }
+html[data-tema="oceano"] .nexa-grid-3 > :nth-child(3) { animation-delay: .46s; }
+html[data-tema="oceano"] .nexa-grid-3 > :nth-child(4) { animation-delay: .52s; }
+html[data-tema="oceano"] .nexa-grid-3 > :nth-child(5) { animation-delay: .58s; }
+html[data-tema="oceano"] .nexa-grid-3 > :nth-child(n + 6) { animation-delay: .64s; }
+html[data-tema="oceano"] .nexa-sidebar .nexa-navitem { animation: oc-slide .6s var(--oc-ease) backwards; }
+html[data-tema="oceano"] .nexa-sidebar .nexa-navitem:nth-child(2) { animation-delay: .05s; }
+html[data-tema="oceano"] .nexa-sidebar .nexa-navitem:nth-child(3) { animation-delay: .1s; }
+html[data-tema="oceano"] .nexa-sidebar .nexa-navitem:nth-child(4) { animation-delay: .15s; }
+html[data-tema="oceano"] .nexa-sidebar .nexa-navitem:nth-child(n + 5) { animation-delay: .2s; }
+html[data-tema="oceano"] .nexa-lado-frase { animation: oc-rise 1s var(--oc-ease) .3s backwards; }
+
+@keyframes oc-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes oc-rise { from { opacity: 0; transform: translateY(14px); filter: blur(4px); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes oc-slide { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: none; } }
+@keyframes oc-pop { from { opacity: 0; transform: translateY(-6px) scale(0.97); } to { opacity: 1; transform: none; } }
+@keyframes oc-grow-y { from { transform: scaleY(0); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes oc-fill { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes oc-sweep { 0% { transform: translateX(-100%); } 60%, 100% { transform: translateX(100%); } }
+@keyframes oc-shine-text { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+@keyframes oc-aurora { from { transform: translate3d(-3%, -2%, 0) rotate(0deg); } to { transform: translate3d(3%, 2%, 0) rotate(6deg); } }
+@keyframes oc-cardume { from { transform: translate3d(0, 0, 0) scale(1); } to { transform: translate3d(-2.5%, 1.5%, 0) scale(1.04); } }
+@keyframes oc-swim { from { transform: rotate(-8deg) translate3d(0, 0, 0); } to { transform: rotate(-5deg) translate3d(4%, -3%, 0); } }
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-tema="oceano"] *, html[data-tema="oceano"] *::before, html[data-tema="oceano"] *::after {
+    animation-duration: 0.01ms !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important;
+  }
+}
