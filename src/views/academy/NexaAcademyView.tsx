@@ -29,6 +29,7 @@ import ForcePasswordChange from "@/views/academy/components/ForcePasswordChange"
 import AdminCertificatesView from "@/views/academy/components/AdminCertificatesView";
 import AdminTrilhasView from "@/views/academy/components/AdminTrilhasView";
 import AdminQuizzesView from "@/views/academy/components/AdminQuizzesView";
+import { PeixeIcone } from "@/views/academy/components/FishLoader";
 import RequiredMark from "@/components/RequiredMark";
 import CertificatePreviewModal from "@/views/academy/components/CertificatePreviewModal";
 import {
@@ -951,7 +952,7 @@ export default function NexaAcademy() {
     if (file && !file.type.startsWith("image/")) return toast.error("A foto precisa ser uma imagem (PNG, JPG ou WEBP).");
     if (file && file.size > 5 * 1024 * 1024) return toast.error("A foto pode ter no máximo 5 MB.");
     setEnviandoFoto(true);
-    const ok = await executar(() => repo.atualizarMinhaFoto(userId, file), file ? "Foto atualizada" : "Foto removida");
+    const ok = await executar(() => repo.atualizarMinhaFoto(userId, file), file ? "Foto atualizada! Você está bem na foto do cardume." : "Foto removida.");
     setEnviandoFoto(false);
     if (ok) invalidar(keys.perfil(userId), keys.usuarios);
   }
@@ -1002,7 +1003,7 @@ export default function NexaAcademy() {
 
   async function emitirCertificado(idx) {
     const item = meusTreinamentos[idx];
-    const ok = await executar(() => repo.emitirCertificado(item.treinamentoId), "Certificado emitido!");
+    const ok = await executar(() => repo.emitirCertificado(item.treinamentoId), "Certificado emitido! Mais um tesouro tirado do fundo do mar.");
     if (!ok) return;
     invalidar(keys.meusCertificados(userId), keys.meuResumo(userId));
     const atualizados = await queryClient.fetchQuery({ queryKey: keys.meusCertificados(userId), queryFn: () => repo.fetchMeusCertificados(userId) });
@@ -1081,7 +1082,7 @@ export default function NexaAcademy() {
   function abrirTrilha(trilha) {
     const etapa = trilha?.etapas?.find((e, i) => trilha.steps[i]?.status === "current" && e.treinamento_id) ?? trilha?.etapas?.find((e) => e.treinamento_id);
     if (etapa) abrirCurso(etapa.treinamento_id);
-    else toast.info("Esta trilha ainda não tem treinamentos vinculados.");
+    else toast.info("Essa trilha ainda está em águas calmas: nenhum treinamento vinculado.");
   }
 
   function abrirPerfil() {
@@ -1110,7 +1111,13 @@ export default function NexaAcademy() {
   return (
     <div className="nexa-root">
       <style>{css}</style>
-      <Toaster position="top-right" richColors closeButton />
+      <Toaster
+        position="top-right"
+        richColors={tema !== "oceano"}
+        closeButton
+        toastOptions={tema === "oceano" ? { className: "nexa-toast" } : undefined}
+        icons={tema === "oceano" ? { success: <PeixeIcone className="nexa-toast-peixe" />, info: <PeixeIcone className="nexa-toast-peixe" /> } : undefined}
+      />
 
       {/* Sidebar */}
       <aside className="nexa-sidebar">

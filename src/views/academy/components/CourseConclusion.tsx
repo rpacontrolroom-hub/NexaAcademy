@@ -97,7 +97,7 @@ export default function CourseConclusion({ userId, treinamentoId, course, matric
     setEnviando(true);
     try {
       await repo.avaliarTreinamento(treinamentoId, nota, comentario);
-      toast.success(avaliacoes?.minha ? "Avaliação atualizada. Obrigado!" : "Obrigado pela avaliação!");
+      toast.success(avaliacoes?.minha ? "Avaliação atualizada. Obrigado por remar com a gente!" : "Obrigado pela avaliação! Ela ajuda todo o cardume.");
       queryClient.invalidateQueries({ queryKey: keys.avaliacoesTreinamento(treinamentoId, userId) });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : String(err));

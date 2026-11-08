@@ -32,10 +32,28 @@ const css = `
 function Peixe({ escala, opacidade }: { escala: number; opacidade: number }) {
   return (
     <svg viewBox="0 0 26 16" style={{ opacity: opacidade, scale: String(escala) }} aria-hidden="true">
+      <PeixeDesenho />
+    </svg>
+  );
+}
+
+/** Traço do peixe (viewBox 0 0 26 16), usado no carregamento e nas notificações. */
+function PeixeDesenho() {
+  return (
+    <>
       <path d="M7 8 L1 2.5 L2.6 8 L1 13.5 Z" fill="currentColor" opacity=".75" />
       <path d="M5 8 C 9 1.5, 18 1, 25 8 C 18 15, 9 14.5, 5 8 Z" fill="currentColor" />
       <path d="M13 4.6 C 14.6 6.8, 14.6 9.2, 13 11.4" fill="none" stroke="rgba(255,255,255,.45)" strokeWidth=".9" strokeLinecap="round" />
       <circle cx="20.4" cy="6.9" r="1.15" fill="#06213f" />
+    </>
+  );
+}
+
+/** Peixinho para ícones (ex.: notificações). */
+export function PeixeIcone({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="-1 -2 28 20" width="22" height="16" aria-hidden="true">
+      <PeixeDesenho />
     </svg>
   );
 }

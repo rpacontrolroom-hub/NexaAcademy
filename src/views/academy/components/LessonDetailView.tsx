@@ -266,16 +266,16 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
       await repo.concluirAula(userId, lessonId);
       if (ultimaAula && onFinish) {
         invalidarProgresso();
-        toast.success("Treinamento concluído! 🎉");
+        toast.success("Terra à vista! Treinamento concluído 🎉");
         onFinish();
       } else if (nextLesson) {
         // Espera o progresso atualizar (a próxima aula pode estar no módulo que acabou de ser liberado) e já abre ela.
         await invalidarProgresso().catch(() => {});
-        toast.success("Aula concluída! Seguindo para a próxima.");
+        toast.success("Mais uma onda vencida! Nadando para a próxima aula.");
         onNavigate(nextLesson.id);
       } else {
         invalidarProgresso();
-        toast.success("Aula concluída!");
+        toast.success("Aula concluída! O cardume segue com você.");
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : String(err));
@@ -284,14 +284,14 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
     }
   }
   aoAssistirMinimoRef.current = () => {
-    if (!completed) toast.success("Vídeo assistido! Agora você pode concluir a aula.");
+    if (!completed) toast.success("Vídeo assistido! Agora é só concluir a aula e seguir nadando.");
   };
 
   function maximizarVideo() {
     const el = playerRef.current;
     if (!el) return;
     if (document.fullscreenElement) document.exitFullscreen();
-    else el.requestFullscreen?.().catch(() => toast.error("Não foi possível abrir o vídeo em tela cheia."));
+    else el.requestFullscreen?.().catch(() => toast.error("Não deu para abrir o vídeo em tela cheia. Tente de novo."));
   }
 
   return (

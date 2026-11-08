@@ -51,7 +51,9 @@ export default function QuizPlayer({ quiz, onRespondido }: QuizPlayerProps) {
     try {
       const resultado = await repo.responderQuiz(quiz.id, respostas);
       toast[resultado.aprovado ? "success" : "error"](
-        resultado.aprovado ? `Aprovado com ${resultado.nota}%!` : `Você fez ${resultado.nota}%. A nota mínima é ${quiz.nota_minima}%.`,
+        resultado.aprovado
+          ? `Aprovado com ${resultado.nota}%! Nadou de braçada.`
+          : `Você fez ${resultado.nota}% e a nota mínima é ${quiz.nota_minima}%. Respire fundo e mergulhe de novo!`,
       );
       setRespostas({});
       setRefazendo(false);
