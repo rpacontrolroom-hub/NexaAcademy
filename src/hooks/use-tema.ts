@@ -6,9 +6,9 @@ const CHAVE = "nexa-tema";
 
 function lerTema(): Tema {
   try {
-    return localStorage.getItem(CHAVE) === "oceano" ? "oceano" : "claro";
+    return localStorage.getItem(CHAVE) === "claro" ? "claro" : "oceano";
   } catch {
-    return "claro";
+    return "oceano";
   }
 }
 
@@ -22,9 +22,9 @@ function aplicarTema(tema: Tema) {
   }
 }
 
-/** Tema claro (padrão) ou Oceano. A escolha fica salva neste navegador; o script do <head> a aplica antes da tela aparecer. */
+/** Tema Oceano (padrão) ou claro. A escolha fica salva neste navegador; o script do <head> a aplica antes da tela aparecer. */
 export function useTema() {
-  const [tema, setTema] = useState<Tema>("claro");
+  const [tema, setTema] = useState<Tema>("oceano");
   useEffect(() => setTema(lerTema()), []);
   const alternar = useCallback(() => {
     const novo: Tema = tema === "oceano" ? "claro" : "oceano";
