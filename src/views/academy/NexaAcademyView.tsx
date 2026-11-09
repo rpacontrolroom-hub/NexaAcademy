@@ -265,6 +265,7 @@ const css = `
   .nexa-trilha-empty > svg { flex-shrink:0; color:#777; }
   .nexa-trilha-done-badge { display:inline-flex; align-items:center; gap:5px; padding:3px 9px; border-radius:999px; background:#e7f4ec; color:#2d7147; font-size:11px; font-weight:700; letter-spacing:0; text-transform:none; }
   .nexa-trilha-done-button { display:inline-flex; align-items:center; gap:7px; flex-shrink:0; padding:11px 20px; border-radius:6px; background:#2d7147; color:#fff; font-size:13px; font-weight:600; }
+  .nexa-trilha-card-button { width:100%; justify-content:center; margin-top:14px; }
   .nexa-trilha-cover { display:block; width:calc(100% + 36px); aspect-ratio:16/9; margin:-18px -18px 14px; object-fit:cover; background:#f1f1f1; }
 
   /* Right column items */
@@ -1539,6 +1540,15 @@ export default function NexaAcademy() {
                     <p style={{ fontSize: 12, color: palette.textMuted, lineHeight: 1.5, marginBottom: 14, minHeight: 36 }}>{t.desc}</p>
                     <div className="nexa-progress-track"><div className="nexa-progress-fill" style={{ width: `${t.progress}%`, background: t.progress === 100 ? "#2d7147" : "#111" }} /></div>
                     <div style={{ fontSize: 11, color: t.progress === 100 ? "#2d7147" : palette.textFaint, marginTop: 6, fontWeight: t.progress === 100 ? 600 : 400 }}>{t.progress === 100 ? "Trilha concluída" : `${t.progress}% concluído`}</div>
+                    {t.progress < 100 && (
+                      <button
+                        type="button"
+                        className="nexa-btn-primary nexa-trilha-card-button"
+                        onClick={(e) => { e.stopPropagation(); setSelectedTrilha(i); abrirTrilha(t); }}
+                      >
+                        <Play size={14} fill="#fff" /> {t.progress > 0 ? "Continuar trilha" : "Começar trilha"}
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>
