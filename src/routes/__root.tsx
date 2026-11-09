@@ -123,9 +123,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:image", content: "/favicon-512.png" },
       { name: "twitter:image", content: "/favicon-512.png" },
     ],
-    // Aplica o tema antes da primeira pintura (evita piscar). Oceano é o padrão; só fica claro quem escolheu claro.
+    // Aplica o tema antes da primeira pintura (evita piscar). Sempre Oceano; quem escolheu o claro ganha data-tom="claro".
     scripts: [
-      { children: 'try{if(localStorage.getItem("nexa-tema")!=="claro")document.documentElement.dataset.tema="oceano"}catch(e){document.documentElement.dataset.tema="oceano"}' },
+      { children: 'var h=document.documentElement;h.dataset.tema="oceano";try{var t=localStorage.getItem("nexa-tema");if(t==="oceano-claro"||t==="claro")h.dataset.tom="claro"}catch(e){}' },
     ],
     links: [
       {

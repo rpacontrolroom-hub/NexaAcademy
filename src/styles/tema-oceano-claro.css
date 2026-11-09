@@ -1,0 +1,404 @@
+/* Tema "Oceano claro": a mesma cara do tema Oceano (layout, cardume, frases, vidro, animações),
+ * mas de dia: fundo claro, letras azul-marinho e o azul Hering nos destaques.
+ * Ativo com <html data-tema="oceano" data-tom="claro">. Aqui só mudam cores e imagens;
+ * a estrutura vem de tema-oceano.css. O seletor duplo vence as regras do Oceano escuro. */
+
+html[data-tema="oceano"][data-tom="claro"] {
+  color-scheme: light;
+  --oc-ink: #f3f7fc;
+  --oc-glass: linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(246, 250, 255, 0.72));
+  --oc-glass-strong: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(238, 245, 255, 0.84));
+  --oc-hairline: rgba(29, 111, 224, 0.14);
+  --oc-hairline-hi: rgba(29, 111, 224, 0.32);
+  --oc-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --oc-shadow: 0 1px 2px rgba(11, 37, 69, 0.06), 0 12px 32px -10px rgba(11, 37, 69, 0.18);
+  --oc-shadow-lg: 0 2px 4px rgba(11, 37, 69, 0.06), 0 28px 60px -18px rgba(11, 37, 69, 0.28);
+  --oc-accent-grad: linear-gradient(135deg, #3b9bff 0%, #1d6fe0 50%, #0b4aa0 100%);
+  --nexa-bg-base: #f3f7fc;
+  --nexa-bg-panel: rgba(255, 255, 255, 0.85);
+  --nexa-bg-card: rgba(255, 255, 255, 0.8);
+  --nexa-bg-card-hover: rgba(29, 111, 224, 0.06);
+  --nexa-border: rgba(29, 111, 224, 0.14);
+  --nexa-border-strong: rgba(29, 111, 224, 0.3);
+  --nexa-text-primary: #0b2545;
+  --nexa-text-muted: #4a6584;
+  --nexa-text-faint: #7b93ad;
+  --background: #f3f7fc;
+  --foreground: #0b2545;
+  --card: #ffffff;
+  --card-foreground: #0b2545;
+  --muted: #e8f0fa;
+  --muted-foreground: #4a6584;
+  --border: rgba(29, 111, 224, 0.14);
+  --input: rgba(29, 111, 224, 0.22);
+}
+html[data-tema="oceano"][data-tom="claro"],
+html[data-tema="oceano"][data-tom="claro"] body { background: #f3f7fc; color: #0b2545; }
+html[data-tema="oceano"][data-tom="claro"] ::selection { background: rgba(29, 111, 224, 0.2); }
+
+/* Fundo: padrão de arenques claro + luz azul suave; sem granulado escuro */
+html[data-tema="oceano"][data-tom="claro"] .nexa-root {
+  color: #0b2545;
+  background:
+    radial-gradient(1200px 700px at 85% -10%, rgba(59, 155, 255, 0.16), transparent 60%),
+    radial-gradient(900px 600px at -10% 110%, rgba(29, 111, 224, 0.1), transparent 60%),
+    linear-gradient(180deg, rgba(243, 247, 252, 0.55), rgba(243, 247, 252, 0.88)),
+    url(/tema/padrao-peixes-claro.jpg) center / cover fixed,
+    #f3f7fc;
+}
+html[data-tema="oceano"][data-tom="claro"] .nexa-root::before {
+  background:
+    radial-gradient(40% 35% at 70% 20%, rgba(59, 155, 255, 0.12), transparent 70%),
+    radial-gradient(35% 30% at 25% 80%, rgba(29, 111, 224, 0.08), transparent 70%);
+}
+html[data-tema="oceano"][data-tom="claro"] .nexa-root::after { opacity: 0.035; mix-blend-mode: multiply; }
+
+/* Cardume do topo: a foto clara */
+html[data-tema="oceano"][data-tom="claro"] .nexa-main::before { background-image: url(/tema/cardume-claro.jpg); opacity: 0.75; }
+
+/* Tipografia */
+html[data-tema="oceano"][data-tom="claro"] .nexa-heading em, html[data-tema="oceano"][data-tom="claro"] .nexa-heading i { color: #1d6fe0; }
+html[data-tema="oceano"][data-tom="claro"] .nexa-hero-oceano h1 em,
+html[data-tema="oceano"][data-tom="claro"] .nexa-dash-saudacao h1 em,
+html[data-tema="oceano"][data-tom="claro"] .nexa-logo-academy {
+  background-image: linear-gradient(100deg, #0b4aa0 0%, #1d6fe0 40%, #3b9bff 75%, #0b4aa0 100%);
+}
+html[data-tema="oceano"][data-tom="claro"] .nexa-hero-oceano h1,
+html[data-tema="oceano"][data-tom="claro"] .nexa-dash-saudacao h1,
+html[data-tema="oceano"][data-tom="claro"] .nexa-destaque-titulo h2,
+html[data-tema="oceano"][data-tom="claro"] .nexa-dash-secao h2,
+html[data-tema="oceano"][data-tom="claro"] .nexa-dash-continuar h2,
+html[data-tema="oceano"][data-tom="claro"] .nexa-dash-stat b,
+html[data-tema="oceano"][data-tom="claro"] .nexa-course-body > div:nth-child(2) { color: #0b2545; }
+html[data-tema="oceano"][data-tom="claro"] .nexa-hero-oceano small,
+html[data-tema="oceano"][data-tom="claro"] .nexa-assinatura,
+html[data-tema="oceano"][data-tom="claro"] .nexa-assinatura em { color: #1d6fe0; }
+html[data-tema="oceano"][data-tom="claro"] .nexa-hero-oceano p,
+html[data-tema="oceano"][data-tom="claro"] .nexa-dash-saudacao p,
+html[data-tema="oceano"][data-tom="claro"] .nexa-dash-continuar small,
+html[data-tema="oceano"][data-tom="claro"] .nexa-dash-continuar p,
+html[data-tema="oceano"][data-tom="claro"] .nexa-dash-progresso span,
+html[data-tema="oceano"][data-tom="claro"] .nexa-dash-stat span,
+html[data-tema="oceano"][data-tom="claro"] .nexa-label { color: #4a6584; }
+html[data-tema="oceano"][data-tom="claro"] .nexa-see-all { color: #1d6fe0; }
+html[data-tema="oceano"][data-tom="claro"] .nexa-see-all:hover { color: #0b4aa0; }
+
+/* Menu lateral: vidro branco, cardume desenhado em azul, X azul */
+html[data-tema="oceano"][data-tom="claro"] .nexa-sidebar {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(240, 246, 253, 0.92));
+  box-shadow: inset -1px 0 0 var(--oc-hairline), 18px 0 50px -34px rgba(11, 37, 69, 0.35);
+}
+html[data-tema="oceano"][data-tom="claro"] .nexa-sidebar::after { background-image: url(/tema/cardume-linhas-azul.png); opacity: 0.16; }
+html[data-tema="oceano"][data-tom="claro"] .nexa-sidebar .nexa-logo-mark::before {
+  background: url(/tema/x-azul.png) center / contain no-repeat;
+}
+html[data-tema="oceano"][data-tom="claro"] .nexa-logo-text { color: #0b2545; }
+html[data-tema="oceano"][data-tom="claro"] .nexa-logo-sub,
+html[data-tema="oceano"][data-tom="claro"] .nexa-navlabel { color: #7b93ad; }
+html[data-tema="oceano"][data-tom="claro"] .nexa-navitem { color: #3d5876; }
+html[data-tema="oceano"][data-tom="claro"] .nexa-navitem:hover { background: rgba(29, 111, 224, 0.07); color: #0b2545; }
+html[data-tema="oceano"][data-tom="claro"] .nexa-navitem.active,
+html[data-tema="oceano"][data-tom="claro"] .nexa-navitem.adminactive {
+  color: #0b4aa0; background: linear-gradient(90deg, rgba(29, 111, 224, 0.14), rgba(29, 111, 224, 0.03));
+  box-shadow: inset 0 0 0 1px rgba(29, 111, 224, 0.2), 0 10px 26px -14px rgba(29, 111, 224, 0.45);
+}
+html[data-tema="oceano"][data-tom="claro"] .nexa-navitem.active::before,
+html[data-tema="oceano"][data-tom="claro"] .nexa-navitem.adminactive::before { background: linear-gradient(180deg, #3b9bff, #0b4aa0); box-shadow: 0 0 10px rgba(29, 111, 224, 0.5); }
+html[data-tema="oceano"][data-tom="claro"] .nexa-navitem.active svg,
+html[data-tema="oceano"][data-tom="claro"] .nexa-navitem.adminactive svg { color: #1d6fe0; filter: none; }
+html[data-tema="oceano"][data-tom="claro"] .nexa-lado-frase { color: #0b2545; }
+html[data-tema="oceano"][data-tom="claro"] .nexa-lado-frase em { color: #1d6fe0; }
+html[data-tema="oceano"][data-tom="claro"] .nexa-sidebar-footer { border-color: var(--oc-hairline); }
+html[data-tema="oceano"][data-tom="claro"] .nexa-mode-switch { color: #0b2545 !important; background: rgba(255, 255, 255, 0.8) !important; border-color: var(--oc-hairline-hi) !important; }
+html[data-tema="oceano"][data-tom="claro"] .nexa-avatar { box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px rgba(29, 111, 224, 0.45), 0 8px 22px -8px rgba(29, 111, 224, 0.6); }
+
+/* Topo, busca, menus flutuantes, sino */
+html[data-tema="oceano"][data-tom="claro"] .nexa-busca-grande { color: #4a6584; }
+html[data-tema="oceano"][data-tom="claro"] .nexa-busca-grande input { color: #0b2545; }
+html[data-tema="oceano"][data-tom="claro"] .nexa-busca-grande input::placeholder { color: #7b93ad; }
+html[data-tema="oceano"][data-tom="claro"] .nexa-busca-grande:focus-within { border-color: #1d6fe0; box-shadow: var(--oc-highlight), 0 0 0 4px rgba(29, 111, 224, 0.12), 0 16px 40px -14px rgba(29, 111, 224, 0.35); }
+html[data-tema="oceano"][data-tom="claro"] .nexa-tema-toggle,
+html[data-tema="oceano"][data-tom="claro"] .nexa-btn-ghost { color: #0b4aa0; background: rgba(255, 255, 255, 0.75); }
+html[data-tema="oceano"][data-tom="claro"] .nexa-tema-toggle:hover,
+html[data-tema="oceano"][data-tom="claro"] .nexa-btn-ghost:hover { background: #fff; color: #0b2545; border-color: rgba(29, 111, 224, 0.45); }
+html[data-tema="oceano"][data-tom="claro"] .nexa-profile-menu,
+html[data-tema="oceano"][data-tom="claro"] .nexa-bell-panel {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(244, 248, 254, 0.98));
+  box-shadow: var(--oc-highlight), 0 30px 70px -24px rgba(11, 37, 69, 0.35);
+}
+html[data-tema="oceano"][data-tom="claro"] .nexa-profile-menu button { color: #0b2545; }
+html[data-tema="oceano"][data-tom="claro"] .nexa-profile-menu button:hover { background: rgba(29, 111, 224, 0.07); }
+html[data-tema="oceano"][data-tom="claro"] .nexa-profile-menu button:last-child { color: #d33a4a; }
+html[data-tema="oceano"][data-tom="claro"] .nexa-bell-button { color: #0b4aa0; }
+html[data-tema="oceano"][data-tom="claro"] .nexa-bell-button:hover,
+html[data-tema="oceano"][data-tom="claro"] .nexa-bell-button[aria-expanded="true"] { background: rgba(29, 111, 224, 0.08); }
+html[data-tema="oceano"][data-tom="claro"] .nexa-bell-head { border-bottom-color: var(--oc-hairline); color: #0b2545; }
+html[data-tema="oceano"][data-tom="claro"] .nexa-bell-head button { color: #4a6584; }
+html[data-tema="oceano"][data-tom="claro"] .nexa-bell-head button:hover { background: rgba(29, 111, 224, 0.07); color: #0b2545; }
+html[data-tema="oceano"][data-tom="claro"] .nexa-bell-item { border-bottom-color: var(--oc-hairline); }
+html[data-tema="oceano"][data-tom="claro"] .nexa-bell-item.link:hover { background: rgba(29, 111, 224, 0.05); }
+html[data-tema="oceano"][data-tom="claro"] .nexa-bell-dot { background: #1d6fe0; }
+html[data-tema="oceano"][data-tom="claro"] .nexa-bell-title { color: #0b2545; }
+html[data-tema="oceano"][data-tom="claro"] .nexa-bell-msg { color: #4a6584; }
+html[data-tema="oceano"][data-tom="claro"] .nexa-bell-time,
+html[data-tema="oceano"][data-tom="claro"] .nexa-bell-empty { color: #7b93ad; }
+html[data-tema="oceano"][data-tom="claro"] .nexa-notification-icon { background: rgba(29, 111, 224, 0.08); }
+
+/* Cartões: vidro branco com o cardume claro desfocado por trás */
+html[data-tema="oceano"][data-tom="claro"] .nexa-card::before {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.4), rgba(236, 244, 255, 0.6)), url(/tema/cardume-claro.jpg) center / cover;
+  opacity: 0.35;
+}
+html[data-tema="oceano"][data-tom="claro"] .nexa-card:hover::before { opacity: 0.5; }
+html[data-tema="oceano"][data-tom="claro"] .nexa-card::after {
+  background: linear-gradient(125deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.2) 28%, transparent 46%);
+}
+html[data-tema="oceano"][data-tom="claro"] .nexa-root .nexa-card.nexa-scroll { background: #fff; }
+html[data-tema="oceano"][data-tom="claro"] .nexa-card.hoverable { background: var(--oc-glass); border-color: var(--oc-hairline); }
+html[data-tema="oceano"][data-tom="claro"] .nexa-card.hoverable:hover {
+  border-color: rgba(29, 111, 224, 0.4);
+  box-shadow: var(--oc-highlight), var(--oc-shadow-lg), 0 20px 50px -24px rgba(29, 111, 224, 0.45);
+}
+html[data-tema="oceano"][data-tom="claro"] .nexa-dash-continuar {
+  background: radial-gradient(420px 180px at 100% 0%, rgba(59, 155, 255, 0.16), transparent 70%), var(--oc-glass-strong);
+  border-color: rgba(29, 111, 224, 0.22);
+}
+html[data-tema="oceano"][data-tom="claro"] .nexa-dash-stat { background: var(--oc-glass); border-color: var(--oc-hairline); }
+html[data-tema="oceano"][data-tom="claro"] .nexa-dash-stat-icone,
+html[data-tema="oceano"][data-tom="claro"] .nexa-dashboard-stats .nexa-stat-icon {
+  color: #1d6fe0 !important; background: linear-gradient(180deg, rgba(59, 155, 255, 0.16), rgba(29, 111, 224, 0.06)) !important;
+  border-color: rgba(29, 111, 224, 0.22); box-shadow: inset 0 1px 0 #fff, 0 6px 18px -8px rgba(29, 111, 224, 0.45);
+}
+html[data-tema="oceano"][data-tom="claro"] .nexa-badge { color: #0b4aa0 !important; background: rgba(29, 111, 224, 0.08) !important; border-color: rgba(29, 111, 224, 0.25); }
+html[data-tema="oceano"][data-tom="claro"] .nexa-badge-status { color: #0b3a63 !important; background: rgba(255, 255, 255, 0.96) !important; box-shadow: 0 4px 14px rgba(11, 37, 69, 0.18); }
+html[data-tema="oceano"][data-tom="claro"] .nexa-card-seta { color: #1d6fe0; background: rgba(255, 255, 255, 0.85); border-color: rgba(29, 111, 224, 0.5); }
+html[data-tema="oceano"][data-tom="claro"] .nexa-card.hoverable:hover .nexa-card-seta { color: #fff; }
+html[data-tema="oceano"][data-tom="claro"] .nexa-fav-button { color: #1d6fe0; background: rgba(255, 255, 255, 0.85); border-color: rgba(29, 111, 224, 0.3); }
+html[data-tema="oceano"][data-tom="claro"] .nexa-fav-button:hover,
+html[data-tema="oceano"][data-tom="claro"] .nexa-fav-button.active { color: #0b4aa0; }
+html[data-tema="oceano"][data-tom="claro"] .nexa-course-cover:not(:has(.nexa-course-cover-image)) {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0), rgba(11, 37, 69, 0.18)), url(/tema/cardume-claro.jpg) center / cover !important;
+}
+html[data-tema="oceano"][data-tom="claro"] .nexa-trilha-cover { background: #e8f0fa; }
+html[data-tema="oceano"][data-tom="claro"] .nexa-dashboard-course-link { color: #0b4aa0; border-color: rgba(29, 111, 224, 0.3); }
+html[data-tema="oceano"][data-tom="claro"] .nexa-side-item:hover { background: rgba(29, 111, 224, 0.06); }
+html[data-tema="oceano"][data-tom="claro"] .nexa-table td { border-bottom-color: var(--oc-hairline); }
+
+/* Chips de categoria */
+html[data-tema="oceano"][data-tom="claro"] .nexa-pill { color: #3d5876; }
+html[data-tema="oceano"][data-tom="claro"] .nexa-pill:hover { color: #0b2545; background: #fff; }
+html[data-tema="oceano"][data-tom="claro"] .nexa-pill.active { color: #fff; border-color: transparent; }
+
+/* Progresso */
+html[data-tema="oceano"][data-tom="claro"] .nexa-progress-track { background: rgba(29, 111, 224, 0.1); box-shadow: inset 0 1px 2px rgba(11, 37, 69, 0.08); }
+html[data-tema="oceano"][data-tom="claro"] .nexa-progress-fill { background: linear-gradient(90deg, #0b4aa0, #1d6fe0 60%, #3b9bff); box-shadow: 0 0 10px rgba(29, 111, 224, 0.35); }
+
+/* Botões: azul Hering com sombra mais leve */
+html[data-tema="oceano"][data-tom="claro"] .nexa-btn-primary,
+html[data-tema="oceano"][data-tom="claro"] .course-detail-primary, html[data-tema="oceano"][data-tom="claro"] .course-detail-nav-button.next,
+html[data-tema="oceano"][data-tom="claro"] .lesson-nav-button.next, html[data-tema="oceano"][data-tom="claro"] .lesson-open-link,
+html[data-tema="oceano"][data-tom="claro"] .lesson-comment-send, html[data-tema="oceano"][data-tom="claro"] .quiz-submit,
+html[data-tema="oceano"][data-tom="claro"] .course-conclusion-send, html[data-tema="oceano"][data-tom="claro"] .login-submit {
+  color: #fff; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 10px 24px -10px rgba(29, 111, 224, 0.65);
+}
+
+/* Formulários */
+html[data-tema="oceano"][data-tom="claro"] .nexa-input,
+html[data-tema="oceano"][data-tom="claro"] input:not([type="checkbox"]):not([type="radio"]):not([type="color"]),
+html[data-tema="oceano"][data-tom="claro"] textarea,
+html[data-tema="oceano"][data-tom="claro"] select { background: #fff; color: #0b2545; border-color: rgba(29, 111, 224, 0.22); }
+html[data-tema="oceano"][data-tom="claro"] .nexa-busca-grande input { background: transparent !important; }
+html[data-tema="oceano"][data-tom="claro"] .nexa-input:focus { border-color: #1d6fe0; box-shadow: 0 0 0 3px rgba(29, 111, 224, 0.14); }
+html[data-tema="oceano"][data-tom="claro"] option { background: #fff; color: #0b2545; }
+html[data-tema="oceano"][data-tom="claro"] .nexa-certificate-overlay { background: rgba(11, 37, 69, 0.4) !important; }
+html[data-tema="oceano"][data-tom="claro"] .nexa-scroll { scrollbar-color: rgba(29, 111, 224, 0.25) transparent; }
+
+/* Detalhe do curso */
+html[data-tema="oceano"][data-tom="claro"] .course-detail, html[data-tema="oceano"][data-tom="claro"] .lesson-detail { color: #0b2545; }
+html[data-tema="oceano"][data-tom="claro"] .course-detail-title,
+html[data-tema="oceano"][data-tom="claro"] .lesson-detail-title { color: #0b2545; text-shadow: none; }
+html[data-tema="oceano"][data-tom="claro"] .course-detail-description,
+html[data-tema="oceano"][data-tom="claro"] .lesson-detail-description { color: #4a6584; text-shadow: none; }
+html[data-tema="oceano"][data-tom="claro"] .course-detail-eyebrow,
+html[data-tema="oceano"][data-tom="claro"] .lesson-detail-eyebrow,
+html[data-tema="oceano"][data-tom="claro"] .course-exam-eyebrow { color: #1d6fe0; }
+html[data-tema="oceano"][data-tom="claro"] .course-detail-breadcrumb, html[data-tema="oceano"][data-tom="claro"] .lesson-detail-breadcrumb,
+html[data-tema="oceano"][data-tom="claro"] .course-detail-breadcrumb button, html[data-tema="oceano"][data-tom="claro"] .lesson-detail-breadcrumb button { color: #4a6584; background-color: rgba(255, 255, 255, 0.7); }
+html[data-tema="oceano"][data-tom="claro"] .course-detail-breadcrumb button:hover, html[data-tema="oceano"][data-tom="claro"] .lesson-detail-breadcrumb button:hover { color: #0b2545; background: #fff; }
+html[data-tema="oceano"][data-tom="claro"] .course-detail-breadcrumb > span, html[data-tema="oceano"][data-tom="claro"] .lesson-detail-breadcrumb > span { color: #7b93ad; }
+html[data-tema="oceano"][data-tom="claro"] .course-detail-chip { color: #0b2545; }
+html[data-tema="oceano"][data-tom="claro"] .course-detail-chip svg,
+html[data-tema="oceano"][data-tom="claro"] .course-detail-module-title svg,
+html[data-tema="oceano"][data-tom="claro"] .lesson-detail-side-title svg { color: #1d6fe0; }
+html[data-tema="oceano"][data-tom="claro"] .course-detail-actions { border-color: rgba(29, 111, 224, 0.22); }
+html[data-tema="oceano"][data-tom="claro"] .course-detail-actions::before { background: linear-gradient(125deg, rgba(255, 255, 255, 0.6), transparent 45%), radial-gradient(260px 140px at 100% 0%, rgba(59, 155, 255, 0.16), transparent 70%); }
+html[data-tema="oceano"][data-tom="claro"] .course-detail-ring-wrap small { color: #4a6584; }
+html[data-tema="oceano"][data-tom="claro"] .course-detail-ring-wrap b,
+html[data-tema="oceano"][data-tom="claro"] .course-detail-ring span { color: #0b2545; }
+html[data-tema="oceano"][data-tom="claro"] .course-detail-ring { background: conic-gradient(from -90deg, #3b9bff, #0b4aa0 calc(var(--oc-p) * 1%), rgba(29, 111, 224, 0.12) 0); filter: drop-shadow(0 0 8px rgba(29, 111, 224, 0.25)); }
+html[data-tema="oceano"][data-tom="claro"] .course-detail-ring::before { background: #fff; box-shadow: none; }
+html[data-tema="oceano"][data-tom="claro"] .course-detail-secondary,
+html[data-tema="oceano"][data-tom="claro"] .course-detail-nav-button,
+html[data-tema="oceano"][data-tom="claro"] .lesson-nav-button,
+html[data-tema="oceano"][data-tom="claro"] .course-detail-status { color: #0b4aa0; background: rgba(255, 255, 255, 0.8); border-color: var(--oc-hairline-hi); }
+html[data-tema="oceano"][data-tom="claro"] .course-detail-secondary:hover,
+html[data-tema="oceano"][data-tom="claro"] .lesson-nav-button:not(:disabled):not(.next):hover { background: #fff; }
+html[data-tema="oceano"][data-tom="claro"] .course-detail-nav-button.next,
+html[data-tema="oceano"][data-tom="claro"] .lesson-nav-button.next { color: #fff; }
+html[data-tema="oceano"][data-tom="claro"] .course-detail-secondary.is-complete { color: #8a6100; background: rgba(242, 199, 68, 0.16); border-color: rgba(214, 160, 20, 0.45); }
+html[data-tema="oceano"][data-tom="claro"] .course-detail-panel::before { background: linear-gradient(125deg, rgba(255, 255, 255, 0.5), transparent 40%); }
+html[data-tema="oceano"][data-tom="claro"] .course-detail-tab { color: #7b93ad; }
+html[data-tema="oceano"][data-tom="claro"] .course-detail-tab:hover { color: #0b2545; background: rgba(29, 111, 224, 0.06); }
+html[data-tema="oceano"][data-tom="claro"] .course-detail-tab.active { color: #0b4aa0; background: rgba(29, 111, 224, 0.1); box-shadow: inset 0 0 0 1px rgba(29, 111, 224, 0.22); }
+html[data-tema="oceano"][data-tom="claro"] .course-detail-modules { background: rgba(233, 241, 251, 0.6); }
+html[data-tema="oceano"][data-tom="claro"] .course-detail-module { color: #3d5876; }
+html[data-tema="oceano"][data-tom="claro"] .course-detail-module::before { background: rgba(29, 111, 224, 0.18); }
+html[data-tema="oceano"][data-tom="claro"] .course-detail-module:hover:not(:disabled) { background: rgba(29, 111, 224, 0.06); color: #0b2545; }
+html[data-tema="oceano"][data-tom="claro"] .course-detail-module.active { color: #0b4aa0; background: linear-gradient(90deg, rgba(29, 111, 224, 0.14), rgba(29, 111, 224, 0.02)); box-shadow: inset 0 0 0 1px rgba(29, 111, 224, 0.2); }
+html[data-tema="oceano"][data-tom="claro"] .course-detail-module:disabled { color: #9fb2c7; }
+html[data-tema="oceano"][data-tom="claro"] .course-detail-module-state { color: #3d5876; background: #fff; border-color: rgba(29, 111, 224, 0.3); }
+html[data-tema="oceano"][data-tom="claro"] .course-detail-module-state.current { color: #fff; }
+html[data-tema="oceano"][data-tom="claro"] .course-detail-module-state.completed { color: #fff; }
+html[data-tema="oceano"][data-tom="claro"] .course-detail-module-title,
+html[data-tema="oceano"][data-tom="claro"] .course-detail-about h3,
+html[data-tema="oceano"][data-tom="claro"] .lesson-detail-side-title { color: #0b2545; }
+html[data-tema="oceano"][data-tom="claro"] .course-detail-module-description,
+html[data-tema="oceano"][data-tom="claro"] .course-detail-lesson-duration,
+html[data-tema="oceano"][data-tom="claro"] .lesson-material-size,
+html[data-tema="oceano"][data-tom="claro"] .lesson-no-material { color: #7b93ad; }
+html[data-tema="oceano"][data-tom="claro"] .course-detail-lesson { color: #0b2545; }
+html[data-tema="oceano"][data-tom="claro"] .course-detail-lesson:hover { border-color: rgba(29, 111, 224, 0.35); box-shadow: var(--oc-highlight), 0 14px 30px -16px rgba(29, 111, 224, 0.4); }
+html[data-tema="oceano"][data-tom="claro"] .course-detail-lesson > svg:first-child,
+html[data-tema="oceano"][data-tom="claro"] .lesson-material-row > svg:first-child { color: #1d6fe0; background: linear-gradient(180deg, rgba(59, 155, 255, 0.16), rgba(29, 111, 224, 0.06)); box-shadow: inset 0 0 0 1px rgba(29, 111, 224, 0.2); }
+html[data-tema="oceano"][data-tom="claro"] .course-detail-lesson > svg:last-child { color: #1d6fe0; border-color: rgba(29, 111, 224, 0.45); }
+html[data-tema="oceano"][data-tom="claro"] .course-detail-lesson:hover > svg:last-child { color: #fff; }
+html[data-tema="oceano"][data-tom="claro"] .course-detail-empty,
+html[data-tema="oceano"][data-tom="claro"] .course-conclusion-locked { color: #4a6584; background: rgba(255, 255, 255, 0.7); border-color: var(--oc-hairline-hi); }
+html[data-tema="oceano"][data-tom="claro"] .course-detail-about { color: #3d5876; }
+
+/* Prova final */
+html[data-tema="oceano"][data-tom="claro"] .course-exam { color: #0b2545; }
+html[data-tema="oceano"][data-tom="claro"] .course-exam::before { background: radial-gradient(70% 50% at 100% 0%, rgba(59, 155, 255, 0.12), transparent 70%), linear-gradient(125deg, rgba(255, 255, 255, 0.5), transparent 40%); }
+html[data-tema="oceano"][data-tom="claro"] .course-exam-back { color: #0b4aa0; background: rgba(255, 255, 255, 0.8); }
+html[data-tema="oceano"][data-tom="claro"] .course-exam-back:hover { color: #0b2545; background: #fff; }
+html[data-tema="oceano"][data-tom="claro"] .course-exam-title,
+html[data-tema="oceano"][data-tom="claro"] .course-exam-body .quiz-question-title { color: #0b2545; }
+html[data-tema="oceano"][data-tom="claro"] .course-exam-info,
+html[data-tema="oceano"][data-tom="claro"] .course-exam-body .quiz-actions small { color: #4a6584; }
+html[data-tema="oceano"][data-tom="claro"] .course-exam-body .quiz-option { color: #0b2545; background: rgba(255, 255, 255, 0.75); }
+html[data-tema="oceano"][data-tom="claro"] .course-exam-body .quiz-option:hover { background: #fff; }
+html[data-tema="oceano"][data-tom="claro"] .course-exam-body .quiz-option.selected { color: #0b2545; border-color: #1d6fe0; background: linear-gradient(90deg, rgba(29, 111, 224, 0.12), rgba(29, 111, 224, 0.03)); box-shadow: 0 10px 26px -16px rgba(29, 111, 224, 0.6); }
+html[data-tema="oceano"][data-tom="claro"] .course-exam-body .quiz-option input { accent-color: #1d6fe0; }
+html[data-tema="oceano"][data-tom="claro"] .course-exam-body .quiz-actions { background: linear-gradient(180deg, rgba(255, 255, 255, 0.75), rgba(246, 250, 255, 0.97)); }
+
+/* Aula */
+html[data-tema="oceano"][data-tom="claro"] .lesson-detail-main::before { background: linear-gradient(125deg, rgba(255, 255, 255, 0.5), transparent 40%); }
+html[data-tema="oceano"][data-tom="claro"] .lesson-player-shell { box-shadow: 0 0 0 1px rgba(29, 111, 224, 0.18), 0 24px 50px -24px rgba(11, 37, 69, 0.5); }
+html[data-tema="oceano"][data-tom="claro"] .lesson-done-hint,
+html[data-tema="oceano"][data-tom="claro"] .lesson-doc-bar,
+html[data-tema="oceano"][data-tom="claro"] .lesson-reading-bar { color: #4a6584; border-color: var(--oc-hairline); }
+html[data-tema="oceano"][data-tom="claro"] .lesson-watch-track { background: rgba(29, 111, 224, 0.1); box-shadow: none; }
+html[data-tema="oceano"][data-tom="claro"] .lesson-watch-track span { background: linear-gradient(90deg, #0b4aa0, #1d6fe0 60%, #3b9bff); box-shadow: none; }
+html[data-tema="oceano"][data-tom="claro"] .lesson-reading-chip,
+html[data-tema="oceano"][data-tom="claro"] .lesson-side-count { color: #0b4aa0; background: rgba(29, 111, 224, 0.1); box-shadow: inset 0 0 0 1px rgba(29, 111, 224, 0.22); }
+html[data-tema="oceano"][data-tom="claro"] .lesson-reading-end { color: #3d5876; background: rgba(255, 255, 255, 0.7); border-color: var(--oc-hairline); }
+html[data-tema="oceano"][data-tom="claro"] .lesson-doc-frame { background: #fff; border-color: var(--oc-hairline); box-shadow: 0 24px 50px -28px rgba(11, 37, 69, 0.45); }
+html[data-tema="oceano"][data-tom="claro"] .lesson-complete-button { color: #4a6584; background: rgba(255, 255, 255, 0.8); border-color: var(--oc-hairline-hi); }
+html[data-tema="oceano"][data-tom="claro"] .lesson-complete-button.ready { color: #fff; }
+html[data-tema="oceano"][data-tom="claro"] .lesson-complete-button.done { color: #1f8a5b; background: rgba(62, 207, 142, 0.12); border-color: rgba(31, 138, 91, 0.35); }
+html[data-tema="oceano"][data-tom="claro"] .lesson-skip-warning,
+html[data-tema="oceano"][data-tom="claro"] .course-conclusion-pending { color: #7a5600; background: rgba(242, 199, 68, 0.14); border-color: rgba(214, 160, 20, 0.4); }
+html[data-tema="oceano"][data-tom="claro"] .lesson-detail-side-card::before { background: linear-gradient(125deg, rgba(255, 255, 255, 0.55), transparent 45%); }
+html[data-tema="oceano"][data-tom="claro"] .lesson-content-row,
+html[data-tema="oceano"][data-tom="claro"] .lesson-material-row { color: #3d5876; background: rgba(29, 111, 224, 0.03); }
+html[data-tema="oceano"][data-tom="claro"] .lesson-content-row:hover,
+html[data-tema="oceano"][data-tom="claro"] .lesson-material-row:hover { color: #0b2545; background: rgba(29, 111, 224, 0.07); }
+html[data-tema="oceano"][data-tom="claro"] .lesson-content-row > span:first-child { color: #4a6584; background: #fff; box-shadow: inset 0 0 0 1px rgba(29, 111, 224, 0.25); }
+html[data-tema="oceano"][data-tom="claro"] .lesson-content-row > span:nth-child(4) { border-color: rgba(29, 111, 224, 0.35) !important; }
+html[data-tema="oceano"][data-tom="claro"] .lesson-content-row .lesson-content-duration { color: #7b93ad; }
+html[data-tema="oceano"][data-tom="claro"] .lesson-content-row.active { color: #0b4aa0; border-color: rgba(29, 111, 224, 0.25); background: linear-gradient(90deg, rgba(29, 111, 224, 0.13), rgba(29, 111, 224, 0.02)); box-shadow: 0 10px 26px -18px rgba(29, 111, 224, 0.6); }
+html[data-tema="oceano"][data-tom="claro"] .lesson-content-row.active > span:first-child { color: #fff; }
+html[data-tema="oceano"][data-tom="claro"] .lesson-content-row.active > svg:last-child,
+html[data-tema="oceano"][data-tom="claro"] .lesson-material-row a:hover { color: #1d6fe0; }
+html[data-tema="oceano"][data-tom="claro"] .lesson-no-material { background: rgba(255, 255, 255, 0.6); }
+
+/* Comentários, quiz, conclusão, texto da aula */
+html[data-tema="oceano"][data-tom="claro"] .lesson-comments-title, html[data-tema="oceano"][data-tom="claro"] .lesson-comment-author,
+html[data-tema="oceano"][data-tom="claro"] .quiz-player-title, html[data-tema="oceano"][data-tom="claro"] .quiz-question-title,
+html[data-tema="oceano"][data-tom="claro"] .course-conclusion-card h3, html[data-tema="oceano"][data-tom="claro"] .course-conclusion-person-name { color: #0b2545; }
+html[data-tema="oceano"][data-tom="claro"] .lesson-comment-text { color: #3d5876; }
+html[data-tema="oceano"][data-tom="claro"] .lesson-comments-count, html[data-tema="oceano"][data-tom="claro"] .lesson-comment-time,
+html[data-tema="oceano"][data-tom="claro"] .lesson-comment-form-footer small, html[data-tema="oceano"][data-tom="claro"] .lesson-comments-empty,
+html[data-tema="oceano"][data-tom="claro"] .quiz-player-meta, html[data-tema="oceano"][data-tom="claro"] .quiz-actions small,
+html[data-tema="oceano"][data-tom="claro"] .course-conclusion-card small, html[data-tema="oceano"][data-tom="claro"] .course-conclusion-when,
+html[data-tema="oceano"][data-tom="claro"] .course-conclusion-empty { color: #7b93ad; }
+html[data-tema="oceano"][data-tom="claro"] .lesson-comment-item, html[data-tema="oceano"][data-tom="claro"] .lesson-comments-empty,
+html[data-tema="oceano"][data-tom="claro"] .quiz-question, html[data-tema="oceano"][data-tom="claro"] .course-conclusion-person,
+html[data-tema="oceano"][data-tom="claro"] .quiz-actions { border-top-color: var(--oc-hairline); }
+html[data-tema="oceano"][data-tom="claro"] .lesson-comment-you { color: #0b4aa0; background: rgba(29, 111, 224, 0.1); }
+html[data-tema="oceano"][data-tom="claro"] .quiz-option { color: #0b2545; background: rgba(255, 255, 255, 0.75); border-color: var(--oc-hairline-hi); }
+html[data-tema="oceano"][data-tom="claro"] .quiz-option:hover,
+html[data-tema="oceano"][data-tom="claro"] .quiz-option.selected { border-color: #1d6fe0; }
+html[data-tema="oceano"][data-tom="claro"] .quiz-option.selected { background: rgba(29, 111, 224, 0.08); }
+html[data-tema="oceano"][data-tom="claro"] .quiz-retry { color: #0b4aa0; border-color: var(--oc-hairline-hi); }
+html[data-tema="oceano"][data-tom="claro"] .quiz-result.ok { color: #1f7a50; background: rgba(62, 207, 142, 0.12); border-color: rgba(31, 138, 91, 0.3); }
+html[data-tema="oceano"][data-tom="claro"] .quiz-result.fail { color: #b3263a; background: rgba(255, 107, 122, 0.1); border-color: rgba(211, 58, 74, 0.3); }
+html[data-tema="oceano"][data-tom="claro"] .course-conclusion-card textarea,
+html[data-tema="oceano"][data-tom="claro"] .lesson-comment-form textarea { color: #0b2545; background: #fff; border-color: var(--oc-hairline-hi); }
+html[data-tema="oceano"][data-tom="claro"] .lesson-comment-form textarea:focus { border-color: #1d6fe0; box-shadow: 0 0 0 4px rgba(29, 111, 224, 0.12); }
+html[data-tema="oceano"][data-tom="claro"] .course-conclusion-btn.light { color: #0b2545; }
+html[data-tema="oceano"][data-tom="claro"] .text-lesson { color: #2c4664; }
+html[data-tema="oceano"][data-tom="claro"] .text-lesson h1, html[data-tema="oceano"][data-tom="claro"] .text-lesson h2, html[data-tema="oceano"][data-tom="claro"] .text-lesson h3 { color: #0b2545; }
+html[data-tema="oceano"][data-tom="claro"] .text-lesson blockquote { color: #3d5876; background: rgba(29, 111, 224, 0.05); border-left-color: #1d6fe0; }
+html[data-tema="oceano"][data-tom="claro"] .text-lesson code { color: #0b2545; background: rgba(29, 111, 224, 0.07); border-color: var(--oc-hairline); }
+html[data-tema="oceano"][data-tom="claro"] .text-lesson hr { border-top-color: var(--oc-hairline-hi); }
+html[data-tema="oceano"][data-tom="claro"] .text-lesson a { color: #1d6fe0; }
+
+/* Editor de quiz/prova no admin */
+html[data-tema="oceano"][data-tom="claro"] .admin-quiz-pergunta { background: rgba(255, 255, 255, 0.7); }
+html[data-tema="oceano"][data-tom="claro"] .admin-quiz-pergunta-head { color: #0b2545; }
+html[data-tema="oceano"][data-tom="claro"] .admin-quiz-alt label { color: #4a6584; }
+html[data-tema="oceano"][data-tom="claro"] .admin-quiz-icon { color: #0b4aa0; }
+html[data-tema="oceano"][data-tom="claro"] .admin-quiz-search { color: #4a6584; background: #fff; }
+html[data-tema="oceano"][data-tom="claro"] .admin-quiz-search input { color: #0b2545; }
+html[data-tema="oceano"][data-tom="claro"] .admin-quiz-status { color: #1f7a50; }
+html[data-tema="oceano"][data-tom="claro"] .admin-quiz-status.draft { color: #4a6584; background: rgba(29, 111, 224, 0.05); }
+
+/* Login: lado da foto com o cardume claro, X azul */
+html[data-tema="oceano"][data-tom="claro"] .login-root { background: #f3f7fc url(/tema/padrao-peixes-claro.jpg) center / cover; color: #0b2545; }
+html[data-tema="oceano"][data-tom="claro"] .login-left { background: linear-gradient(120deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.35)), url(/tema/cardume-claro.jpg) center / cover; }
+html[data-tema="oceano"][data-tom="claro"] .login-brand::before {
+  background: url(/tema/x-azul.png) center / contain no-repeat;
+}
+html[data-tema="oceano"][data-tom="claro"] .login-card { background: var(--oc-glass-strong); }
+html[data-tema="oceano"][data-tom="claro"] .login-intro > p, html[data-tema="oceano"][data-tom="claro"] .login-sub,
+html[data-tema="oceano"][data-tom="claro"] .login-support { color: #4a6584; }
+html[data-tema="oceano"][data-tom="claro"] .login-input-wrap { background: #fff; border-color: var(--oc-hairline-hi); }
+html[data-tema="oceano"][data-tom="claro"] .login-input { color: #0b2545; background: transparent !important; }
+html[data-tema="oceano"][data-tom="claro"] .login-input-wrap svg.leading, html[data-tema="oceano"][data-tom="claro"] .login-eye { color: #4a6584; }
+html[data-tema="oceano"][data-tom="claro"] .login-link { color: #1d6fe0; }
+
+/* Notificações (toasts) */
+html[data-tema="oceano"][data-tom="claro"] [data-sonner-toast].nexa-toast {
+  color: #0b2545; background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(240, 246, 254, 0.98));
+  border-color: rgba(29, 111, 224, 0.22); box-shadow: inset 0 1px 0 #fff, 0 20px 50px -20px rgba(11, 37, 69, 0.35);
+}
+html[data-tema="oceano"][data-tom="claro"] [data-sonner-toast].nexa-toast [data-title] { color: #0b2545; }
+html[data-tema="oceano"][data-tom="claro"] [data-sonner-toast].nexa-toast [data-description] { color: #4a6584; }
+html[data-tema="oceano"][data-tom="claro"] [data-sonner-toast].nexa-toast [data-icon] { color: #1d6fe0; background: rgba(29, 111, 224, 0.1); box-shadow: inset 0 0 0 1px rgba(29, 111, 224, 0.22); }
+html[data-tema="oceano"][data-tom="claro"] [data-sonner-toast].nexa-toast[data-type="success"] [data-icon] { color: #1f8a5b; }
+html[data-tema="oceano"][data-tom="claro"] [data-sonner-toast].nexa-toast[data-type="error"] [data-icon] { color: #d33a4a; }
+html[data-tema="oceano"][data-tom="claro"] .nexa-toast-peixe circle { fill: #fff; }
+html[data-tema="oceano"][data-tom="claro"] [data-sonner-toast].nexa-toast [data-close-button] { color: #0b4aa0; background: #fff; border-color: var(--oc-hairline-hi); }
+html[data-tema="oceano"][data-tom="claro"] [data-sonner-toast].nexa-toast [data-close-button]:hover { background: #eef4fc; }
+
+html[data-tema="oceano"][data-tom="claro"] .fish-loader { color: #1d6fe0; }
+
+/* Celular: barra de abas embaixo em vidro branco */
+@media (max-width: 760px) {
+  html[data-tema="oceano"][data-tom="claro"] .nexa-sidebar {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(243, 247, 252, 0.97));
+    box-shadow: inset 0 1px 0 var(--oc-hairline), 0 -14px 40px -24px rgba(11, 37, 69, 0.4);
+  }
+  html[data-tema="oceano"][data-tom="claro"] .nexa-main::before { opacity: 0.55; }
+}

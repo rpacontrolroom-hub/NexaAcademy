@@ -600,6 +600,8 @@ export default function NexaAcademy() {
   const queryClient = useQueryClient();
   const { user, loading: authLoading } = useAuth();
   const { tema, alternar: alternarTema } = useTema();
+  // Os dois tons (escuro e claro) usam o visual Oceano: frase no menu, chips com ícone, toasts com peixinho.
+  const visualOceano = tema === "oceano" || tema === "oceano-claro";
   const userId = user?.id;
   const { data: perfil, isLoading: perfilLoading } = usePerfil(userId);
   const isAdmin = perfil?.perfil === "administrador" && perfil?.status === "ativo";
@@ -1125,8 +1127,8 @@ export default function NexaAcademy() {
         position="top-right"
         richColors={tema !== "oceano"}
         closeButton
-        toastOptions={tema === "oceano" ? { className: "nexa-toast" } : undefined}
-        icons={tema === "oceano" ? { success: <PeixeIcone className="nexa-toast-peixe" />, info: <PeixeIcone className="nexa-toast-peixe" /> } : undefined}
+        toastOptions={visualOceano ? { className: "nexa-toast" } : undefined}
+        icons={visualOceano ? { success: <PeixeIcone className="nexa-toast-peixe" />, info: <PeixeIcone className="nexa-toast-peixe" /> } : undefined}
       />
 
       {/* Sidebar */}
@@ -1137,7 +1139,7 @@ export default function NexaAcademy() {
           </div>
           <div className="nexa-logo-wordmark">
             <div className="nexa-logo-text">Nexa</div>
-            <div className="nexa-logo-academy">{tema === "oceano" ? "Cardume" : "Academy"}</div>
+            <div className="nexa-logo-academy">{visualOceano ? "Cardume" : "Academy"}</div>
             {mode === "admin" && <div className="nexa-logo-sub">Painel administrativo</div>}
           </div>
         </div>
@@ -1165,7 +1167,7 @@ export default function NexaAcademy() {
                     }}
                   >
                     <Icon size={16} />
-                    {tema === "oceano" && item.key === "dashboard" ? "Início" : item.label}
+                    {visualOceano && item.key === "dashboard" ? "Início" : item.label}
                     {children && <ChevronDown size={14} className="nexa-navchevron" style={{ transform: expandido ? "rotate(180deg)" : undefined }} />}
                   </div>
                   {expandido && children.map((sub) => {
@@ -1188,7 +1190,7 @@ export default function NexaAcademy() {
 
         </div>
 
-        {tema === "oceano" && <div className="nexa-lado-frase">Aprender<br /><em>é crescer.</em><br />junto.</div>}
+        {visualOceano && <div className="nexa-lado-frase">Aprender<br /><em>é crescer.</em><br />junto.</div>}
         <div className="nexa-sidebar-footer">
           {isAdmin && <div
             className="nexa-mode-switch"
@@ -1213,9 +1215,9 @@ export default function NexaAcademy() {
             {mode === "admin" ? "Buscar usuários, treinamentos, logs..." : "Pesquisar cursos, documentações, autores..."}
           </div>
           <div className="nexa-topbar-icons">
-            <button type="button" className="nexa-tema-toggle" onClick={alternarTema} title={tema === "oceano" ? "Voltar ao tema claro" : "Ativar o tema Oceano"} aria-pressed={tema === "oceano"}>
+            <button type="button" className="nexa-tema-toggle" onClick={alternarTema} title={tema === "oceano" ? "Ativar o tema claro" : "Ativar o tema escuro"} aria-pressed={tema === "oceano-claro"}>
               {tema === "oceano" ? <Sun size={16} /> : <Moon size={16} />}
-              <span>{tema === "oceano" ? "Tema claro" : "Tema Oceano"}</span>
+              <span>{tema === "oceano" ? "Tema claro" : "Tema escuro"}</span>
             </button>
             <NotificationBell userId={userId} />
             <div className="nexa-profile-menu-wrap">
@@ -1271,7 +1273,7 @@ export default function NexaAcademy() {
           )}
 
           {/* ---------- USER: INÍCIO (tema Oceano) ---------- */}
-          {mode === "app" && active === "dashboard" && tema === "oceano" && (
+          {mode === "app" && active === "dashboard" && visualOceano && (
             <div className="nexa-dash-oceano">
               <div className="nexa-dash-top">
                 <div className="nexa-dash-saudacao">
@@ -1462,7 +1464,7 @@ export default function NexaAcademy() {
           {/* ---------- USER: TREINAMENTOS ---------- */}
           {mode === "app" && active === "treinamentos" && (
             <>
-              {tema === "oceano" ? (
+              {visualOceano ? (
                 <div className="nexa-hero-oceano">
                   <small>Treinamentos</small>
                   <h1 className="nexa-heading">Conhecimento<br />que move o <em>cardume</em>.</h1>
@@ -1482,18 +1484,18 @@ export default function NexaAcademy() {
                 {categories.map((cat) => (
                   <Fragment key={cat}>
                     <span className={`nexa-pill ${catFilter === cat ? "active" : ""}`} onClick={() => setCatFilter(cat)}>
-                      {tema === "oceano" && (() => { const I = iconeCategoria(cat); return <I size={20} />; })()}
+                      {visualOceano && (() => { const I = iconeCategoria(cat); return <I size={20} />; })()}
                       {cat}
                     </span>
                     {cat === "Todos" && (
                       <span className={`nexa-pill nexa-pill-fav ${catFilter === FILTRO_FAVORITOS ? "active" : ""}`} onClick={() => setCatFilter(FILTRO_FAVORITOS)}>
-                        {tema === "oceano" ? <Heart size={20} fill={catFilter === FILTRO_FAVORITOS ? "currentColor" : "none"} /> : <Star size={12} fill={catFilter === FILTRO_FAVORITOS ? "currentColor" : "none"} />} Favoritos{favoritos.length > 0 ? ` (${favoritos.length})` : ""}
+                        {visualOceano ? <Heart size={20} fill={catFilter === FILTRO_FAVORITOS ? "currentColor" : "none"} /> : <Star size={12} fill={catFilter === FILTRO_FAVORITOS ? "currentColor" : "none"} />} Favoritos{favoritos.length > 0 ? ` (${favoritos.length})` : ""}
                       </span>
                     )}
                   </Fragment>
                 ))}
               </div>
-              {tema === "oceano" && filtered.length > 0 && (
+              {visualOceano && filtered.length > 0 && (
                 <div className="nexa-destaque-titulo"><h2>{termoBusca ? "Resultados" : catFilter === "Todos" ? "Em destaque" : catFilter === FILTRO_FAVORITOS ? "Seus favoritos" : catFilter}</h2></div>
               )}
               {filtered.length > 0

@@ -2,6 +2,7 @@
 @source "../src";
 @import "tw-animate-css";
 @import "./styles/tema-oceano.css";
+@import "./styles/tema-oceano-claro.css";
 
 @custom-variant dark (&:is(.dark *));
 
