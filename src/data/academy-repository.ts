@@ -825,7 +825,7 @@ export async function salvarTreinamento(draft: TrainingDraft, categoriaId: strin
       await sincronizarMateriais("aula_materiais", "aula_id", aulaId!, item.materiais ?? []);
       // Item do tipo quiz: liga o quiz escolhido a esta aula e solta os que estavam nela antes.
       if (item.tipo === "quiz") {
-        check(await supabase.from("quizzes").update({ aula_id: null }).eq("aula_id", aulaId!).neq("id", item.quizId ?? "00000000-0000-0000-0000-000000000000"));
+        check(await supabase.from("quizzes").update({ aula_id: null }).eq("aula_id", aulaId!).neq("id", item.quizId || "00000000-0000-0000-0000-000000000000"));
         if (item.quizId) check(await supabase.from("quizzes").update({ aula_id: aulaId, treinamento_id: id }).eq("id", item.quizId));
       }
     }
