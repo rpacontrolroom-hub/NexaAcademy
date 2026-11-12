@@ -735,6 +735,11 @@ async function desvincularQuizzes(aulaIds: string[]) {
   if (aulaIds.length) check(await supabase.from("quizzes").update({ aula_id: null }).in("aula_id", aulaIds));
 }
 
+/** Primeira posição temporária livre (negativa) abaixo de todas as ordens já gravadas. */
+function posicaoTemporaria(linhas: { ordem: number }[]) {
+  return Math.min(0, ...linhas.map((l) => l.ordem)) - 1;
+}
+
 /** Cria ou atualiza o treinamento e sincroniza módulos/aulas preservando os IDs
  *  existentes (assim o progresso dos alunos não se perde ao editar). */
 export async function salvarTreinamento(draft: TrainingDraft, categoriaId: string | null, treinamentoId?: string | null) {
@@ -766,7 +771,8 @@ export async function salvarTreinamento(draft: TrainingDraft, categoriaId: strin
   }
 
   const modulos = draft.modulos as TreinamentoConteudoEdicao[];
-  const existentes = check(await supabase.from("modulos").select("id").eq("treinamento_id", id)).map((m: any) => m.id);
+  const linhasModulos = check(await supabase.from("modulos").select("id, ordem").eq("treinamento_id", id)) as { id: string; ordem: number }[];
+  const existentes = linhasModulos.map((m) => m.id);
   const manter = new Set(modulos.map((m) => m.id).filter(Boolean));
   const remover = existentes.filter((mid: string) => !manter.has(mid));
   if (remover.length) {
@@ -777,7 +783,9 @@ export async function salvarTreinamento(draft: TrainingDraft, categoriaId: strin
 
   // Move para posições temporárias negativas antes de reordenar,
   // senão o unique (treinamento_id, ordem) quebra no meio da troca.
-  let tmp = -1;
+  // Começa abaixo da menor ordem atual: um salvamento interrompido pode ter
+  // deixado módulos já em posições negativas (-1, -2...).
+  let tmp = posicaoTemporaria(linhasModulos);
   for (const mid of manter) check(await supabase.from("modulos").update({ ordem: tmp-- }).eq("id", mid));
 
   for (const [index, m] of modulos.entries()) {
@@ -789,14 +797,15 @@ export async function salvarTreinamento(draft: TrainingDraft, categoriaId: strin
     await sincronizarMateriais("modulo_materiais", "modulo_id", moduloId!, m.materiais ?? []);
 
     const itens = m.itens as (TrainingModule["itens"][number] & { id?: string })[];
-    const aulasExistentes = check(await supabase.from("aulas").select("id").eq("modulo_id", moduloId)).map((a: any) => a.id);
+    const linhasAulas = check(await supabase.from("aulas").select("id, ordem").eq("modulo_id", moduloId)) as { id: string; ordem: number }[];
+    const aulasExistentes = linhasAulas.map((a) => a.id);
     const manterAulas = new Set(itens.map((i) => i.id).filter(Boolean) as string[]);
     const removerAulas = aulasExistentes.filter((aid: string) => !manterAulas.has(aid));
     if (removerAulas.length) {
       await desvincularQuizzes(removerAulas);
       check(await supabase.from("aulas").delete().in("id", removerAulas));
     }
-    let tmpAula = -1;
+    let tmpAula = posicaoTemporaria(linhasAulas);
     for (const aid of manterAulas) check(await supabase.from("aulas").update({ ordem: tmpAula-- }).eq("id", aid));
 
     for (const [i, item] of itens.entries()) {
