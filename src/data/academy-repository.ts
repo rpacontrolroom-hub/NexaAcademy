@@ -575,21 +575,12 @@ export function montarTrilhas(trilhas: TrilhaBanco[], matriculas: Matricula[], r
 }
 
 /* ---------------- Certificados ---------------- */
-/** O certificado tem um modelo fixo; o conteúdo programático são os módulos do treinamento. */
-function titulosModulos(modulos: { titulo: string; ordem: number }[] | null | undefined): string[] {
-  return [...(modulos ?? [])].sort((a, b) => a.ordem - b.ordem).map((m) => m.titulo);
-}
-
-export async function fetchTitulosModulos(treinamentoId: string): Promise<string[]> {
-  return titulosModulos(check(await supabase.from("modulos").select("titulo, ordem").eq("treinamento_id", treinamentoId)));
-}
-
 /** Treinamentos do usuário com progresso e certificado (tela Certificados). */
 export async function fetchMeusCertificados(userId: string): Promise<CertificateTraining[]> {
   const [matriculas, certificados] = await Promise.all([
     supabase
       .from("matriculas")
-      .select("treinamento_id, progresso, aproveitamento, treinamentos(titulo, duracao_minutos, categorias(nome), modulos(titulo, ordem))")
+      .select("treinamento_id, progresso, aproveitamento, treinamentos(titulo, duracao_minutos, categorias(nome))")
       .eq("user_id", userId)
       .order("updated_at", { ascending: false }),
     supabase.from("certificados").select("id, treinamento_id, codigo, aproveitamento, emitido_em").eq("user_id", userId),
@@ -603,7 +594,6 @@ export async function fetchMeusCertificados(userId: string): Promise<Certificate
       categoria: m.treinamentos?.categorias?.nome ?? "",
       cargaHoraria: formatMinutes(m.treinamentos?.duracao_minutos ?? 0),
       cargaHorariaMinutos: Number(m.treinamentos?.duracao_minutos ?? 0),
-      modulos: titulosModulos(m.treinamentos?.modulos),
       progresso: Number(m.progresso),
       aproveitamento: cert ? Number(cert.aproveitamento) : m.aproveitamento === null ? null : Number(m.aproveitamento),
       emitido: Boolean(cert),

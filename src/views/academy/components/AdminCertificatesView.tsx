@@ -26,7 +26,7 @@ export default function AdminCertificatesView({ trainings, onPreview }: AdminCer
           <div style={{ flex: 1, minWidth: 0 }}>
             <div className="nexa-section-title">Modelo padrão</div>
             <div style={{ marginTop: 3, color: palette.textFaint, fontSize: 12 }}>
-              Nome do aluno, treinamento, carga horária, data, aproveitamento e conteúdo programático (os módulos) entram sozinhos.
+              Nome do aluno, treinamento, carga horária e data entram sozinhos.
               Emitido com {MINIMUM_CERTIFICATE_SCORE}% ou mais de aproveitamento e 100% de progresso.
             </div>
           </div>

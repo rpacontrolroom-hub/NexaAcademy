@@ -65,14 +65,6 @@ const certificateCss = `
   .cert-role { left:23.248%; top:86.092%; width:53.534%; height:3.152%; color:#64748B; font-size:1.425cqw; }
   .cert-logo { left:9.798%; top:80.672%; width:6.680%; height:9.453%; object-fit:contain; }
   .cert-code { right:2.6%; bottom:.9%; color:#8794a6; font:600 .75cqw/1 monospace; }
-  .cert-back-body { left:6.193%; top:16.704%; right:6.2%; bottom:6%; }
-  .cert-back-title { font-size:1.900cqw; line-height:1.4; }
-  .cert-back-list {
-    margin:2.05cqw 0 0; padding:0; list-style:none; columns:2; column-gap:3.4cqw;
-    font-size:1.559cqw; font-weight:300; line-height:1.4;
-  }
-  .cert-back-list li { break-inside:avoid; }
-  .cert-back-score { margin-top:2.9cqw; font-size:1.900cqw; line-height:1.4; }
   .certificate-actions { display:flex; justify-content:flex-end; gap:10px; padding:14px; margin-top:0; background:#fff; border-top:1px solid #e5e5e5; }
   .certificate-action {
     min-height:40px; display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:0 18px;
@@ -94,7 +86,6 @@ function nameFontSize(name: string): string {
 
 export default function CertificatePreviewModal({ recipientName, training, onClose }: CertificatePreviewModalProps) {
   const cargaHoraria = formatCertificateHours(training.cargaHorariaMinutos, training.cargaHoraria);
-  const modulos = (training.modulos ?? []).filter((titulo) => titulo.trim());
 
   return (
     <div className="certificate-overlay" onClick={onClose} role="presentation">
@@ -131,17 +122,6 @@ export default function CertificatePreviewModal({ recipientName, training, onClo
             {training.codigo && <div className="cert-code">Código: {training.codigo}</div>}
           </article>
 
-          <article className="certificate-sheet" aria-label="Conteúdo programático">
-            <div className="cert-back-body">
-              <div className="cert-back-title">Conteúdo programático:</div>
-              <ol className="cert-back-list">
-                {modulos.map((titulo, i) => <li key={i}>{i + 1}. {titulo}</li>)}
-              </ol>
-              {training.aproveitamento !== null && (
-                <div className="cert-back-score">Aproveitamento: {Math.round(training.aproveitamento)}%</div>
-              )}
-            </div>
-          </article>
         </div>
 
         <div className="certificate-actions nexa-no-print">

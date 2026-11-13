@@ -1020,18 +1020,12 @@ export default function NexaAcademy() {
   }
 
   // Admin confere o modelo com os dados de um treinamento real e um aluno de exemplo.
-  async function visualizarModeloCertificado(treinamentoId) {
+  function visualizarModeloCertificado(treinamentoId) {
     const t = adminTrainings.find((x) => x.id === treinamentoId);
     if (!t) return;
-    let modulos = [];
-    try {
-      modulos = await repo.fetchTitulosModulos(treinamentoId);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Não foi possível carregar os módulos.");
-    }
     setCertificadoAmostra(true);
     setCertificadoPreview({
-      treinamentoId, titulo: t.title, categoria: t.cat, cargaHoraria: t.dur, cargaHorariaMinutos: t.minutos, modulos,
+      treinamentoId, titulo: t.title, categoria: t.cat, cargaHoraria: t.dur, cargaHorariaMinutos: t.minutos,
       progresso: 100, aproveitamento: 95, emitido: true, codigo: "NXA-EXEMPLO", dataEmissao: new Date().toLocaleDateString("pt-BR"),
     });
   }
