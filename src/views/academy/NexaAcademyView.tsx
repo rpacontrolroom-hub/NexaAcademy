@@ -11,13 +11,13 @@ import { buscarDuracaoYoutube } from "@/lib/youtube-duracao";
 import { useAuth } from "@/hooks/use-auth";
 import {
   keys, usePerfil, useCategorias, useTreinamentos, useMatriculas, useFavoritos, useTrilhas,
-  useMeuResumo, useMeusCertificados, useModelosCertificado, useUsuarios, useAdminResumo,
+  useMeuResumo, useMeusCertificados, useUsuarios, useAdminResumo,
   useHorasMensais, useTopTreinamentos, useQuizzesAdmin,
 } from "@/hooks/use-academy";
 import * as repo from "@/data/academy-repository";
 import { academyController } from "@/controllers/academy-controller";
 import { CORPORATE_EMAIL_DOMAIN } from "@/services/user-service";
-import { MINIMUM_CERTIFICATE_SCORE } from "@/services/certificate-service";
+import { MINIMUM_CERTIFICATE_SCORE, isCertificateEligible } from "@/services/certificate-service";
 import { theme as palette } from "@/styles/theme";
 import CourseDetailView from "@/views/academy/components/CourseDetailView";
 import LessonDetailView from "@/views/academy/components/LessonDetailView";
@@ -430,7 +430,7 @@ const css = `
     }
     .certificate-sheet:last-child { break-after:auto; page-break-after:auto; }
     .nexa-no-print, .certificate-actions { display: none !important; }
-    @page { size: landscape; margin: 0; }
+    @page { size: A4 landscape; margin: 0; }
   }
 `;
 
@@ -655,7 +655,6 @@ export default function NexaAcademy() {
   const { data: trilhasDb = [] } = useTrilhas(!!userId);
   const { data: meuResumo } = useMeuResumo(userId);
   const { data: meusTreinamentos = [] } = useMeusCertificados(userId);
-  const { data: certificateTemplates = [] } = useModelosCertificado(!!userId);
   const { data: usuariosDb = [] } = useUsuarios(inAdmin);
   const { data: adminResumo } = useAdminResumo(inAdmin);
   const { data: horasMensais = [] } = useHorasMensais(inAdmin);
@@ -924,7 +923,7 @@ export default function NexaAcademy() {
     setMenuTreinoIdx(null);
     if (!window.confirm(`Excluir o treinamento "${t.title}"? Módulos, aulas, progresso dos alunos e certificados vinculados também serão removidos.`)) return;
     const ok = await executar(() => repo.excluirTreinamento(t.id, t.title), "Treinamento excluído");
-    if (ok) invalidar(keys.treinamentos, keys.modelos, keys.adminResumo, keys.logs, ["matriculas"]);
+    if (ok) invalidar(keys.treinamentos, keys.adminResumo, keys.logs, ["matriculas"]);
   }
 
   async function salvarTreinamento() {
@@ -1009,59 +1008,32 @@ export default function NexaAcademy() {
   // --- Certificados: regra de emissão (treinamento concluído + aproveitamento >= nota mínima) ---
   const APROVEITAMENTO_MINIMO = MINIMUM_CERTIFICATE_SCORE;
   const [certificadoPreview, setCertificadoPreview] = useState(null);
-  const certificadoTemplatePreview = certificadoPreview
-    ? academyController.resolveCertificateTemplate(certificadoPreview, certificateTemplates)
-    : null;
-
+  const [certificadoAmostra, setCertificadoAmostra] = useState(false);
   async function emitirCertificado(idx) {
     const item = meusTreinamentos[idx];
     const ok = await executar(() => repo.emitirCertificado(item.treinamentoId), "Certificado emitido! Mais um tesouro tirado do fundo do mar.");
     if (!ok) return;
     invalidar(keys.meusCertificados(userId), keys.meuResumo(userId));
     const atualizados = await queryClient.fetchQuery({ queryKey: keys.meusCertificados(userId), queryFn: () => repo.fetchMeusCertificados(userId) });
+    setCertificadoAmostra(false);
     setCertificadoPreview(atualizados.find((t) => t.treinamentoId === item.treinamentoId) ?? null);
   }
 
-  async function adicionarModeloCertificado(draft, arquivo) {
-    const treinamento = adminTrainings.find((t) => t.title === draft.courseTitle);
-    if (!treinamento) {
-      toast.error("Selecione um treinamento cadastrado.");
-      return false;
+  // Admin confere o modelo com os dados de um treinamento real e um aluno de exemplo.
+  async function visualizarModeloCertificado(treinamentoId) {
+    const t = adminTrainings.find((x) => x.id === treinamentoId);
+    if (!t) return;
+    let modulos = [];
+    try {
+      modulos = await repo.fetchTitulosModulos(treinamentoId);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Não foi possível carregar os módulos.");
     }
-    const ok = await executar(() => repo.criarModeloCertificado(draft, treinamento.id, arquivo), "Modelo de certificado criado");
-    if (ok) invalidar(keys.modelos, keys.logs);
-    return ok;
-  }
-
-  async function editarModeloCertificado(templateId, draft, arquivo) {
-    const treinamento = adminTrainings.find((t) => t.title === draft.courseTitle);
-    if (!treinamento) {
-      toast.error("Selecione um treinamento cadastrado.");
-      return false;
-    }
-    const ok = await executar(() => repo.atualizarModeloCertificado(templateId, draft, treinamento.id, arquivo), "Modelo de certificado atualizado");
-    if (ok) invalidar(keys.modelos, keys.logs);
-    return ok;
-  }
-
-  async function alternarStatusModeloCertificado(templateId) {
-    const template = certificateTemplates.find((t) => t.id === templateId);
-    if (!template) return;
-    const ok = await executar(() => repo.definirStatusModelo(templateId, template.status === "active" ? "draft" : "active"));
-    if (ok) invalidar(keys.modelos);
-  }
-
-  async function removerModeloCertificado(templateId) {
-    if (!window.confirm("Excluir este modelo de certificado?")) return;
-    const ok = await executar(() => repo.excluirModeloCertificado(templateId), "Modelo excluído");
-    if (ok) {
-      invalidar(keys.modelos);
-      if (certificadoPreview?.templateId === templateId) setCertificadoPreview(null);
-    }
-  }
-
-  function visualizarModeloCertificado(template) {
-    setCertificadoPreview(academyController.createCertificatePreviewTraining(template));
+    setCertificadoAmostra(true);
+    setCertificadoPreview({
+      treinamentoId, titulo: t.title, categoria: t.cat, cargaHoraria: t.dur, cargaHorariaMinutos: t.minutos, modulos,
+      progresso: 100, aproveitamento: 95, emitido: true, codigo: "NXA-EXEMPLO", dataEmissao: new Date().toLocaleDateString("pt-BR"),
+    });
   }
 
   // --- Favoritos ---
@@ -1080,7 +1052,6 @@ export default function NexaAcademy() {
     ? porCategoria.filter((c) => `${c.title} ${c.cat} ${c.desc}`.toLocaleLowerCase("pt-BR").includes(termoBusca))
     : porCategoria;
   const navItems = mode === "admin" ? adminNavItems : userNavItems;
-  const certificateCourseTitles = adminTrainings.map((training) => training.title).sort((a, b) => a.localeCompare(b, "pt-BR"));
 
   function abrirCurso(courseId, lessonId = null) {
     const id = courseId ?? continuar?.curso?.id ?? catalogo[0]?.id;
@@ -1594,8 +1565,7 @@ export default function NexaAcademy() {
                 )}
                 {meusTreinamentos.map((t, i) => {
                   const concluido = t.progresso >= 100;
-                  const template = academyController.resolveCertificateTemplate(t, certificateTemplates);
-                  const elegivel = concluido && t.aproveitamento !== null && t.aproveitamento >= (template?.minimumScore ?? APROVEITAMENTO_MINIMO) && Boolean(template);
+                  const elegivel = isCertificateEligible({ ...t, progresso: concluido ? 100 : t.progresso });
 
                   return (
                     <div key={i} className="nexa-card" style={{ padding: 18, display: "flex", alignItems: "center", gap: 16 }}>
@@ -1625,7 +1595,7 @@ export default function NexaAcademy() {
 
                       <div style={{ flexShrink: 0, textAlign: "right" }}>
                         {t.emitido && (
-                          <button className="nexa-btn-ghost" onClick={() => setCertificadoPreview(t)}>
+                          <button className="nexa-btn-ghost" onClick={() => { setCertificadoAmostra(false); setCertificadoPreview(t); }}>
                             <Award size={14} /> Ver certificado
                           </button>
                         )}
@@ -1636,7 +1606,7 @@ export default function NexaAcademy() {
                         )}
                         {!t.emitido && concluido && !elegivel && (
                           <span style={{ fontSize: 11.5, color: palette.amber, display: "flex", alignItems: "center", gap: 4, justifyContent: "flex-end" }}>
-                            {!template ? "Modelo não configurado" : t.aproveitamento === null ? "Aguardando nota do quiz" : "Aproveitamento insuficiente"}
+                            {t.aproveitamento === null ? "Aguardando nota do quiz" : "Aproveitamento insuficiente"}
                           </span>
                         )}
                         {!concluido && (
@@ -2048,13 +2018,8 @@ export default function NexaAcademy() {
           {/* ---------- ADMIN: CERTIFICADOS ---------- */}
           {mode === "admin" && adminActive === "admin-certificados" && (
             <AdminCertificatesView
-              courseTitles={certificateCourseTitles}
-              templates={certificateTemplates}
-              onCreate={adicionarModeloCertificado}
-              onUpdate={editarModeloCertificado}
+              trainings={[...adminTrainings].sort((a, b) => a.title.localeCompare(b.title, "pt-BR"))}
               onPreview={visualizarModeloCertificado}
-              onRemove={removerModeloCertificado}
-              onToggleStatus={alternarStatusModeloCertificado}
             />
           )}
 
@@ -2086,10 +2051,9 @@ export default function NexaAcademy() {
       )}
 
       {/* Modal: Certificado emitido */}
-      {certificadoPreview && certificadoTemplatePreview && (
+      {certificadoPreview && (
         <CertificatePreviewModal
-          recipientName={perfil?.nome ?? ""}
-          template={certificadoTemplatePreview}
+          recipientName={certificadoAmostra ? "Nome do Aluno" : perfil?.nome ?? ""}
           training={certificadoPreview}
           onClose={() => setCertificadoPreview(null)}
         />

@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { supabase, MIDIA_BUCKET } from "@/lib/supabase";
 import { formatDate, formatMinutes, formatSeconds, linkValido, parseDuration, slugify } from "@/lib/format";
-import type { CertificateTemplate, CertificateTemplateDraft, CertificateTraining } from "@/models/certificate";
+import type { CertificateTraining } from "@/models/certificate";
 import type { CourseDetail, CourseModule } from "@/models/course-detail";
 import type { LearningPath } from "@/models/learning-path";
 import type { TrainingDraft, TrainingMaterial, TrainingModule } from "@/models/training";
@@ -575,63 +575,13 @@ export function montarTrilhas(trilhas: TrilhaBanco[], matriculas: Matricula[], r
 }
 
 /* ---------------- Certificados ---------------- */
-function mapModelo(row: any): CertificateTemplate {
-  return {
-    id: row.id,
-    treinamentoId: row.treinamento_id,
-    name: row.nome,
-    courseTitle: row.treinamentos?.titulo ?? "",
-    typeLabel: row.tipo_label,
-    accentColor: row.cor_destaque,
-    minimumScore: Number(row.nota_minima),
-    signerName: row.assinante_nome,
-    signerRole: row.assinante_cargo,
-    programContent: row.conteudo_programatico ?? [],
-    sourceFileName: row.arquivo_nome ?? "",
-    sourceFileUrl: row.arquivo_url ?? undefined,
-    status: row.status,
-    createdAt: formatDate(row.created_at) ?? "",
-  };
+/** O certificado tem um modelo fixo; o conteúdo programático são os módulos do treinamento. */
+function titulosModulos(modulos: { titulo: string; ordem: number }[] | null | undefined): string[] {
+  return [...(modulos ?? [])].sort((a, b) => a.ordem - b.ordem).map((m) => m.titulo);
 }
 
-export async function fetchModelosCertificado(): Promise<CertificateTemplate[]> {
-  const rows = check(await supabase.from("certificado_modelos").select("*, treinamentos(titulo)").order("created_at", { ascending: false }));
-  return rows.map(mapModelo);
-}
-
-async function camposModelo(draft: CertificateTemplateDraft, treinamentoId: string, arquivo?: File | null) {
-  const arquivoUrl = arquivo ? await uploadArquivo(arquivo, "certificados") : draft.sourceFileUrl ?? null;
-  return {
-    treinamento_id: treinamentoId,
-    nome: draft.name.trim(),
-    tipo_label: draft.typeLabel.trim().toLocaleUpperCase("pt-BR"),
-    cor_destaque: draft.accentColor,
-    nota_minima: draft.minimumScore,
-    assinante_nome: draft.signerName.trim(),
-    assinante_cargo: draft.signerRole.trim(),
-    conteudo_programatico: draft.programContent.map((i) => i.trim()).filter(Boolean),
-    arquivo_nome: draft.sourceFileName.trim() || null,
-    arquivo_url: arquivoUrl,
-    status: draft.status,
-  };
-}
-
-export async function criarModeloCertificado(draft: CertificateTemplateDraft, treinamentoId: string, arquivo?: File | null) {
-  const row = check(await supabase.from("certificado_modelos").insert(await camposModelo(draft, treinamentoId, arquivo)).select("id").single());
-  await logAtividade(`Modelo de certificado criado: ${draft.name.trim()}`, "certificado_modelos", row.id);
-}
-
-export async function atualizarModeloCertificado(id: string, draft: CertificateTemplateDraft, treinamentoId: string, arquivo?: File | null) {
-  check(await supabase.from("certificado_modelos").update(await camposModelo(draft, treinamentoId, arquivo)).eq("id", id));
-  await logAtividade(`Modelo de certificado atualizado: ${draft.name.trim()}`, "certificado_modelos", id);
-}
-
-export async function definirStatusModelo(id: string, status: "active" | "draft") {
-  check(await supabase.from("certificado_modelos").update({ status }).eq("id", id));
-}
-
-export async function excluirModeloCertificado(id: string) {
-  check(await supabase.from("certificado_modelos").delete().eq("id", id));
+export async function fetchTitulosModulos(treinamentoId: string): Promise<string[]> {
+  return titulosModulos(check(await supabase.from("modulos").select("titulo, ordem").eq("treinamento_id", treinamentoId)));
 }
 
 /** Treinamentos do usuário com progresso e certificado (tela Certificados). */
@@ -639,10 +589,10 @@ export async function fetchMeusCertificados(userId: string): Promise<Certificate
   const [matriculas, certificados] = await Promise.all([
     supabase
       .from("matriculas")
-      .select("treinamento_id, progresso, aproveitamento, treinamentos(titulo, duracao_minutos, categorias(nome))")
+      .select("treinamento_id, progresso, aproveitamento, treinamentos(titulo, duracao_minutos, categorias(nome), modulos(titulo, ordem))")
       .eq("user_id", userId)
       .order("updated_at", { ascending: false }),
-    supabase.from("certificados").select("id, treinamento_id, modelo_id, codigo, aproveitamento, emitido_em").eq("user_id", userId),
+    supabase.from("certificados").select("id, treinamento_id, codigo, aproveitamento, emitido_em").eq("user_id", userId),
   ]);
   const certs = new Map(check(certificados).map((c: any) => [c.treinamento_id, c]));
   return check(matriculas).map((m: any) => {
@@ -652,12 +602,13 @@ export async function fetchMeusCertificados(userId: string): Promise<Certificate
       titulo: m.treinamentos?.titulo ?? "",
       categoria: m.treinamentos?.categorias?.nome ?? "",
       cargaHoraria: formatMinutes(m.treinamentos?.duracao_minutos ?? 0),
+      cargaHorariaMinutos: Number(m.treinamentos?.duracao_minutos ?? 0),
+      modulos: titulosModulos(m.treinamentos?.modulos),
       progresso: Number(m.progresso),
       aproveitamento: cert ? Number(cert.aproveitamento) : m.aproveitamento === null ? null : Number(m.aproveitamento),
       emitido: Boolean(cert),
       codigo: cert?.codigo ?? null,
       dataEmissao: formatDate(cert?.emitido_em),
-      templateId: cert?.modelo_id ?? null,
     };
   });
 }

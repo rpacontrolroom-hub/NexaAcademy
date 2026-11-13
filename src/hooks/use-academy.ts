@@ -22,7 +22,6 @@ export const keys = {
   aulasDoTreinamento: (treinamentoId?: string | null) => ["aulas-do-treinamento", treinamentoId] as const,
   concluintes: (treinamentoId?: string | null) => ["concluintes", treinamentoId] as const,
   avaliacoesTreinamento: (treinamentoId?: string | null, userId?: string) => ["avaliacoes-treinamento", treinamentoId, userId] as const,
-  modelos: ["modelos-certificado"] as const,
   meusCertificados: (userId?: string) => ["meus-certificados", userId] as const,
   usuarios: ["usuarios"] as const,
   adminResumo: ["admin-resumo"] as const,
@@ -92,10 +91,6 @@ export function useTrilhas(enabled = true) {
 
 export function useTrilhasAdmin(enabled = true) {
   return useQuery({ queryKey: keys.trilhasAdmin, queryFn: repo.fetchTrilhasAdmin, enabled });
-}
-
-export function useModelosCertificado(enabled = true) {
-  return useQuery({ queryKey: keys.modelos, queryFn: repo.fetchModelosCertificado, enabled });
 }
 
 export function useMeusCertificados(userId?: string) {

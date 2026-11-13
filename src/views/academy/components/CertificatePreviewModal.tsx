@@ -1,13 +1,18 @@
-import type { CertificateTemplate, CertificateTraining } from "@/models/certificate";
+import type { CertificateTraining } from "@/models/certificate";
+import { formatCertificateHours } from "@/services/certificate-service";
 import { Download, X } from "lucide-react";
 
 interface CertificatePreviewModalProps {
   recipientName: string;
-  template: CertificateTemplate;
   training: CertificateTraining;
   onClose: () => void;
 }
 
+/*
+ * Modelo único de certificado (public/certificates/modelo-certificado-base.pptx).
+ * Posições em % do slide (10693400 x 7556500 EMU, A4 deitado) e fontes em cqw
+ * (1pt = 100/842 cqw), para a folha escalar igual na tela e no PDF.
+ */
 const certificateCss = `
   .certificate-overlay {
     position:fixed; inset:0; z-index:80; display:flex; align-items:center; justify-content:center;
@@ -16,43 +21,58 @@ const certificateCss = `
   .certificate-dialog { width:min(1080px, calc(100vw - 48px)); max-height:calc(100vh - 48px); overflow:auto; }
   .certificate-pages { display:flex; flex-direction:column; gap:14px; }
   .certificate-sheet {
-    position:relative; width:100%; aspect-ratio:10693400 / 7556500; overflow:hidden;
-    color:#111; background:#f6f9fd url('/certificates/certificate-background.png') center/cover no-repeat;
-    box-shadow:0 28px 80px rgba(0,0,0,.28); font-family:Arial,Helvetica,sans-serif;
+    position:relative; width:100%; aspect-ratio:10693400 / 7556500; overflow:hidden; container-type:inline-size;
+    background:#fff; color:#000; box-shadow:0 28px 80px rgba(0,0,0,.28);
+    font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
   }
-  .certificate-main {
-    box-shadow:inset 0 0 0 3px #0b5275, inset 0 0 0 14px #f6f9fd, inset 0 0 0 16px #8bcaf5;
+  .certificate-sheet > * { position:absolute; margin:0; }
+  .certificate-front { background:#fff url('/certificates/certificate-background.png') center/100% 100% no-repeat; }
+  .cert-frame-outer {
+    left:.724%; top:1.088%; width:98.367%; height:97.033%;
+    border:.267cqw solid #004B85; border-radius:1.12cqw; box-sizing:border-box;
   }
-  .certificate-new-header {
-    position:absolute; top:3.5%; left:3.15%; right:3.15%; height:20.3%; border-radius:10px;
-    display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff; text-align:center;
+  .cert-frame-inner {
+    left:2.023%; top:2.527%; width:95.908%; height:94.155%;
+    border:.134cqw solid #A0D3FC; border-radius:.75cqw; box-sizing:border-box;
   }
-  .certificate-new-title { margin:0; font-size:clamp(30px,4.3vw,66px); font-weight:900; line-height:.9; letter-spacing:-.075em; }
-  .certificate-new-type { margin-top:1.3%; color:#9ecff1; font-size:clamp(13px,1.95vw,29px); font-weight:300; letter-spacing:-.05em; }
-  .certificate-new-body {
-    position:absolute; top:31.8%; left:8%; right:8%; bottom:5%; display:flex; flex-direction:column; align-items:center; text-align:center;
+  .cert-header-band { left:3.145%; top:4.810%; width:93.735%; height:20.211%; background:#004B85; border-radius:.762cqw; }
+  .cert-header-text {
+    left:2.042%; top:4.810%; width:95.075%; height:22.230%;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
   }
-  .certificate-new-kicker { color:#6b7e98; font-size:clamp(11px,1.55vw,23px); }
-  .certificate-new-recipient {
-    margin-top:2.8%; color:#075791; font:700 clamp(22px,4.15vw,62px)/1 Georgia,'Times New Roman',serif;
+  .cert-title { color:#fff; font:800 4.823cqw/1.2 Montserrat,'Arial Black',sans-serif; }
+  .cert-type { margin-top:.476cqw; color:#A0D3FC; font:500 2.031cqw/1.2 Montserrat,Arial,sans-serif; }
+  .cert-box { display:flex; align-items:center; justify-content:center; text-align:center; }
+  .cert-kicker { left:8.907%; top:30.882%; width:82.214%; height:4.411%; color:#64748B; font-size:1.544cqw; }
+  .cert-name {
+    left:8.907%; top:35.924%; width:82.214%; height:9.453%;
+    color:#004B85; font-family:Georgia,'Times New Roman',serif; font-weight:700; line-height:1.1;
   }
-  .certificate-new-rule { width:38%; height:3px; margin:2.7% 0 3.5%; background:linear-gradient(90deg,#94cff7 0 25%,#075791 25% 75%,#94cff7 75%); }
-  .certificate-new-copy { max-width:92%; color:#35455d; font-size:clamp(10px,1.65vw,24px); line-height:1.38; }
-  .certificate-new-copy strong { color:#075791; font-weight:500; }
-  .certificate-new-date { margin-top:3.1%; color:#60728c; font-size:clamp(9px,1.2vw,18px); }
-  .certificate-new-footer {
-    position:absolute; left:8.5%; right:8.5%; bottom:4.8%; display:grid; grid-template-columns:1fr 1.7fr 1fr; align-items:end; gap:5%;
+  .cert-rule-light { left:32.155%; top:46.891%; width:35.719%; height:.377%; background:#A0D3FC; }
+  .cert-rule-dark { left:41.063%; top:46.891%; width:17.904%; height:.377%; background:#004B85; }
+  .cert-copy {
+    left:10.689%; top:49.790%; width:78.651%; height:15.126%;
+    color:#334155; font-size:1.900cqw; font-weight:300; line-height:1.2;
   }
-  .certificate-new-brand { height:clamp(45px,7vw,100px); display:flex; align-items:center; justify-content:center; overflow:hidden; }
-  .certificate-new-brand img { width:100%; height:100%; object-fit:contain; }
-  .certificate-new-brand:first-child img { max-width:92px; }
-  .certificate-new-brand:last-child img { max-width:66px; }
-  .certificate-new-signature { min-width:0; text-align:center; color:#075791; }
-  .certificate-new-signature img { display:block; width:clamp(52px,7.4vw,106px); height:clamp(34px,5.4vw,76px); object-fit:contain; margin:0 auto -5px; }
-  .certificate-new-signature-line { height:2px; background:#075791; }
-  .certificate-new-signer { margin-top:1.4%; font-size:clamp(9px,1.5vw,22px); }
-  .certificate-new-role { margin-top:.8%; color:#64748b; font-size:clamp(7px,1vw,15px); white-space:nowrap; }
-  .certificate-new-code { position:absolute; right:2.3%; bottom:1.4%; color:#8794a6; font:600 clamp(6px,.65vw,9px)/1 monospace; }
+  .cert-copy .cert-hl { color:#004B85; font-weight:400; }
+  .cert-copy .cert-area { font-weight:400; }
+  .cert-copy .cert-nowrap { white-space:nowrap; }
+  .cert-date { left:41.063%; top:66.176%; width:17.904%; height:3.152%; color:#64748B; font-size:1.425cqw; }
+  .cert-signature { left:43.290%; top:68.067%; width:13.362%; height:13.868%; object-fit:cover; }
+  .cert-signature-line { left:36.609%; top:81.302%; width:26.722%; height:.178cqw; background:#004B85; }
+  .cert-signer { left:27.702%; top:82.563%; width:44.627%; height:3.529%; color:#004B85; font-size:1.781cqw; }
+  .cert-role { left:23.248%; top:86.092%; width:53.534%; height:3.152%; color:#64748B; font-size:1.425cqw; }
+  .cert-logo { left:9.798%; top:80.672%; width:6.680%; height:9.453%; object-fit:contain; }
+  .cert-code { right:2.6%; bottom:.9%; color:#8794a6; font:600 .75cqw/1 monospace; }
+  .cert-back-body { left:6.193%; top:16.704%; right:6.2%; bottom:6%; }
+  .cert-back-title { font-size:1.900cqw; line-height:1.4; }
+  .cert-back-list {
+    margin:2.05cqw 0 0; padding:0; list-style:none; columns:2; column-gap:3.4cqw;
+    font-size:1.559cqw; font-weight:300; line-height:1.4;
+  }
+  .cert-back-list li { break-inside:avoid; }
+  .cert-back-score { margin-top:2.9cqw; font-size:1.900cqw; line-height:1.4; }
   .certificate-actions { display:flex; justify-content:flex-end; gap:10px; padding:14px; margin-top:0; background:#fff; border-top:1px solid #e5e5e5; }
   .certificate-action {
     min-height:40px; display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:0 18px;
@@ -66,40 +86,61 @@ const certificateCss = `
   }
 `;
 
-export default function CertificatePreviewModal({ recipientName, template, training, onClose }: CertificatePreviewModalProps) {
+/** 40pt como no modelo; nomes longos encolhem para caber em uma linha. */
+function nameFontSize(name: string): string {
+  const size = Math.min(4.75, 82 / (Math.max(name.trim().length, 1) * 0.6));
+  return `${Math.max(size, 2.4).toFixed(3)}cqw`;
+}
+
+export default function CertificatePreviewModal({ recipientName, training, onClose }: CertificatePreviewModalProps) {
+  const cargaHoraria = formatCertificateHours(training.cargaHorariaMinutos, training.cargaHoraria);
+  const modulos = (training.modulos ?? []).filter((titulo) => titulo.trim());
+
   return (
     <div className="certificate-overlay" onClick={onClose} role="presentation">
       <style>{certificateCss}</style>
       <div className="certificate-dialog" onClick={(event) => event.stopPropagation()}>
         <div className="certificate-pages">
-          <article className="certificate-sheet certificate-main" aria-label={`Certificado do curso ${training.titulo}`}>
-            <header className="certificate-new-header" style={{ background: template.accentColor }}>
-              <h2 className="certificate-new-title">CERTIFICADO</h2>
-              <div className="certificate-new-type">{template.typeLabel}</div>
+          <article className="certificate-sheet certificate-front" aria-label={`Certificado do treinamento ${training.titulo}`}>
+            <div className="cert-frame-outer" />
+            <div className="cert-frame-inner" />
+            <div className="cert-header-band" />
+            <header className="cert-header-text">
+              <h2 className="cert-title">CERTIFICADO</h2>
+              <div className="cert-type">DE CONCLUSÃO</div>
             </header>
 
-            <section className="certificate-new-body">
-              <div className="certificate-new-kicker">CERTIFICAMOS QUE</div>
-              <div className="certificate-new-recipient">{recipientName}</div>
-              <div className="certificate-new-rule" />
-              <div className="certificate-new-copy">
-                concluiu com êxito o treinamento <strong>{training.titulo}</strong>, disponibilizado pela área
-                CoE RPA, Agentic AI &amp; Processos AZZAS, com carga horária de <strong>{training.cargaHoraria}</strong>.
-              </div>
-              <div className="certificate-new-date">{training.dataEmissao}</div>
-            </section>
+            <div className="cert-box cert-kicker">CERTIFICAMOS QUE</div>
+            <div className="cert-box cert-name" style={{ fontSize: nameFontSize(recipientName) }}>{recipientName}</div>
+            <div className="cert-rule-light" />
+            <div className="cert-rule-dark" />
+            <p className="cert-box cert-copy">
+              <span>
+                concluiu com êxito o treinamento <span className="cert-hl">{training.titulo}</span>, disponibilizado pela área{" "}
+                <span className="cert-area">CoE Hiperautomação &amp; Processos</span>
+                {cargaHoraria && <>, com carga horária de <span className="cert-hl cert-nowrap">{cargaHoraria}</span></>}.
+              </span>
+            </p>
+            <div className="cert-box cert-date">{training.dataEmissao}</div>
 
-            <footer className="certificate-new-footer">
-              <div className="certificate-new-brand"><img src="/certificates/hering-logo.png" alt="Hering" /></div>
-              <div className="certificate-new-signature">
-                <img src="/certificates/certificate-signature.png" alt={`Assinatura de ${template.signerName}`} />
-                <div className="certificate-new-signature-line" />
-                <div className="certificate-new-signer">{template.signerName}</div>
-                <div className="certificate-new-role">{template.signerRole}</div>
-              </div>
-              <div className="certificate-new-brand"><img src="/certificates/nexa-certificate-logo.png" alt="Nexa Academy" /></div>
-            </footer>
-            <div className="certificate-new-code">Código: {training.codigo}</div>
+            <img className="cert-signature" src="/certificates/certificate-signature.png" alt="Assinatura de Rael P. Borges" />
+            <div className="cert-signature-line" />
+            <div className="cert-box cert-signer">Rael P. Borges</div>
+            <div className="cert-box cert-role">Coordenador CoE Hiperautomação &amp; Processos</div>
+            <img className="cert-logo" src="/certificates/hering-logo.png" alt="Hering" />
+            {training.codigo && <div className="cert-code">Código: {training.codigo}</div>}
+          </article>
+
+          <article className="certificate-sheet" aria-label="Conteúdo programático">
+            <div className="cert-back-body">
+              <div className="cert-back-title">Conteúdo programático:</div>
+              <ol className="cert-back-list">
+                {modulos.map((titulo, i) => <li key={i}>{i + 1}. {titulo}</li>)}
+              </ol>
+              {training.aproveitamento !== null && (
+                <div className="cert-back-score">Aproveitamento: {Math.round(training.aproveitamento)}%</div>
+              )}
+            </div>
           </article>
         </div>
 
@@ -111,4 +152,3 @@ export default function CertificatePreviewModal({ recipientName, template, train
     </div>
   );
 }
-

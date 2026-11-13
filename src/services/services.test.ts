@@ -1,7 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import type { CertificateTemplateDraft, CertificateTraining } from "@/models/certificate";
-import { createCertificateTemplate, isCertificateEligible, issueCertificate, resolveCertificateTemplate } from "./certificate-service";
-import { defaultCertificateTemplates } from "@/mocks/certificate-templates";
+import type { CertificateTraining } from "@/models/certificate";
+import { formatCertificateHours, isCertificateEligible, issueCertificate } from "./certificate-service";
 import { validatePasswordChange } from "./profile-service";
 import { canRegisterUser, isValidCorporateEmail } from "./user-service";
 import { canOpenModule, getLessonContext } from "./course-service";
@@ -28,29 +27,11 @@ describe("regras da academia", () => {
     expect(issued.codigo).toBe("NXA-2026-10000");
   });
 
-  test("seleciona um modelo específico para cada curso", () => {
-    const training: CertificateTraining = { titulo: "Blue Prism Avançado", categoria: "Blue Prism", cargaHoraria: "3h20", progresso: 100, aproveitamento: 96, emitido: false, codigo: null, dataEmissao: null };
-    const template = resolveCertificateTemplate(training, defaultCertificateTemplates);
-    expect(template?.id).toBe("cert-blue-prism-avancado");
-    expect(template?.typeLabel).toBe("DE CONCLUSÃO");
-  });
-
-  test("valida e cria modelos cadastrados pelo administrador", () => {
-    const draft: CertificateTemplateDraft = {
-      name: "Certificado de APIs",
-      courseTitle: "APIs REST com FastAPI",
-      typeLabel: "de integrações",
-      accentColor: "#334155",
-      minimumScore: 90,
-      signerName: "Coordenação Nexa Academy",
-      signerRole: "Coordenação de Gestão de Processos & RPA",
-      programContent: ["Fundamentos de APIs", "Integrações"],
-      sourceFileName: "modelo-api.pptx",
-      status: "active",
-    };
-    const template = createCertificateTemplate(draft, new Date("2026-07-16T12:00:00Z"), () => 0);
-    expect(template?.id).toBe("cert-apis-rest-com-fastapi-1000");
-    expect(template?.typeLabel).toBe("DE INTEGRAÇÕES");
+  test("escreve a carga horária por extenso no certificado", () => {
+    expect(formatCertificateHours(3720)).toBe("62 horas");
+    expect(formatCertificateHours(90)).toBe("1 hora e 30 minutos");
+    expect(formatCertificateHours(45)).toBe("45 minutos");
+    expect(formatCertificateHours(0, "2h")).toBe("2h");
   });
 
   test("impede acesso a módulos bloqueados", () => {
