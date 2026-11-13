@@ -54,19 +54,19 @@ export function useConteudo(treinamentoId?: string | null) {
   return useQuery({ queryKey: keys.conteudo(treinamentoId), queryFn: () => repo.fetchConteudoTreinamento(treinamentoId!), enabled: !!treinamentoId });
 }
 
-export function useAulasConcluidas(userId: string | undefined, treinamentoId: string | null | undefined, aulaIds: string[]) {
+export function useAulasConcluidas(userId: string | undefined, treinamentoId: string | null | undefined) {
   return useQuery({
-    queryKey: [...keys.concluidas(userId, treinamentoId), aulaIds.length],
-    queryFn: () => repo.fetchAulasConcluidas(userId!, aulaIds),
+    queryKey: keys.concluidas(userId, treinamentoId),
+    queryFn: () => repo.fetchAulasConcluidas(userId!, treinamentoId!),
     enabled: !!userId && !!treinamentoId,
   });
 }
 
-/** Conteúdo do curso + progresso do usuário no formato CourseDetail. */
+/** Conteúdo do curso + progresso do usuário no formato CourseDetail.
+ *  As duas consultas saem juntas (antes a segunda esperava a primeira). */
 export function useCursoDetalhe(userId: string | undefined, treinamento: repo.Treinamento | undefined, progresso: number) {
   const conteudo = useConteudo(treinamento?.id);
-  const aulaIds = (conteudo.data ?? []).flatMap((m) => m.aulas.map((a) => a.id));
-  const concluidas = useAulasConcluidas(userId, treinamento?.id, aulaIds);
+  const concluidas = useAulasConcluidas(userId, treinamento?.id);
   const course = treinamento && conteudo.data
     ? repo.montarCursoDetalhe(treinamento, conteudo.data, concluidas.data ?? new Set(), progresso)
     : null;

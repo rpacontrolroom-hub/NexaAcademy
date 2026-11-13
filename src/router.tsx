@@ -3,7 +3,14 @@ import { createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
 
 export const getRouter = () => {
-  const queryClient = new QueryClient();
+  // Dado buscado vale por 1 minuto: trocar de tela ou voltar para a aba não refaz
+  // todas as consultas. As mutações continuam invalidando o que muda (invalidateQueries
+  // ignora o staleTime), então o que o usuário altera aparece na hora.
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { staleTime: 60_000, refetchOnWindowFocus: false },
+    },
+  });
 
   const router = createRouter({
     routeTree,

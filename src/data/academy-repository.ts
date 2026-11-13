@@ -14,10 +14,25 @@ function check<T>(result: { data: T; error: { message: string } | null }): NonNu
   return result.data as NonNullable<T>;
 }
 
+// getSession lê a sessão local (renovando o token se preciso), sem ida ao servidor de
+// autenticação a cada ação. O id só identifica a linha; quem garante o acesso é o RLS.
 async function currentUserId(): Promise<string> {
-  const { data } = await supabase.auth.getUser();
-  if (!data.user) throw new Error("Sessão expirada. Entre novamente.");
-  return data.user.id;
+  const { data } = await supabase.auth.getSession();
+  const id = data.session?.user.id;
+  if (!id) throw new Error("Sessão expirada. Entre novamente.");
+  return id;
+}
+
+/** Roda `fn` para cada item com no máximo `limite` chamadas ao mesmo tempo. */
+async function emParalelo<T>(itens: readonly T[], fn: (item: T, indice: number) => Promise<void>, limite = 6) {
+  let proximo = 0;
+  const trabalhador = async () => {
+    while (proximo < itens.length) {
+      const i = proximo++;
+      await fn(itens[i], i);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(limite, itens.length) }, trabalhador));
 }
 
 export async function logAtividade(acao: string, entidade?: string, entidadeId?: string) {
@@ -230,10 +245,16 @@ export async function fetchConteudoTreinamento(treinamentoId: string): Promise<M
   ) as ModuloConteudo[];
 }
 
-export async function fetchAulasConcluidas(userId: string, aulaIds: string[]): Promise<Set<string>> {
-  if (aulaIds.length === 0) return new Set();
+/** Aulas concluídas pelo usuário no treinamento. Filtra pelo treinamento (via aulas → módulos),
+ *  então não precisa esperar o conteúdo carregar para saber os ids das aulas. */
+export async function fetchAulasConcluidas(userId: string, treinamentoId: string): Promise<Set<string>> {
   const rows = check(
-    await supabase.from("aula_progresso").select("aula_id").eq("user_id", userId).eq("concluida", true).in("aula_id", aulaIds),
+    await supabase
+      .from("aula_progresso")
+      .select("aula_id, aulas!inner(modulos!inner(treinamento_id))")
+      .eq("user_id", userId)
+      .eq("concluida", true)
+      .eq("aulas.modulos.treinamento_id", treinamentoId),
   );
   return new Set(rows.map((r: any) => r.aula_id));
 }
@@ -658,16 +679,20 @@ async function sincronizarMateriais(tabela: "aula_materiais" | "modulo_materiais
   const remover = existentes.filter((id) => !manter.has(id));
   if (remover.length) check(await supabase.from(tabela).delete().in("id", remover));
 
-  for (const [ordem, material] of materiais.entries()) {
+  for (const material of materiais) {
     const titulo = material.titulo.trim() || "Material de apoio";
-    const arquivoUrl = material.arquivoUrl?.trim() ?? "";
-    if (!linkValido(arquivoUrl)) throw new Error(`O material "${titulo}" precisa de um link válido (https://...).`);
+    if (!linkValido(material.arquivoUrl?.trim() ?? "")) throw new Error(`O material "${titulo}" precisa de um link válido (https://...).`);
+  }
+  // Materiais não têm ordem única no banco: dá para gravar todos ao mesmo tempo.
+  await emParalelo(materiais, async (material, ordem) => {
+    const titulo = material.titulo.trim() || "Material de apoio";
+    const arquivoUrl = material.arquivoUrl!.trim();
     if (material.id) {
       check(await supabase.from(tabela).update({ titulo, arquivo_url: arquivoUrl, ordem }).eq("id", material.id));
     } else {
       check(await supabase.from(tabela).insert({ [coluna]: donoId, titulo, arquivo_url: arquivoUrl, ordem }));
     }
-  }
+  });
 }
 
 /** quizzes.aula_id tem "on delete cascade": sem isto, apagar a aula apagaria o quiz.
@@ -726,9 +751,18 @@ export async function salvarTreinamento(draft: TrainingDraft, categoriaId: strin
   // senão o unique (treinamento_id, ordem) quebra no meio da troca.
   // Começa abaixo da menor ordem atual: um salvamento interrompido pode ter
   // deixado módulos já em posições negativas (-1, -2...).
-  let tmp = posicaoTemporaria(linhasModulos);
-  for (const mid of manter) check(await supabase.from("modulos").update({ ordem: tmp-- }).eq("id", mid));
+  // Cada um vai para uma posição diferente, então as atualizações podem sair juntas.
+  const tmp = posicaoTemporaria(linhasModulos);
+  await emParalelo([...manter], async (mid, i) => {
+    check(await supabase.from("modulos").update({ ordem: tmp - i }).eq("id", mid!));
+  });
 
+  // Ligações de quiz ficam para o fim, na ordem dos itens: se o mesmo quiz foi escolhido
+  // em duas aulas, vale o último (como antes), sem depender de qual requisição chega primeiro.
+  const ligacoesQuiz: { aulaId: string; quizId?: string }[] = [];
+
+  // Os módulos seguem um por vez (uma aula pode ter mudado de módulo); dentro de cada
+  // módulo as aulas e os materiais são gravados em paralelo.
   for (const [index, m] of modulos.entries()) {
     const imagem = m.imagem?.startsWith("data:") ? await uploadArquivo(m.imagem, "modulos", "imagem.png") : m.imagem || null;
     const dados = { treinamento_id: id, ordem: index + 1, titulo: m.titulo.trim(), imagem_url: imagem };
@@ -746,10 +780,13 @@ export async function salvarTreinamento(draft: TrainingDraft, categoriaId: strin
       await desvincularQuizzes(removerAulas);
       check(await supabase.from("aulas").delete().in("id", removerAulas));
     }
-    let tmpAula = posicaoTemporaria(linhasAulas);
-    for (const aid of manterAulas) check(await supabase.from("aulas").update({ ordem: tmpAula-- }).eq("id", aid));
+    const tmpAula = posicaoTemporaria(linhasAulas);
+    await emParalelo([...manterAulas], async (aid, i) => {
+      check(await supabase.from("aulas").update({ ordem: tmpAula - i }).eq("id", aid));
+    });
 
-    for (const [i, item] of itens.entries()) {
+    const aulaIds: string[] = [];
+    await emParalelo(itens, async (item, i) => {
       const aula = {
         modulo_id: moduloId,
         ordem: i + 1,
@@ -763,13 +800,18 @@ export async function salvarTreinamento(draft: TrainingDraft, categoriaId: strin
       let aulaId = item.id;
       if (aulaId) check(await supabase.from("aulas").update(aula).eq("id", aulaId));
       else aulaId = check(await supabase.from("aulas").insert(aula).select("id").single()).id as string;
+      aulaIds[i] = aulaId!;
       await sincronizarMateriais("aula_materiais", "aula_id", aulaId!, item.materiais ?? []);
-      // Item do tipo quiz: liga o quiz escolhido a esta aula e solta os que estavam nela antes.
-      if (item.tipo === "quiz") {
-        check(await supabase.from("quizzes").update({ aula_id: null }).eq("aula_id", aulaId!).neq("id", item.quizId || "00000000-0000-0000-0000-000000000000"));
-        if (item.quizId) check(await supabase.from("quizzes").update({ aula_id: aulaId, treinamento_id: id }).eq("id", item.quizId));
-      }
+    });
+    for (const [i, item] of itens.entries()) {
+      if (item.tipo === "quiz") ligacoesQuiz.push({ aulaId: aulaIds[i], quizId: item.quizId });
     }
+  }
+
+  // Item do tipo quiz: liga o quiz escolhido a esta aula e solta os que estavam nela antes.
+  for (const { aulaId, quizId } of ligacoesQuiz) {
+    check(await supabase.from("quizzes").update({ aula_id: null }).eq("aula_id", aulaId).neq("id", quizId || "00000000-0000-0000-0000-000000000000"));
+    if (quizId) check(await supabase.from("quizzes").update({ aula_id: aulaId, treinamento_id: id }).eq("id", quizId));
   }
 
   await logAtividade(treinamentoId ? `Treinamento atualizado: ${base.titulo}` : `Novo treinamento criado: ${base.titulo}`, "treinamentos", id);
