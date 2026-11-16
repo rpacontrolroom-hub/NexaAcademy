@@ -780,20 +780,22 @@ export default function NexaAcademy() {
   const [salvandoTreino, setSalvandoTreino] = useState(false);
   const novoItem = () => ({ tipo: "video", titulo: "", url: "", texto: "", materiais: [], quizId: "" });
   const treinoInicial = {
-    title: "", cat: "", level: "Básico", dur: "", desc: "", capa: "", naoListado: false,
+    title: "", cat: "", level: "Básico", dur: "", durManual: false, desc: "", capa: "", naoListado: false,
     modulos: [{ titulo: "Módulo 1", imagem: "", itens: [novoItem()] }],
   };
   const [novoTreino, setNovoTreino] = useState(treinoInicial);
   const [novaCategoria, setNovaCategoria] = useState("");
   const [tentouSalvarTreino, setTentouSalvarTreino] = useState(false);
-  // Duração do treinamento: soma dos vídeos quando todos têm a duração lida do YouTube; senão, o campo manual.
+  // Duração do treinamento: editável. Enquanto o admin não digitar, sugere a soma dos vídeos (quando todos foram medidos);
+  // depois que ele digita (ou ao editar um treinamento já salvo), vale o valor informado.
   const [medicaoVideo, setMedicaoVideo] = useState({});
   const tentadosDuracao = useRef(new Set());
   const itensVideo = novoTreino.modulos.flatMap((m) => m.itens).filter((i) => i.tipo === "video");
   const duracaoAutoMin = itensVideo.length > 0 && itensVideo.every((i) => (i.duracaoSegundos || 0) > 0)
     ? Math.max(1, Math.round(itensVideo.reduce((s, i) => s + i.duracaoSegundos, 0) / 60))
     : 0;
-  const duracaoEfetiva = duracaoAutoMin > 0 ? minutosParaHoras(duracaoAutoMin) : novoTreino.dur;
+  const duracaoEfetiva = !novoTreino.durManual && duracaoAutoMin > 0 ? minutosParaHoras(duracaoAutoMin) : novoTreino.dur;
+  const duracaoSomaVideos = duracaoAutoMin > 0 ? minutosParaHoras(duracaoAutoMin) : "";
   const { validTitle: tituloTreinoValido, validDuration: duracaoTreinoValida, validModules: modulosValidos, canSave: podeSalvarTreino } = academyController.validateTrainingDraft({ ...novoTreino, dur: duracaoEfetiva });
 
   useEffect(() => {
@@ -902,6 +904,7 @@ export default function NexaAcademy() {
         cat: categoriasDb.some((c) => c.nome === t.cat) ? t.cat : "",
         level: t.level || "Básico",
         dur: minutosParaHoras(t.minutos),
+        durManual: Number(t.minutos) > 0,
         desc: t.desc || "",
         naoListado: t.naoListado,
         capa: t.cover || "",
@@ -2213,23 +2216,27 @@ export default function NexaAcademy() {
                 <label style={{ fontSize: 11.5, color: palette.textMuted, display: "block", marginBottom: 6 }}>Duração (horas)<RequiredMark /></label>
                 <input
                   value={duracaoEfetiva}
-                  onChange={(e) => setNovoTreino((prev) => ({ ...prev, dur: mascaraHoras(e.target.value, prev.dur) }))}
-                  disabled={duracaoAutoMin > 0}
+                  onChange={(e) => setNovoTreino((prev) => ({ ...prev, durManual: true, dur: mascaraHoras(e.target.value, prev.durManual ? prev.dur : duracaoEfetiva) }))}
                   inputMode="numeric"
                   maxLength={5}
                   placeholder="02:30"
-                  title={duracaoAutoMin > 0 ? "Calculada somando a duração dos vídeos" : "Carga horária no formato HH:MM"}
+                  title="Carga horária no formato HH:MM"
                   style={{
                     width: "100%", background: palette.bgPanel,
                     border: `1px solid ${tentouSalvarTreino && !duracaoTreinoValida ? "#F2596B" : palette.border}`,
                     borderRadius: 9, padding: "9px 12px", color: palette.textPrimary, fontSize: 13, outline: "none",
-                    opacity: duracaoAutoMin > 0 ? 0.75 : 1,
                   }}
                 />
                 <div style={{ marginTop: 3, fontSize: 10, color: palette.textFaint, lineHeight: 1.3 }}>
-                  {duracaoAutoMin > 0
-                    ? "Automática: soma dos vídeos"
-                    : Object.values(medicaoVideo).includes("medindo") ? "Medindo os vídeos..." : itensVideo.length ? "Vídeo não medido: preencha" : ""}
+                  {Object.values(medicaoVideo).includes("medindo")
+                    ? "Medindo os vídeos..."
+                    : duracaoSomaVideos
+                      ? (novoTreino.durManual
+                        ? (duracaoSomaVideos !== novoTreino.dur
+                          ? <>Vídeos somam {duracaoSomaVideos} · <button type="button" onClick={() => setNovoTreino((prev) => ({ ...prev, durManual: false, dur: "" }))} style={{ background: "none", border: "none", padding: 0, color: palette.blue, fontSize: 10, cursor: "pointer", textDecoration: "underline" }}>usar</button></>
+                          : "Igual à soma dos vídeos")
+                        : "Sugestão: soma dos vídeos (editável)")
+                      : itensVideo.length && !novoTreino.durManual ? "Vídeo não medido: preencha" : ""}
                 </div>
               </div>
             </div>
