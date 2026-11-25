@@ -96,7 +96,7 @@ export async function adminDefinirSenha(userId: string, senha: string, temporari
 export async function concluirTrocaDeSenha(userId: string, novaSenha: string) {
   const { error } = await supabase.auth.updateUser({ password: novaSenha });
   if (error) throw new Error(/should be different/i.test(error.message) ? "Escolha uma senha diferente da senha temporária." : error.message);
-  check(await supabase.from("profiles").update({ trocar_senha: false }).eq("id", userId));
+  check(await supabase.rpc("concluir_troca_senha"));
 }
 
 export async function alterarSenha(email: string, senhaAtual: string, novaSenha: string) {

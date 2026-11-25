@@ -22,7 +22,7 @@ export const textLessonCss = `
   @media (max-width:700px) { .text-lesson { padding:20px 18px 26px; font-size:14.5px; } }
 `;
 
-const LINK_SEGURO = /^(https?:\/\/|mailto:|\/)/i;
+const LINK_SEGURO = /^(https?:\/\/|mailto:|\/(?!\/))/i;
 
 function inline(texto: string, chave = "i"): ReactNode[] {
   const partes: ReactNode[] = [];

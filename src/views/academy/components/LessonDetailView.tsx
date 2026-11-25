@@ -377,7 +377,6 @@ export default function LessonDetailView({ userId, course: treinamento, matricul
                     ? <DriveViewer
                         id={driveFileId(aula.url)!}
                         title={detail.title}
-                        fallbackSrc={embedAula.src}
                         chaveProgresso={userId ? `nexa:pdf:${userId}:${lessonId}:${driveFileId(aula.url)}` : null}
                         onControle={setControlePdf}
                       />
